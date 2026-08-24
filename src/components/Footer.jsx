@@ -8,38 +8,16 @@ import {
 } from './SocialIcons';
 
 const col1 = [
-  { label: 'Nosotros', to: '/proximamente' },
-  { label: 'GreenLine Perú', to: '/proximamente' },
+  { label: 'Nosotros', to: '/nosotros' },
   { label: 'Novedades', to: '/tienda' },
-  { label: 'Nuestros Aliados', to: '/proximamente' },
   { label: 'Trabaja con nosotros', to: '/proximamente' },
-  { label: 'GreenLine Chile', to: '/proximamente' },
 ];
 
 const col2 = [
-  { label: 'Contáctanos', to: '/proximamente' },
-  { label: 'Manuales de uso', to: '/proximamente' },
+  { label: 'Contáctanos', to: '/contacto' },
+  { label: 'Tiendas', to: '/tiendas' },
   { label: 'Preguntas Frecuentes', to: '/proximamente' },
-  { label: 'Libro de reclamaciones', to: '/proximamente' },
-];
-
-const col3 = [
-  'Sede Lince (Av. Jose Leal 507)',
-  'Sede Surco (Av. Surco 790)',
-  'Sede San Miguel',
-  'Sede La Molina',
-  'Sede Miraflores',
-  'Sede Comas',
-  'Sede Huancayo',
-  'Sede Ate',
-];
-
-const col4 = [
-  { label: 'Falabella', to: '/proximamente' },
-  { label: 'Ripley', to: '/proximamente' },
-  { label: 'Coolbox', to: '/proximamente' },
-  { label: 'Mercado Libre', to: '/proximamente' },
-  { label: 'Puntos Autorizados', to: '/proximamente' },
+  { label: 'Manuales de uso', to: '/proximamente' },
 ];
 
 const socials = [
@@ -67,6 +45,7 @@ export default function Footer() {
               ))}
             </ul>
           </div>
+
           <div>
             <h3 className="font-bold text-lg mb-4 text-brand-light">Soporte</h3>
             <ul className="space-y-2 text-sm text-gray-300">
@@ -79,25 +58,18 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-          <div>
-            <h3 className="font-bold text-lg mb-4 text-brand-light">Sedes Principales</h3>
-            <ul className="space-y-2 text-sm text-gray-300">
-              {col3.map((sede) => (
-                <li key={sede}>{sede}</li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-bold text-lg mb-4 text-brand-light">Encuéntranos También</h3>
-            <ul className="space-y-2 text-sm text-gray-300">
-              {col4.map((item) => (
-                <li key={item.label}>
-                  <Link to={item.to} className="hover:text-white transition-colors">
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+
+          <div className="sm:col-span-2 lg:col-span-2">
+            <h3 className="font-bold text-lg mb-4 text-brand-light">Sobre Nosotros</h3>
+            <p className="text-sm text-gray-400 leading-relaxed mb-4">
+              GreenLine es una empresa peruana líder en movilidad eléctrica. Desde 2017,
+              nos especializamos en la importación y distribución de vehículos menores
+              eléctricos de alta calidad, con marcas reconocidas como Sunra, Zuboo y Huaihai.
+            </p>
+            <p className="text-sm text-gray-400 leading-relaxed">
+              Nuestra misión es impulsar la revolución sostenible en el Perú, ofreciendo
+              soluciones de movilidad limpia, eficiente y accesible para todos.
+            </p>
           </div>
         </div>
 
@@ -117,6 +89,15 @@ export default function Footer() {
               </a>
             ))}
           </div>
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-gray-800 text-center">
+          <Link
+            to="/proximamente"
+            className="text-xs text-gray-500 hover:text-white transition-colors"
+          >
+            Libro de Reclamaciones
+          </Link>
         </div>
       </div>
     </footer>

@@ -1,25 +1,30 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, CreditCard } from 'lucide-react';
-import { getProductImage } from '../lib/utils';
 
 const slides = [
   {
     title: 'Movilidad eléctrica para todos',
     subtitle: 'Descubre VMP, motos, trimotos y cargueros 100% eléctricos.',
     cta: 'Ver tienda',
-    label: 'Hero 1',
+    img: '/assets/imagenes/caroussel/1.webp',
   },
   {
     title: 'Ahorra con cada kilómetro',
     subtitle: 'Dile adiós a la gasolina. Calcula tu ahorro mensual con nuestro simulador.',
     cta: 'Simular ahorro',
-    label: 'Hero 2',
+    img: '/assets/imagenes/caroussel/2.jpg',
   },
   {
     title: 'Tecnología verde peruana',
     subtitle: 'Calidad, confianza y garantía en cada modelo Green Line.',
     cta: 'Conócenos',
-    label: 'Hero 3',
+    img: '/assets/imagenes/caroussel/3.jpg',
+  },
+  {
+    title: 'Tecnología verde peruana',
+    subtitle: 'Calidad, confianza y garantía en cada modelo Green Line.',
+    cta: 'Conócenos',
+    img: '/assets/imagenes/caroussel/4.jpg',
   },
 ];
 
@@ -42,24 +47,21 @@ export default function HeroCarousel() {
       {/* BBVA banner */}
       <div className="bg-bbva text-white text-center py-2.5 px-4 text-sm sm:text-base font-semibold flex items-center justify-center gap-2">
         <CreditCard className="w-5 h-5" />
-        <span>Paga 6 meses sin intereses</span>
+        <span>Paga 6 meses sin intereses con tarjetas BBVA</span>
       </div>
 
       {/* Carousel */}
       <div className="relative w-full h-[360px] sm:h-[420px] lg:h-[500px] overflow-hidden bg-gray-900">
         {slides.map((slide, index) => {
-          const { webp, fallback } = getProductImage(slide.label, 1200, 500);
           return (
             <div
-              key={slide.label}
               className={`absolute inset-0 transition-opacity duration-700 ${
                 index === current ? 'opacity-100 z-10' : 'opacity-0 z-0'
               }`}
             >
               <picture className="block w-full h-full">
-                <source type="image/webp" srcSet={webp} />
                 <img
-                  src={fallback}
+                  src={slide.img}
                   alt={slide.title}
                   className="w-full h-full object-cover opacity-80"
                 />
