@@ -1,20 +1,21 @@
-import { getProductImage } from '../lib/utils';
-
 export default function ProductImage({
+  src,
   nombre,
   width = 600,
   height = 400,
   className = '',
   imgClassName = '',
 }) {
-  const { webp, fallback } = getProductImage(nombre, width, height);
+
   return (
     <picture className={`block ${className}`}>
-      <source type="image/webp" srcSet={webp} />
       <img
-        src={fallback}
+        src={src}
         alt={nombre}
+        width={width}
+        height={height}
         loading="lazy"
+        decoding="async"
         className={`w-full h-full object-cover ${imgClassName}`}
       />
     </picture>

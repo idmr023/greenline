@@ -1,0 +1,69 @@
+# ==========================================
+# ARCHIVO DE EXCLUSIÓN PARA EL AGENTE DE IA
+# ==========================================
+
+# 1. Dependencias (¡El mayor devorador de tokens!)
+node_modules/
+.pnp
+.pnp.js
+
+# 2. Archivos de Bloqueo (Muros de texto irrelevantes para la lógica)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# 3. Archivos de Construcción y Salida (Código minificado)
+dist/
+build/
+out/
+.next/
+.nuxt/
+.cache/
+
+# 4. Multimedia y Binarios (La IA no puede "leer" esto)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+*.ico
+*.svg
+*.mp4
+*.pdf
+*.glb
+*.gltf
+public/images/
+public/assets/
+
+# 5. Servicios Locales y Bases de Datos
+.supabase/
+supabase/.temp/
+*.sqlite
+*.db
+pgdata/
+docker-volumes/
+
+# 6. Logs y Archivos de Depuración
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 7. Variables de Entorno y Secretos (Por seguridad)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 8. Archivos del Sistema Operativo y Editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -25,4 +26,46 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  margin: 0;
+}
+
+p, span, a, li, button, input, textarea {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
+  margin: 0;
+}
+
+@keyframes slide-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
+
+/* Admin panel inputs */
+.input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  outline: none;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.input:focus {
+  box-shadow: 0 0 0 3px rgba(0, 144, 0, 0.1);
+  border-color: #009000;
+}
+
+.input::placeholder {
+  color: #9ca3af;
 }
