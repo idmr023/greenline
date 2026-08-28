@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: greenline-backend
+    runtime: node
+    rootDir: backend
+    healthCheckPath: /health
+    buildCommand: npm install; npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: RATE_LIMIT_WINDOW_MS
+        sync: false
+      - key: RATE_LIMIT_MAX
+        sync: false
+      - key: LOGIN_RATE_LIMIT_MAX
+        sync: false
+      - key: OTP_RATE_LIMIT_MAX
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
