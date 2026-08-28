@@ -1,0 +1,115 @@
+PROPUESTA — ALMACÉN COMPARTIDO (STOCK EN TIENDA Y EN ALMACÉN)
+==============================================================
+
+Fecha: 2026-08-27
+Proyecto: greenline
+Estado: PROPUESTA — pendiente de aprobacion y de 2 confirmaciones del usuario
+
+
+1. SITUACION ACTUAL
+-------------------
+- La web y el panel leen/escriben UNA sola cifra por producto+color en
+  prod_color_rel.stock:
+    * frontend/lib/productos.js:75  -> suma de colores para "unidades"
+    * AdminProductoForm.jsx:285     -> escribe stock por color
+    * AdminProductos.jsx:35         -> stock total por producto
+    * AdminDashboard.jsx:19         -> "Sin stock"
+- No existe nocion de "tienda" ni "almacen".
+- Indicadores de la web derivados del total: "Ultimas unidades", "Pocas unidades",
+  "Solo X unidades!", disponibilidad.
+- Datos actuales casi vacios (totales de 1 a 6 uds por producto): migracion indolora.
+
+El backend (Express + Prisma) ya tiene un sistema de stock por ubicacion diseñado
+pero inconcluso y sin UI:
+- Tabla tiendas (tipo "tienda" | "almacen"): backend/prisma/schema.prisma:122
+  (seed: Almacen Central, Lince, Surco, Huancayo).
+- Tabla stock_moves (INGRESO/EGRESO/TRANSFERENCIA/AJUSTE, PENDIENTE/APROBADO/RECHAZADO,
+  con aprobador): schema.prisma:171
+- pending_approvals (flujo encargado->gerente, expira 24h) y roles:
+  ADMIN, LOGISTICA, EDITOR_ARTICULOS, GERENTE_TIENDA, COLABORADOR_TIENDA,
+  GERENTE_ALMACEN, COLABORADOR_ALMACEN, DESARROLLADOR_WEB, CLIENTE (schema.prisma:16)
+- Endpoints /stock/* con RBAC (backend/src/routes/stock.routes.js):
+  general, tienda/:id, move, approve/:id, pending, movements.
+- Lagunas detectadas:
+    * TRANSFERENCIA no se aplica al total (stock.service.js)
+    * los movimientos NUNCA actualizan prod_color_rel.stock (la web no se entera)
+    * no hay vista de stock / movimientos / aprobaciones / usuarios / tiendas
+      en el panel (solo Dashboard, Productos, Colores, Testimonios, Pedidos)
+
+
+2. DECISIONES TOMADAS (por el usuario)
+--------------------------------------
+1) Disponibilidad web ("ultimas unidades", badges): TIENDA + ALMACEN (total).
+2) Encargados a futuro: EDICION DIRECTA CON PERMISOS por rol (sin aprobaciones).
+3) Ubicaciones: VARIAS TIENDAS + ALMACEN CENTRAL.
+
+
+3. DISEÑO
+---------
+Nueva tabla prod_color_stock: una fila por (producto, color, ubicacion).
+prod_color_rel.stock se convierte en agregado (mantenido por TRIGGER) = suma de las
+ubicaciones. Asi la web no se modifica: sigue leyendo el total.
+
+Tabla propuesta:
+  prod_color_stock (
+    id          bigint generated always as identity primary key,
+    producto_id int not null references productos(id) on delete cascade,
+    color_id    int not null references colores(id) on delete cascade,
+    tienda_id   uuid not null references tiendas(id) on delete cascade,
+    stock       int  not null default 0 check (stock >= 0),
+    updated_at  timestamptz not null default now(),
+    unique (producto_id, color_id, tienda_id)
+  )
+
+
+4. FASES
+--------
+FASE 1 (ahora, el usuario ingresa todo):
+  SQL  (supabase/migrar-stock-ubicaciones.sql, aplicar con DIRECT_URL, no pgbouncer):
+    * crear prod_color_stock
+    * asegurar sucursales en tiendas (lista real a confirmar)
+    * migrar stock actual -> Almacen Central (o empezar en cero, a confirmar)
+    * trigger sync_stock_total: recalcula prod_color_rel.stock = SUM(stock)
+      por (producto, color) tras insert/update/delete
+    * grants y RLS espejo de prod_color_rel (politicas es_admin_panel())
+      + SELECT sobre tiendas para que el panel cargue la lista
+    * vista v_stock_resumen (sum por tipo tienda/almacen) para consultas limpias
+
+  Frontend:
+    * AdminProductoForm.jsx "Colores y Stock": por cada color, un input por
+      sucursal ("Almacen Central", "Tienda Lince", ...) + total.
+      Guardado: upsert en prod_color_stock (el trigger actualiza el total).
+    * AdminProductos.jsx: columna Stock -> ALMACEN / TIENDAS / TOTAL.
+    * AdminDashboard.jsx y resto del frontend: SIN CAMBIOS.
+
+  Verificacion:
+    * lint + build
+    * aplicar SQL
+    * asignar stock a tienda y almacen en un color; confirmar que
+      prod_color_rel.stock se actualiza solo y que la web muestra el total.
+
+FASE 2 (cuando entren los encargados — edicion directa, sin aprobaciones):
+    * Sobre la misma tabella prod_color_stock.
+    * RBAC ya disponible (requireOwnStore, roles GERENTE_TIENDA/COLABORADOR_TIENDA/
+      GERENTE_ALMACEN/COLABORADOR_ALMACEN, tienda_id en usuarios)
+      o RLS fina por tienda_id contra users(tienda_id) de auth.uid().
+    * Nueva vista "Stock" en el panel por sucursal:
+        - encargado de tienda: solo ve/edita SU tienda
+        - encargado de almacen: solo el almacen
+        - ADMIN: todo
+    * No requiere rehacer nada de Fase 1.
+
+
+5. PENDIENTE DE CONFIRMACION (bloquea la ejecucion)
+---------------------------------------------------
+[ ] 1) Sucursales reales. Hoy en tiendas hay (seed):
+        - Almacen Central     (tipo almacen)
+        - GreenLine Tienda Lince    (tipo tienda)
+        - GreenLine Tienda Surco    (tipo tienda)
+        - GreenLine Tienda Huancayo (tipo tienda)
+    Indicar la lista correcta (nombre + tipo tienda/almacen) para dejarla en el
+    script.
+
+[ ] 2) Stock actual de la BD (1-6 uds por producto):
+        - opcion A: tratarlo como dato de prueba y pasarlo al Almacen Central
+        - opcion B: empezar todo en cero

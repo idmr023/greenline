@@ -1,0 +1,470 @@
+// GreenLine Backend - Prisma Schema
+// Coexiste con las tablas existentes de Supabase
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum Rol {
+  ADMIN
+  LOGISTICA
+  EDITOR_ARTICULOS
+  GERENTE_TIENDA
+  COLABORADOR_TIENDA
+  GERENTE_ALMACEN
+  COLABORADOR_ALMACEN
+  DESARROLLADOR_WEB
+  CLIENTE
+}
+
+enum NivelAcceso {
+  SUPER
+  ALMACEN
+  TIENDA
+  CONTENIDO
+  LOGISTICA_N
+  CLIENTE_N
+}
+
+enum EstadoStock {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+}
+
+enum TipoMovimiento {
+  INGRESO
+  EGRESO
+  TRANSFERENCIA
+  AJUSTE
+}
+
+// ============================================================
+// MODELOS NUEVOS (auth, usuarios, stock, auditoría)
+// ============================================================
+
+model User {
+  id            String      @id @default(uuid()) @db.Uuid
+  email         String      @unique
+  passwordHash  String      @map("password_hash")
+  nombre        String
+  apellido      String
+  telefono      String?
+  avatar        String?
+
+  rol           Rol
+  nivelAcceso   NivelAcceso @map("nivel_acceso")
+
+  activo        Boolean     @default(true)
+  emailVerificado Boolean   @default(false) @map("email_verificado")
+
+  // 2FA solo para staff
+  twoFactorSecret   String?  @map("two_factor_secret")
+  twoFactorEnabled  Boolean  @default(false) @map("two_factor_enabled")
+  twoFactorBackup   String?  @map("two_factor_backup")
+
+  // Jerarquía: colaboradores apuntan a su gerente
+  gerenteId     String?     @db.Uuid @map("gerente_id")
+  gerente       User?       @relation("StaffHierarchy", fields: [gerenteId], references: [id])
+  colaboradores User[]      @relation("StaffHierarchy")
+
+  // Tienda/almacén asignado
+  tiendaId      String?     @db.Uuid @map("tienda_id")
+  tienda        Tienda?     @relation(fields: [tiendaId], references: [id])
+
+  // Seguridad
+  intentosFallidos Int      @default(0) @map("intentos_fallidos")
+  bloqueadoHasta   DateTime? @map("bloqueado_hasta")
+  ultimoLogin      DateTime? @map("ultimo_login")
+  ultimoLoginIp    String?   @map("ultimo_login_ip")
+
+  // Timestamps
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  // Relaciones
+  auditLogs       AuditLog[]
+  stockMoves      StockMove[]
+  clienteProfile  ClienteProfile?
+  otps            OtpCode[]
+  refreshTokens   RefreshToken[]
+  pendingApprovalsCreated PendingApproval[] @relation("ApprovalRequester")
+  pendingApprovalsManaged PendingApproval[] @relation("ApprovalManager")
+
+  @@index([rol])
+  @@index([nivelAcceso])
+  @@index([tiendaId])
+  @@index([activo])
+  @@map("users")
+}
+
+model ClienteProfile {
+  id          String @id @default(uuid()) @db.Uuid
+  userId      String @unique @map("user_id") @db.Uuid
+  user        User   @relation(fields: [userId], references: [id])
+
+  documento   String?
+  direccion   String?
+  ciudad      String?
+  departamento String?
+
+  @@map("cliente_profiles")
+}
+
+model Tienda {
+  id        String  @id @default(uuid()) @db.Uuid
+  nombre    String
+  direccion String
+  ciudad    String
+  tipo      String  // "tienda" | "almacen"
+  activa    Boolean @default(true)
+
+  usuarios    User[]
+  stockMoves  StockMove[]
+
+  @@index([tipo])
+  @@map("tiendas")
+}
+
+model OtpCode {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id])
+
+  codigo    String
+  tipo      String   // "email_login" | "password_reset"
+  expiraEn  DateTime @map("expira_en")
+  usado     Boolean  @default(false)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, codigo])
+  @@map("otp_codes")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id])
+
+  token     String   @unique
+  expiraEn  DateTime @map("expira_en")
+  revoked   Boolean  @default(false)
+  ip        String?
+  userAgent String?  @map("user_agent")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+model StockMove {
+  id          String       @id @default(uuid()) @db.Uuid
+  tiendaId    String       @map("tienda_id") @db.Uuid
+  tienda      Tienda       @relation(fields: [tiendaId], references: [id])
+
+  productoId  Int          // FK a tabla productos existente
+  colorId     Int?         // FK a tabla colores existente
+
+  cantidad    Int
+  tipo        TipoMovimiento
+  motivo      String?
+  notas       String?
+
+  // Aprobación (para colaboradores)
+  estado       EstadoStock @default(APROBADO)
+  aprobadoPor  String?     @db.Uuid @map("aprobado_por")
+  aprobadoEn   DateTime?   @map("aprobado_en")
+  rechazadoMotivo String?  @map("rechazado_motivo")
+
+  // Quién hizo el movimiento
+  userId      String      @map("user_id") @db.Uuid
+  user        User        @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  @@index([tiendaId])
+  @@index([productoId])
+  @@index([colorId])
+  @@index([estado])
+  @@index([createdAt])
+  @@map("stock_moves")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String?  @map("user_id") @db.Uuid
+  user        User?    @relation(fields: [userId], references: [id])
+
+  accion      String   // "CREATE" | "UPDATE" | "DELETE" | "LOGIN" | "LOGOUT"
+  tabla       String
+  registroId  String?  @map("registro_id")
+
+  datosAntes  Json?    @map("datos_antes")
+  datosDespues Json?   @map("datos_despues")
+
+  ip          String?
+  userAgent   String?  @map("user_agent")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([tabla])
+  @@index([accion])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model PendingApproval {
+  id          String   @id @default(uuid()) @db.Uuid
+  solicitanteId String @map("solicitante_id") @db.Uuid
+  solicitante User     @relation("ApprovalRequester", fields: [solicitanteId], references: [id])
+
+  tipo        String   // "stock_move"
+  datos       Json
+
+  gerenteId   String?  @db.Uuid @map("gerente_id")
+  gerente     User?    @relation("ApprovalManager", fields: [gerenteId], references: [id])
+
+  estado      String   @default("pendiente") // "pendiente" | "aprobado" | "rechazado"
+  motivo      String?
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  expiresAt   DateTime @map("expires_at")
+
+  @@index([solicitanteId])
+  @@index([gerenteId])
+  @@index([estado])
+  @@map("pending_approvals")
+}
+
+// ============================================================
+// TABLAS EXISTENTES DE SUPABASE (solo lectura en el backend)
+// ============================================================
+
+model Categoria {
+  id     Int     @id @default(autoincrement())
+  nombre String  @unique
+
+  productos Producto[]
+
+  @@map("categorias")
+}
+
+model Producto {
+  id              Int       @id @default(autoincrement())
+  categoriaId     Int?      @map("categoria_id")
+  nombre          String
+  slug            String    @unique
+  descripcion     String?
+  precioOriginal  Decimal?  @map("precio_original") @db.Decimal(10, 2)
+  precioActual    Decimal?  @map("precio_actual") @db.Decimal(10, 2)
+  destacado       Boolean?  @default(false)
+  videoId         String?   @map("video_id")
+  etiquetas       String[]
+  createdAt       DateTime? @default(now()) @map("created_at")
+  updatedAt       DateTime? @updatedAt @map("updated_at")
+
+  categoria       Categoria?  @relation(fields: [categoriaId], references: [id])
+  colores         ProdColorRel[]
+  imagenes        Imagen[]
+  fichaTecnica    FichaTecnica?
+  infoAdicional   InfoAdicional?
+
+  @@index([categoriaId])
+  @@index([slug])
+  @@map("productos")
+}
+
+model ProdColorRel {
+  id          Int     @id @default(autoincrement())
+  productoId  Int     @map("producto_id")
+  colorId     Int     @map("color_id")
+  stock       Int?    @default(0)
+
+  producto    Producto  @relation(fields: [productoId], references: [id])
+  color       Color     @relation(fields: [colorId], references: [id])
+
+  @@unique([productoId, colorId])
+  @@map("prod_color_rel")
+}
+
+model Color {
+  id      Int     @id @default(autoincrement())
+  nombre  String  @unique
+  hexCode String? @map("hex_code")
+
+  productos ProdColorRel[]
+
+  @@map("colores")
+}
+
+model Imagen {
+  id          Int     @id @default(autoincrement())
+  productoId  Int     @map("producto_id")
+  url         String?
+  color       String?
+  esPrincipal Boolean? @default(false) @map("es_principal")
+  orden       Int?    @default(0)
+
+  producto    Producto @relation(fields: [productoId], references: [id])
+
+  @@index([productoId])
+  @@map("imagenes")
+}
+
+model FichaTecnica {
+  id                  Int     @id @default(autoincrement())
+  productoId          Int     @unique @map("producto_id")
+  potenciaMotor       String? @map("potencia_motor")
+  torqueMaximo        String? @map("torque_maximo")
+  potenciaBateria     String? @map("potencia_bateria")
+  tipoBateria         String? @map("tipo_bateria")
+  bateriaExtraible    Boolean? @map("bateria_extraible")
+  capacidadBateria    String? @map("capacidad_bateria")
+  vidaUtilBateria     String? @map("vida_util_bateria")
+  tipoTomaCorriente   String? @map("tipo_toma_corriente")
+  tiempoCargaMin      Int?    @map("tiempo_carga_min")
+  velocidadMaxKmh     Int?    @map("velocidad_max_kmh")
+  autonomiaKm         Int?    @map("autonomia_km")
+  cargaMaximaKg       Int?    @map("carga_maxima_kg")
+  largoCm             Int?    @map("largo_cm")
+  anchoCm             Int?    @map("ancho_cm")
+  altoCm              Int?    @map("alto_cm")
+
+  producto            Producto @relation(fields: [productoId], references: [id])
+
+  @@map("ficha_tecnica")
+}
+
+model InfoAdicional {
+  id          Int    @id @default(autoincrement())
+  productoId  Int    @unique @map("producto_id")
+  data        Json?  @default("{}")
+
+  producto    Producto @relation(fields: [productoId], references: [id])
+
+  @@map("info_adicional")
+}
+
+// Blog
+model GreenlineCategory {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique @db.VarChar(100)
+  slug        String   @unique @db.VarChar(100)
+  description String?
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  posts       GreenlinePost[]
+
+  @@map("greenline_categories")
+}
+
+model GreenlinePost {
+  id            String   @id @default(uuid()) @db.Uuid
+  categoryId    String   @map("category_id") @db.Uuid
+  title         String   @db.VarChar(255)
+  slug          String   @unique @db.VarChar(255)
+  author        String   @default("A. Yeren") @db.VarChar(100)
+  excerpt       String?
+  contentHtml   String   @map("content_html")
+  contentText   String   @map("content_text")
+  imageUrl      String?  @map("image_url")
+  imageAlt      String?  @map("image_alt")
+  publishedAt   DateTime @map("published_at")
+  featured      Boolean  @default(false)
+  active        Boolean  @default(true)
+  sortOrder     Int      @default(0) @map("sort_order")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  category      GreenlineCategory @relation(fields: [categoryId], references: [id])
+  images        GreenlinePostImage[]
+
+  @@index([categoryId])
+  @@index([publishedAt(sort: Desc)])
+  @@index([active])
+  @@index([featured])
+  @@map("greenline_posts")
+}
+
+model GreenlinePostImage {
+  id        String   @id @default(uuid()) @db.Uuid
+  postId    String   @map("post_id") @db.Uuid
+  imageUrl  String   @map("image_url")
+  imageAlt  String?  @map("image_alt")
+  caption   String?
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post      GreenlinePost @relation(fields: [postId], references: [id])
+
+  @@index([postId])
+  @@map("greenline_post_images")
+}
+
+// Tiendas y distribuidores (existentes)
+model GreenlineStore {
+  id                    String   @id @default(uuid()) @db.Uuid
+  country               String   @default("Perú")
+  department            String
+  province              String
+  district              String
+  name                  String
+  address               String
+  latitude              Float?
+  longitude             Float?
+  schedule              String?
+  phone                 String?
+  whatsappNumber        String?  @map("whatsapp_number")
+  whatsappUrl           String?  @map("whatsapp_url")
+  mapsUrl               String?  @map("maps_url")
+  technicalService      Boolean  @default(false) @map("technical_service")
+  technicalPhone        String?  @map("technical_phone")
+  technicalWhatsappNumber String? @map("technical_whatsapp_number")
+  technicalWhatsappUrl  String?  @map("technical_whatsapp_url")
+  active                Boolean  @default(true)
+  sortOrder             Int      @default(0) @map("sort_order")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@map("greenline_stores")
+}
+
+model GreenlineDistributor {
+  id                    String   @id @default(uuid()) @db.Uuid
+  country               String   @default("Perú")
+  department            String
+  province              String
+  district              String
+  name                  String
+  ruc                   String?
+  contactName           String?  @map("contact_name")
+  address               String
+  latitude              Float?
+  longitude             Float?
+  coordinatePrecision   String   @default("city") @map("coordinate_precision")
+  mapsUrl               String?  @map("maps_url")
+  phone                 String?
+  whatsappNumber        String?  @map("whatsapp_number")
+  whatsappUrl           String?  @map("whatsapp_url")
+  priority              Int?
+  technicalService      Boolean? @map("technical_service")
+  active                Boolean  @default(true)
+  sortOrder             Int      @default(0) @map("sort_order")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@map("greenline_distributors")
+}

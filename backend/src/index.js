@@ -1,0 +1,97 @@
+import express from 'express';
+import helmet from 'helmet';
+import cors from 'cors';
+import { env } from './config/env.js';
+import { corsOptions } from './config/cors.js';
+import { globalLimiter } from './middleware/rateLimiter.js';
+
+// Routes
+import authRoutes from './routes/auth.routes.js';
+import usersRoutes from './routes/users.routes.js';
+import stockRoutes from './routes/stock.routes.js';
+import auditRoutes from './routes/audit.routes.js';
+import contactRoutes from './routes/contact.routes.js';
+
+const app = express();
+
+// ============================================================
+// SECURITY MIDDLEWARE
+// ============================================================
+
+// Helmet - Headers de seguridad (OWASP)
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https://*.supabase.co', 'https://*.googleapis.com'],
+      scriptSrc: ["'self'"],
+      connectSrc: ["'self'", 'https://*.supabase.co'],
+    },
+  },
+  hsts: { maxAge: 31536000, includeSubDomains: true },
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  crossOriginEmbedderPolicy: false,
+}));
+
+// CORS
+app.use(cors(corsOptions));
+
+// Trust proxy (para rate limiting detrás de Render/load balancer)
+app.set('trust proxy', 1);
+
+// Body parsing
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Rate limiting global
+app.use(globalLimiter);
+
+// ============================================================
+// ROUTES
+// ============================================================
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/stock', stockRoutes);
+app.use('/api/audit', auditRoutes);
+app.use('/api/contact', contactRoutes);
+
+// 404
+app.use((req, res) => {
+  res.status(404).json({ error: 'Endpoint no encontrado' });
+});
+
+// Error handler global
+app.use((err, req, res, _next) => {
+  console.error('Error no capturado:', err);
+
+  if (env.NODE_ENV === 'development') {
+    return res.status(500).json({
+      error: err.message,
+      stack: err.stack,
+    });
+  }
+
+  res.status(500).json({ error: 'Error interno del servidor' });
+});
+
+// ============================================================
+// START
+// ============================================================
+
+const PORT = env.PORT;
+
+app.listen(PORT, () => {
+  console.log(`🟢 GreenLine Backend corriendo en puerto ${PORT}`);
+  console.log(`   Entorno: ${env.NODE_ENV}`);
+  console.log(`   Frontend: ${env.FRONTEND_URL}`);
+});
+
+export default app;
