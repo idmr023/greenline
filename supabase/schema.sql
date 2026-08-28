@@ -95,7 +95,6 @@ CREATE TABLE imagenes (
 CREATE TABLE ficha_tecnica (
   id SERIAL PRIMARY KEY,
   producto_id INT UNIQUE REFERENCES productos(id) ON DELETE CASCADE,
-  tipo_motor TEXT,
   potencia_motor TEXT,
   torque_maximo TEXT,
   potencia_bateria TEXT,
@@ -107,13 +106,10 @@ CREATE TABLE ficha_tecnica (
   tiempo_carga_min INT,
   velocidad_max_kmh INT,
   autonomia_km INT,
-  condiciones_autonomia TEXT,
-  capacidad_escalada_pct INT,
   carga_maxima_kg INT,
   largo_cm INT,
   ancho_cm INT,
   alto_cm INT,
-  accesorios JSONB DEFAULT '[]'::jsonb
 );
 
 -- 7. Info adicional (JSONB flexible)
@@ -121,14 +117,6 @@ CREATE TABLE info_adicional (
   id SERIAL PRIMARY KEY,
   producto_id INT UNIQUE REFERENCES productos(id) ON DELETE CASCADE,
   data JSONB DEFAULT '{}'::jsonb
-);
-
--- 8. Modelos 3D (opcional)
-CREATE TABLE modelos_3d (
-  id SERIAL PRIMARY KEY,
-  producto_id INT UNIQUE REFERENCES productos(id) ON DELETE CASCADE,
-  glb_url TEXT,
-  hotspots JSONB DEFAULT '[]'::jsonb
 );
 
 -- ============================================================
@@ -169,7 +157,6 @@ ALTER TABLE prod_color_rel ENABLE ROW LEVEL SECURITY;
 ALTER TABLE imagenes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ficha_tecnica ENABLE ROW LEVEL SECURITY;
 ALTER TABLE info_adicional ENABLE ROW LEVEL SECURITY;
-ALTER TABLE modelos_3d ENABLE ROW LEVEL SECURITY;
 
 -- Políticas de lectura pública
 CREATE POLICY "Lectura pública de categorías"
