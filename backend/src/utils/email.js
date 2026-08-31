@@ -1,17 +1,38 @@
 import nodemailer from 'nodemailer';
+import dns from 'node:dns';
 import { env } from '../config/env.js';
 
-const transporter = nodemailer.createTransport({
-  host: env.SMTP_HOST,
-  port: env.SMTP_PORT,
-  secure: false,
-  auth: {
-    user: env.SMTP_USER,
-    pass: env.SMTP_PASS,
-  },
-});
+// Forzar conexión por IPv4 (Render no tiene salida IPv6):
+// resolvemos el SMTP_HOST a su primera dirección IPv4 y conectamos
+// directo a esa IP, usando SNI/servername para conservar el TLS.
+async function resolveIPv4(host) {
+  const records = await dns.promises.resolve4(host);
+  return records[0];
+}
+
+let transporterPromise;
+
+function getTransporter() {
+  if (!transporterPromise) {
+    transporterPromise = resolveIPv4(env.SMTP_HOST).then((ip) =>
+      nodemailer.createTransport({
+        host: ip,
+        port: env.SMTP_PORT,
+        secure: false,
+        requireTLS: true,
+        servername: env.SMTP_HOST,
+        auth: {
+          user: env.SMTP_USER,
+          pass: env.SMTP_PASS,
+        },
+      }),
+    );
+  }
+  return transporterPromise;
+}
 
 export async function sendEmail({ to, subject, html }) {
+  const transporter = await getTransporter();
   const info = await transporter.sendMail({
     from: env.EMAIL_FROM,
     to,

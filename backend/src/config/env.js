@@ -19,6 +19,8 @@ const envSchema = z.object({
   EMAIL_FROM: z.string(),
   /** Bandeja destino de los mensajes del formulario de contacto */
   MAIL_TO: z.string().email().optional(),
+  /** Bandeja destino de las notificaciones de pedidos */
+  ORDERS_MAIL_TO: z.string().email().default('greenlinemoto@gmail.com'),
 
   TOTP_ISSUER: z.string().default('GreenLine'),
 

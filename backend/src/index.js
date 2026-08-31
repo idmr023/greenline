@@ -11,6 +11,7 @@ import usersRoutes from './routes/users.routes.js';
 import stockRoutes from './routes/stock.routes.js';
 import auditRoutes from './routes/audit.routes.js';
 import contactRoutes from './routes/contact.routes.js';
+import pedidosRoutes from './routes/pedidos.routes.js';
 
 const app = express();
 
@@ -62,6 +63,7 @@ app.use('/api/users', usersRoutes);
 app.use('/api/stock', stockRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/pedidos', pedidosRoutes);
 
 // 404
 app.use((req, res) => {

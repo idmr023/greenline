@@ -1,86 +1,18 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ShoppingCart, Minus, Plus, Trash2, X, CheckCircle2, Phone } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ShoppingCart, Minus, Plus, Trash2, X, ArrowRight } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
-import { supabase } from '../lib/supabase';
 import { formatPrice } from '../lib/utils';
-import { CONTACT, BRAND } from '../lib/config';
-
-function generarCodigo() {
-  const stamp = Date.now().toString(36).toUpperCase().slice(-6);
-  const rand = Math.random().toString(36).toUpperCase().slice(2, 5);
-  return `GL-${stamp}${rand}`;
-}
-
-function armarMensajeWhatsApp(codigo, items, total) {
-  const detalle = items
-    .map(
-      (it) =>
-        `• ${it.nombre}${it.color ? ` (${it.color})` : ''} x${it.cantidad} — ${formatPrice(it.precio_actual)}`,
-    )
-    .join('\n');
-  return (
-    `Hola ${BRAND.name}, quiero confirmar mi pedido ${codigo}:\n\n` +
-    `${detalle}\n\n` +
-    `Total: ${formatPrice(total)}\n` +
-    `¿Me ayudan a coordinar la compra y entrega?`
-  );
-}
 
 export default function CartDrawer() {
   const { items, removeItem, updateQty, clear, total, count, isOpen, closeCart } = useCart();
-
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(null); // { codigo }
-  const [form, setForm] = useState({ nombre: '', telefono: '', email: '' });
+  const navigate = useNavigate();
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (sending || items.length === 0) return;
-
-    const codigo = generarCodigo();
-    setSending(true);
-    setError('');
-
-    const payload = {
-      codigo,
-      cliente: {
-        nombre: form.nombre.trim(),
-        telefono: form.telefono.trim(),
-        email: form.email.trim() || null,
-      },
-      items: items.map((it) => ({
-        slug: it.slug,
-        nombre: it.nombre,
-        color: it.color,
-        cantidad: it.cantidad,
-        precio_actual: it.precio_actual,
-      })),
-      total: Math.round(total * 100) / 100,
-    };
-    const snapshotItems = [...payload.items];
-    const snapshotTotal = payload.total;
-
-    const { error: err } = await supabase.from('pedidos').insert(payload);
-    setSending(false);
-
-    if (err) {
-      setError('No se pudo registrar el pedido. Intenta nuevamente o escríbenos por WhatsApp.');
-      return;
-    }
-
-    setSuccess({ codigo, items: snapshotItems, total: snapshotTotal });
-    clear();
+  const handleCheckout = () => {
+    closeCart();
+    navigate('/checkout');
   };
-
-  const waUrl = success
-    ? `${CONTACT.whatsappUrl}?text=${encodeURIComponent(
-        armarMensajeWhatsApp(success.codigo, success.items || [], success.total || 0),
-      )}`
-    : CONTACT.whatsappUrl;
 
   return (
     <div className="fixed inset-0 z-[60]">
@@ -112,35 +44,7 @@ export default function CartDrawer() {
           </button>
         </div>
 
-        {success ? (
-          /* ── Éxito ─────────────────────────────── */
-          <div className="flex-1 flex flex-col items-center justify-center gap-4 px-8 text-center">
-            <div className="w-16 h-16 rounded-full bg-brand/10 flex items-center justify-center">
-              <CheckCircle2 className="w-9 h-9 text-brand" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900">¡Pedido registrado!</h3>
-            <p className="text-sm text-gray-600">
-              Tu pedido <span className="font-bold text-gray-900">{success.codigo}</span> fue
-              recibido. Nuestro equipo te contactará para coordinar el pago y la entrega.
-            </p>
-            <a
-              href={waUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 bg-[#25D366] text-white font-semibold px-6 py-3 rounded-lg hover:opacity-90 transition-opacity"
-            >
-              <Phone className="w-5 h-5" />
-              Confirmar por WhatsApp
-            </a>
-            <button
-              type="button"
-              onClick={closeCart}
-              className="text-sm text-brand font-semibold hover:underline"
-            >
-              Seguir comprando
-            </button>
-          </div>
-        ) : items.length === 0 ? (
+        {items.length === 0 ? (
           /* ── Vacío ─────────────────────────────── */
           <div className="flex-1 flex flex-col items-center justify-center gap-4 px-8 text-center">
             <ShoppingCart className="w-12 h-12 text-gray-300" />
@@ -229,60 +133,23 @@ export default function CartDrawer() {
 
             {/* Footer / Checkout */}
             <div className="border-t border-gray-100 px-5 py-4 space-y-4">
-              {(error || sending) && (
-                <p
-                  className={`text-sm ${error ? 'text-red-600' : 'text-gray-500'}`}
-                  role="alert"
-                >
-                  {error || 'Registrando tu pedido…'}
-                </p>
-              )}
-
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600 font-medium">Total</span>
                 <span className="text-2xl font-bold text-brand">{formatPrice(total)}</span>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-2.5">
-                <input
-                  type="text"
-                  required
-                  placeholder="Tu nombre completo"
-                  value={form.nombre}
-                  onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
-                />
-                <input
-                  type="tel"
-                  required
-                  placeholder="Tu WhatsApp (ej. 919 445 661)"
-                  value={form.telefono}
-                  onChange={(e) => setForm({ ...form, telefono: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
-                />
-                <input
-                  type="email"
-                  placeholder="Email (opcional)"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand"
-                />
-                <button
-                  type="submit"
-                  disabled={sending || !form.nombre.trim() || !form.telefono.trim()}
-                  className={`w-full py-3 rounded-lg font-semibold text-base transition-colors ${
-                    sending || !form.nombre.trim() || !form.telefono.trim()
-                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                      : 'bg-brand text-white hover:bg-brand-dark'
-                  }`}
-                >
-                  {sending ? 'Registrando…' : 'Registrar pedido'}
-                </button>
-                <p className="text-[11px] text-gray-400 text-center">
-                  Al registrar el pedido, nuestro equipo se contactará contigo por WhatsApp
-                  para coordinar el pago y la entrega.
-                </p>
-              </form>
+              <button
+                type="button"
+                onClick={handleCheckout}
+                className="w-full py-3 rounded-lg font-semibold text-base bg-brand text-white hover:bg-brand-dark transition-colors flex items-center justify-center gap-2"
+              >
+                Finalizar compra
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <p className="text-[11px] text-gray-400 text-center">
+                Finaliza sin crear una cuenta. Nuestro equipo coordinará contigo el pago y la
+                entrega.
+              </p>
             </div>
           </>
         )}
