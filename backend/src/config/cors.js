@@ -1,5 +1,7 @@
 import { env } from './env.js';
 
+const normalizeOrigin = (o) => (o ? o.replace(/\/+$/, '') : o);
+
 export const corsOptions = {
   origin: (origin, callback) => {
     const allowedOrigins = [
@@ -7,9 +9,11 @@ export const corsOptions = {
       env.FRONTEND_URL_PROD,
       'http://localhost:5173',
       'http://localhost:3001',
-    ].filter(Boolean);
+    ]
+      .filter(Boolean)
+      .map(normalizeOrigin);
 
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(normalizeOrigin(origin))) {
       callback(null, true);
     } else {
       callback(new Error('No permitido por CORS'));

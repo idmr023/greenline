@@ -52,3 +52,12 @@ export const contactLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: 'Demasiados mensajes desde esta IP, intenta más tarde' },
 });
+
+// Rate limiter para pedidos (10 / hora)
+export const pedidosLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiados pedidos desde esta IP, intenta más tarde' },
+});

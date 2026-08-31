@@ -94,9 +94,6 @@ INSERT INTO greenline_stores
 VALUES ('Perú', 'Lima', 'Lima', 'Comas', 'Comas', 'Av. Tupac Amaru 3999', -11.932495139254188, -77.04623190402846, 'Lun-Sáb: 9am-7pm', '(51)992 179 133', '51992179133', 'https://api.whatsapp.com/send?phone=51992179133', NULL, FALSE, NULL, NULL, NULL, TRUE, 6);
 INSERT INTO greenline_stores
 (country, department, province, district, name, address, latitude, longitude, schedule, phone, whatsapp_number, whatsapp_url, maps_url, technical_service, technical_phone, technical_whatsapp_number, technical_whatsapp_url, active, sort_order)
-VALUES ('Perú', 'Lima', 'Lima', 'Ate', 'Ate', 'Av. Nicolás Ayllon Mz. D - Lt. 26', -12.03431594067742, -76.92937582941333, 'Lun-Sáb: 9am-7pm', '(51)989 804 231', '51989804231', 'https://api.whatsapp.com/send?phone=51989804231', NULL, FALSE, NULL, NULL, NULL, TRUE, 7);
-INSERT INTO greenline_stores
-(country, department, province, district, name, address, latitude, longitude, schedule, phone, whatsapp_number, whatsapp_url, maps_url, technical_service, technical_phone, technical_whatsapp_number, technical_whatsapp_url, active, sort_order)
 VALUES ('Perú', 'Junín', 'Huancayo', 'Huancayo', 'Huancayo', 'Av. Huancavelica 290', -12.065580600861884, -75.2174621040265, 'Lun-Sáb: 9am-6pm', '(51)944 030 267', '51944030267', 'https://api.whatsapp.com/send?phone=51944030267', 'https://maps.app.goo.gl/Ugc4XWjwPGqt3CYP7', TRUE, '(51)944 030 267', '51944030267', 'https://api.whatsapp.com/send?phone=51944030267', TRUE, 8);
 INSERT INTO greenline_stores
 (country, department, province, district, name, address, latitude, longitude, schedule, phone, whatsapp_number, whatsapp_url, maps_url, technical_service, technical_phone, technical_whatsapp_number, technical_whatsapp_url, active, sort_order)
