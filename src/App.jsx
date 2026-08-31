@@ -5,6 +5,9 @@ import { CartProvider } from '../frontend/contexts/CartContext';
 import Navbar from '../frontend/components/Navbar';
 import Footer from '../frontend/components/Footer';
 import ScrollTopButton from '../frontend/components/ScrollTopButton';
+import ScrollToTop from '../frontend/components/ScrollToTop';
+import WelcomeBanner from '../frontend/components/WelcomeBanner';
+import WhatsAppButton from '../frontend/components/WhatsAppButton';
 import CommunityDrawer from '../frontend/components/CommunityDrawer';
 import ProtectedRoute, { ADMIN_ROLES } from '../frontend/components/ProtectedRoute';
 import Home from '../frontend/pages/Home';
@@ -23,6 +26,7 @@ import ManualesDeUso from '../frontend/pages/ManualesDeUso';
 import LibroReclamaciones from '../frontend/pages/LibroReclamaciones';
 import NotFoundPage from '../frontend/pages/NotFoundPage';
 import MiCuenta from '../frontend/pages/MiCuenta';
+import Checkout from '../frontend/pages/Checkout';
 
 import AdminPanel from '../frontend/components/admin/AdminPanel';
 import CartDrawer from '../frontend/components/CartDrawer';
@@ -40,6 +44,8 @@ function Layout() {
       </main>
       <Footer />
       <ScrollTopButton />
+      <WelcomeBanner />
+      <WhatsAppButton />
       <CommunityDrawer
         open={communityOpen}
         onClose={() => setCommunityOpen(false)}
@@ -52,6 +58,7 @@ function Layout() {
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <CartProvider>
           <Routes>
@@ -71,6 +78,7 @@ export default function App() {
             <Route path="politica-privacidad" element={<PoliticaPrivacidad />} />
             <Route path="trabaja-con-nosotros" element={<TrabajaConNosotros />} />
             <Route path="manuales-de-uso" element={<ManualesDeUso />} />
+            <Route path="checkout" element={<Checkout />} />
             <Route path="libro-de-reclamaciones" element={<LibroReclamaciones />} />
             <Route path="mi-cuenta" element={
               <ProtectedRoute>

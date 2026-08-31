@@ -24,8 +24,8 @@ export default function PageBanner({
       />
 
       {/* Contenido */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="max-w-xl text-white">
+      <div className="relative z-10 mx-auto px-4 sm:px-6 lg:px-8 w-full text-center">
+        <div className="text-white">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">
             {title}
           </h1>

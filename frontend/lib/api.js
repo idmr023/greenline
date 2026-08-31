@@ -74,3 +74,8 @@ export const contactAPI = {
   send: (payload) =>
     request('/contact', { method: 'POST', body: JSON.stringify(payload) }),
 };
+
+export const pedidosAPI = {
+  send: (payload) =>
+    request('/pedidos', { method: 'POST', body: JSON.stringify(payload) }),
+};

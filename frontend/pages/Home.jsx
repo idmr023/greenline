@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Armchair, ArrowRight, Heart, Accessibility } from 'lucide-react';
+import { ArrowRight, Accessibility, ArrowLeftRight, ShieldCheck } from 'lucide-react';
 import HeroCarousel from '../components/HeroCarousel';
 import Pillars from '../components/Pillars';
 import ProductCard from '../components/ProductCard';
@@ -13,21 +13,21 @@ import { fetchProductos } from '../lib/productos';
 const inclusiveVehicles = [
   {
     id: 'inc-1',
-    title: 'Trimoto Adaptada',
-    desc: 'Diseñada con ergonomía accesible para mayor comodidad y libertad de movimiento.',
-    icon: Armchair,
-  },
-  {
-    id: 'inc-2',
-    title: 'Carguero Inclusivo',
-    desc: 'Capacidad ampliada y acceso facilitado para todos los usuarios.',
+    title: 'M-CAR',
+    desc: 'Vehículos eléctricos de diseño universal, creados desde fábrica para que cualquier persona se desplace con autonomía y comodidad.',
     icon: Accessibility,
   },
   {
+    id: 'inc-2',
+    title: 'Fácil de usar',
+    desc: 'Transmisión automática, marcha en retroceso y conducción estable: pensadas para el uso diario sin complicaciones.',
+    icon: ArrowLeftRight,
+  },
+  {
     id: 'inc-3',
-    title: 'Programa de Adaptación',
-    desc: 'Adaptamos cualquier vehículo a tus necesidades específicas. Consulta disponibilidad.',
-    icon: Heart,
+    title: 'Seguridad y confianza',
+    desc: 'Estructura resistente, estabilidad en ruta y soporte de GreenLine en cada etapa de tu compra.',
+    icon: ShieldCheck,
   },
 ];
 
@@ -257,19 +257,20 @@ export default function Home() {
         </div>
       </section>  
 
-      {/* Inclusive Line */}
-      <section className="py-14 bg-brand-dark text-white">
+      {/* M-CAR — Inclusive Line */}
+      <section className="py-14 bg-[#F3F7F3] text-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
-            <span className="inline-block px-3 py-1 bg-white/10 rounded-full text-sm font-semibold mb-4">
-              Movilidad para todos
+            <span className="inline-block px-3 py-1 bg-brand text-white rounded-full text-sm font-semibold mb-4">
+              M-CAR — Movilidad para todos
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold mb-3">
               Diseño universal, libertad sin límites
             </h2>
-            <p className="text-white/80 max-w-2xl mx-auto">
-              Creamos soluciones de movilidad pensadas para personas con capacidades
-              diversas. Ergonomía, comodidad total y acceso igualitario.
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Las M-CAR son vehículos eléctricos creados con diseño universal: pensados
+              desde fábrica para que personas con capacidades diversas se desplacen con
+              autonomía, comodidad y total acceso igualitario.
             </p>
           </div>
 
@@ -277,21 +278,21 @@ export default function Home() {
             {inclusiveVehicles.map(({ id, title, desc, icon: Icon }) => (
               <div
                 key={id}
-                className="bg-white/10 backdrop-blur rounded-xl p-6 text-center hover:bg-white/15 transition-colors"
+                className="bg-white rounded-xl p-6 text-center border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
               >
-                <div className="mx-auto w-14 h-14 flex items-center justify-center rounded-full bg-white/20 mb-4">
-                  <Icon className="w-7 h-7" />
+                <div className="mx-auto w-14 h-14 flex items-center justify-center rounded-full bg-brand/10 mb-4">
+                  <Icon className="w-7 h-7 text-brand" />
                 </div>
-                <h3 className="font-bold mb-2 text-lg">{title}</h3>
-                <p className="text-sm text-white/80">{desc}</p>
+                <h3 className="font-bold mb-2 text-lg text-gray-900">{title}</h3>
+                <p className="text-sm text-gray-600">{desc}</p>
               </div>
             ))}
           </div>
 
           <div className="mt-8 text-center">
             <Link
-              to="/tienda?categoria=Cargueros"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-white text-brand-dark font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+              to="/tienda?categoria=Motos%20El%C3%A9ctricas"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-brand text-white font-semibold rounded-lg hover:bg-brand-dark transition-colors"
             >
               Explorar opciones
               <ArrowRight className="w-4 h-4" />

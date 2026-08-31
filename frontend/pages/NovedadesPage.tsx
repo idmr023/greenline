@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import NovedadImagen from "../components/NovedadImagen";
+import PageBanner from "../components/PageBanner";
 
 type Category = {
   id: string;
@@ -171,30 +172,11 @@ export default function NovedadesPage() {
 
   return (
     <main className="min-h-screen bg-white text-neutral-950">
-      {/* HERO */}
-      <section className="relative overflow-hidden bg-neutral-950">
-        <div className="absolute inset-0">
-          <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-brand/15 blur-3xl" />
-          <div className="absolute -bottom-40 -left-20 h-96 w-96 rounded-full bg-brand-light/10 blur-3xl" />
-        </div>
 
-        <div className="relative mx-auto max-w-7xl px-6 py-20 lg:px-8 lg:py-28">
-          <div className="max-w-4xl">
-            <p className="mb-5 text-sm font-semibold uppercase tracking-[0.2em] text-brand-light">
-              GreenLine
-            </p>
-
-            <h1 className="text-5xl font-semibold leading-[0.95] tracking-tight text-white sm:text-6xl lg:text-8xl">
-              Novedades
-            </h1>
-
-            <p className="mt-7 max-w-2xl text-base leading-7 text-neutral-300 sm:text-lg">
-              Noticias, consejos y contenido sobre movilidad eléctrica
-              para mantenerte al día con GreenLine.
-            </p>
-          </div>
-        </div>
-      </section>
+      <PageBanner 
+        title="Novedades" 
+        subtitle="Noticias, consejos y contenido sobre movilidad eléctrica." 
+      />
 
       {/* CONTENIDO */}
       <section className="mx-auto max-w-7xl px-6 py-12 lg:px-8 lg:py-16">
