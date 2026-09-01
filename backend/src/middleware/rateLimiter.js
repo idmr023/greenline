@@ -44,19 +44,19 @@ export const registerLimiter = rateLimit({
   message: { error: 'Demasiados registros desde esta IP' },
 });
 
-// Rate limiter para mensajes de contacto (5 / hora)
+// Rate limiter para mensajes de contacto (5 / hora por defecto)
 export const contactLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  limit: 5,
+  limit: env.CONTACT_RATE_LIMIT_MAX,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Demasiados mensajes desde esta IP, intenta más tarde' },
 });
 
-// Rate limiter para pedidos (10 / hora)
+// Rate limiter para pedidos (10 / hora por defecto)
 export const pedidosLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  limit: 10,
+  limit: env.PEDIDOS_RATE_LIMIT_MAX,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Demasiados pedidos desde esta IP, intenta más tarde' },

@@ -16,7 +16,7 @@ export default function ProductImage({
         height={height}
         loading="lazy"
         decoding="async"
-        className={`w-full h-full object-cover ${imgClassName}`}
+        className={`w-full h-full object-contain ${imgClassName}`}
       />
     </picture>
   );

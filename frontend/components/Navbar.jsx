@@ -13,6 +13,7 @@ const shopLinks = [
   { label: 'Motos eléctricas', to: '/tienda?categoria=Motos%20El%C3%A9ctricas' },
   { label: 'Trimotos eléctricas', to: '/tienda?categoria=Trimotos%20El%C3%A9ctricas' },
   { label: 'Cargueros', to: '/tienda?categoria=Cargueros' },
+  { label: 'Cuatrimotos', to: '/tienda?categoria=Cuatrimotos' },
   { label: 'Repuestos', to: '/proximamente' },
 ];
 

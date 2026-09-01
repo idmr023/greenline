@@ -46,10 +46,12 @@ const EXTENSIONES_VALIDAS = [
   '.webp',
 ];
 
-const WEBP_QUALITY = 80;
+const WEBP_QUALITY = 90;
 
-// Todas las imágenes terminarán en 320x320
-const TARGET_SIZE = 320;
+// Las imágenes se escalan a un lienzo cuadrado de esta resolución.
+// 320px era demasiado bajo y degradaba la nitidez de las fotos de
+// producto. 800px mantiene buena calidad visual sin pesos excesivos.
+const TARGET_SIZE = 800;
 
 // Tolerancia para detectar bordes blancos.
 // Un valor mayor permite eliminar blancos ligeramente grisáceos.
@@ -341,7 +343,7 @@ async function inventarioSupabase() {
 //      ↓
 // Centrar
 //      ↓
-// Lienzo 320x320
+// Lienzo TARGET_SIZE x TARGET_SIZE
 //      ↓
 // WebP
 //
@@ -369,8 +371,11 @@ async function procesarImagen(
         TRIM_THRESHOLD,
     })
 
-    // Ajustar al lienzo 320x320
-    // sin deformar
+    // Ajustar al lienzo cuadrado (sin deformar).
+    // SOLUCIÓN DE RAÍZ: ampliar la imagen para llenar el lienzo aunque
+    // la original sea más pequeña (p. ej. 331px → 800px). Así el contenido
+    // real del archivo SIEMPRE queda en ~800px y no se ve pixelado al ser
+    // mostrado por el navegador. Sin withoutEnlargement, sharp usa lanczos3.
     .resize({
       width: TARGET_SIZE,
       height: TARGET_SIZE,
@@ -380,9 +385,6 @@ async function procesarImagen(
       position: 'center',
 
       background: '#ffffff',
-
-      // Permite ampliar imágenes pequeñas
-      withoutEnlargement: false,
     })
 
     // Convertir a WebP
@@ -962,7 +964,7 @@ async function ejecutar() {
   );
 
   console.log(
-    '🔎 Imágenes pequeñas ampliadas; grandes reducidas'
+    '📏 Imágenes grandes reducidas a 800px; pequeñas se mantienen'
   );
 
   console.log('');

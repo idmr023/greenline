@@ -14,6 +14,10 @@ TRUNCATE TABLE prod_color_rel, imagenes, ficha_tecnica, info_adicional, producto
 
 INSERT INTO categorias (id, nombre) VALUES (1, 'VMP'), (2, 'Motos Eléctricas'), (3, 'Trimotos Eléctricas'), (4, 'Cargueros'), (5, 'Accesorios');
 
+INSERT INTO categorias (nombre)
+SELECT 'Cuatrimotos'
+WHERE NOT EXISTS (SELECT 1 FROM categorias WHERE nombre = 'Cuatrimotos');
+
 INSERT INTO colores (id, nombre, hex_code) VALUES('Blanco', '#FFFFFF'),
   ('Negro', '#1a1a1a'),
   ('Gris', '#808080'),
@@ -82,7 +86,7 @@ INSERT INTO productos (
 )
 SELECT
     29,
-    2,
+    (SELECT id FROM categorias WHERE nombre = 'Trimotos Eléctricas'),
     'GreenLine M-CAR 1',
     'greenline-m-car-1',
     'Vehículo eléctrico GreenLine M-CAR 1, equipado con batería de plomo ácido de 48V20AH y motor eléctrico de 500W. Alcanza una velocidad máxima de 25 km/h y cuenta con transmisión automática, diferencial y marcha en retroceso para brindar mayor estabilidad y practicidad durante el desplazamiento. Sus llantas de 3.0-10 ofrecen un desplazamiento estable, convirtiéndolo en una alternativa funcional para la movilidad urbana. Cuenta con configuración para 1 asiento y 1 pasajero, soporta una carga máxima de 100 kg y registra un peso neto de 98 kg. Su autonomía estimada es de 28 a 38 km.',
@@ -109,7 +113,7 @@ INSERT INTO productos (
 )
 SELECT
     30,
-    2,
+    (SELECT id FROM categorias WHERE nombre = 'Cuatrimotos'),
     'GreenLine M-CAR 2',
     'greenline-m-car-2',
     'El nuevo modelo de nuestro vehículo eléctrico M-CAR 2 está equipado con una batería de plomo-ácido de 48V20AH y un motor de 500W, alcanzando una velocidad máxima de 25 km/h. Pensado para brindar movilidad, estabilidad y seguridad, cuenta con transmisión automática, diferencial y marcha en retroceso. Sus llantas de 3.0-10 ofrecen un desplazamiento estable y cómodo, convirtiéndolo en una alternativa práctica para la movilidad urbana. Este modelo cuenta con configuración para 1 asiento y 1 pasajero, con una capacidad de carga máxima de 100 kg. Su peso neto es de 138 kg y su peso bruto vehicular alcanza los 238 kg, ofreciendo una estructura diseñada para brindar comodidad y funcionalidad en cada trayecto. Su autonomía estimada es de 28 a 38 km.',
@@ -136,7 +140,7 @@ INSERT INTO productos (
 )
 SELECT
     31,
-    2,
+    (SELECT id FROM categorias WHERE nombre = 'Cuatrimotos'),
     'GreenLine M-CAR 3',
     'greenline-m-car-3',
     'Vehículo eléctrico GreenLine M-CAR 3 equipado con batería de plomo ácido de 48V20AH y motor eléctrico de 500W. Alcanza una velocidad máxima de 25 km/h y cuenta con transmisión automática, diferencial y marcha en retroceso. Su configuración de 2 asientos y 2 pasajeros permite disfrutar de mayor capacidad para los desplazamientos urbanos. Cuenta con llantas delanteras 90-70-10 y traseras 300-10, una capacidad de carga máxima de 100 kg, peso neto de 123 kg y peso bruto vehicular de 223 kg. Su autonomía es de 25 a 35 km.',
@@ -163,7 +167,7 @@ INSERT INTO productos (
 )
 SELECT
     32,
-    2,
+    (SELECT id FROM categorias WHERE nombre = 'Cuatrimotos'),
     'GreenLine M-CAR 4',
     'greenline-m-car-4',
     'Cuatrimoto eléctrica de paseo GreenLine M-CAR 4, equipada con batería de plomo ácido de 48V20AH y motor eléctrico de 500W. Cuenta con un asiento cómodo para 1 pasajero, transmisión automática, diferencial para mayor estabilidad, sistema de freno, luces y direccionales, además de función de retroceso. Su diseño compacto y funcional la convierte en una alternativa práctica para la movilidad en ciudad. Alcanza una velocidad máxima de 15 km/h, soporta una carga máxima de 100 kg y registra un peso neto de 115 kg. Su autonomía es de 30 a 40 km.',
@@ -190,7 +194,7 @@ INSERT INTO productos (
 )
 SELECT
     33,
-    2,
+    (SELECT id FROM categorias WHERE nombre = 'Cuatrimotos'),
     'GreenLine M-CAR 5',
     'greenline-m-car-5',
     'Vehículo eléctrico GreenLine M-CAR 5 equipado con batería de plomo ácido de 60V20AH y motor eléctrico de 1000W. Cuenta con transmisión automática, diferencial y marcha en retroceso. Su configuración está diseñada para 1 asiento y 1 pasajero, con una capacidad de carga máxima de 100 kg. Registra un peso neto de 140 kg y un peso bruto vehicular de 240 kg. Sus llantas de 16*8-7 brindan estabilidad durante el desplazamiento y alcanza una velocidad máxima de 25 km/h. Su autonomía es de 30 a 40 km.',
@@ -212,7 +216,7 @@ WHERE NOT EXISTS (
 UPDATE productos
 SET
     nombre = 'GreenLine M-CAR 1',
-    categoria_id = 2,
+    categoria_id = (SELECT id FROM categorias WHERE nombre = 'Trimotos Eléctricas'),
     descripcion = 'Vehículo eléctrico GreenLine M-CAR 1, equipado con batería de plomo ácido de 48V20AH y motor eléctrico de 500W. Alcanza una velocidad máxima de 25 km/h y cuenta con transmisión automática, diferencial y marcha en retroceso para brindar mayor estabilidad y practicidad durante el desplazamiento. Sus llantas de 3.0-10 ofrecen un desplazamiento estable, convirtiéndolo en una alternativa funcional para la movilidad urbana. Cuenta con configuración para 1 asiento y 1 pasajero, soporta una carga máxima de 100 kg y registra un peso neto de 98 kg. Su autonomía estimada es de 28 a 38 km.',
     precio_original = 5500,
     precio_actual = 5200,
@@ -223,7 +227,7 @@ WHERE slug = 'greenline-m-car-1';
 UPDATE productos
 SET
     nombre = 'GreenLine M-CAR 2',
-    categoria_id = 2,
+    categoria_id = (SELECT id FROM categorias WHERE nombre = 'Cuatrimotos'),
     descripcion = 'El nuevo modelo de nuestro vehículo eléctrico M-CAR 2 está equipado con una batería de plomo-ácido de 48V20AH y un motor de 500W, alcanzando una velocidad máxima de 25 km/h. Pensado para brindar movilidad, estabilidad y seguridad, cuenta con transmisión automática, diferencial y marcha en retroceso. Sus llantas de 3.0-10 ofrecen un desplazamiento estable y cómodo, convirtiéndolo en una alternativa práctica para la movilidad urbana. Este modelo cuenta con configuración para 1 asiento y 1 pasajero, con una capacidad de carga máxima de 100 kg. Su peso neto es de 138 kg y su peso bruto vehicular alcanza los 238 kg, ofreciendo una estructura diseñada para brindar comodidad y funcionalidad en cada trayecto. Su autonomía estimada es de 28 a 38 km.',
     precio_original = 6600,
     precio_actual = 6250,
@@ -234,7 +238,7 @@ WHERE slug = 'greenline-m-car-2';
 UPDATE productos
 SET
     nombre = 'GreenLine M-CAR 3',
-    categoria_id = 2,
+    categoria_id = (SELECT id FROM categorias WHERE nombre = 'Cuatrimotos'),
     descripcion = 'Vehículo eléctrico GreenLine M-CAR 3 equipado con batería de plomo ácido de 48V20AH y motor eléctrico de 500W. Alcanza una velocidad máxima de 25 km/h y cuenta con transmisión automática, diferencial y marcha en retroceso. Su configuración de 2 asientos y 2 pasajeros permite disfrutar de mayor capacidad para los desplazamientos urbanos. Cuenta con llantas delanteras 90-70-10 y traseras 300-10, una capacidad de carga máxima de 100 kg, peso neto de 123 kg y peso bruto vehicular de 223 kg. Su autonomía es de 25 a 35 km.',
     precio_original = 6450,
     precio_actual = 5900,
@@ -245,7 +249,7 @@ WHERE slug = 'greenline-m-car-3';
 UPDATE productos
 SET
     nombre = 'GreenLine M-CAR 4',
-    categoria_id = 2,
+    categoria_id = (SELECT id FROM categorias WHERE nombre = 'Cuatrimotos'),
     descripcion = 'Cuatrimoto eléctrica de paseo GreenLine M-CAR 4, equipada con batería de plomo ácido de 48V20AH y motor eléctrico de 500W. Cuenta con un asiento cómodo para 1 pasajero, transmisión automática, diferencial para mayor estabilidad, sistema de freno, luces y direccionales, además de función de retroceso. Su diseño compacto y funcional la convierte en una alternativa práctica para la movilidad en ciudad. Alcanza una velocidad máxima de 15 km/h, soporta una carga máxima de 100 kg y registra un peso neto de 115 kg. Su autonomía es de 30 a 40 km.',
     precio_original = 6700,
     precio_actual = 6250,
@@ -256,7 +260,7 @@ WHERE slug = 'greenline-m-car-4';
 UPDATE productos
 SET
     nombre = 'GreenLine M-CAR 5',
-    categoria_id = 2,
+    categoria_id = (SELECT id FROM categorias WHERE nombre = 'Cuatrimotos'),
     descripcion = 'Vehículo eléctrico GreenLine M-CAR 5 equipado con batería de plomo ácido de 60V20AH y motor eléctrico de 1000W. Cuenta con transmisión automática, diferencial y marcha en retroceso. Su configuración está diseñada para 1 asiento y 1 pasajero, con una capacidad de carga máxima de 100 kg. Registra un peso neto de 140 kg y un peso bruto vehicular de 240 kg. Sus llantas de 16*8-7 brindan estabilidad durante el desplazamiento y alcanza una velocidad máxima de 25 km/h. Su autonomía es de 30 a 40 km.',
     precio_original = 9500,
     precio_actual = 9000,
@@ -1030,6 +1034,59 @@ INSERT INTO info_adicional (producto_id, data) VALUES (21, '{
   "Peso en seco (kg)": "151 kg",
   "Detalles": "Luz intermitente y faros con diseño, sistema de freno CBS en la manija delantera, parador central y lateral"
 }');
+
+INSERT INTO info_adicional (producto_id, data) VALUES (1, '{"Número modos de manejo":"7 - Juego de cambios Shimano","Altura del piso a la base (cm)":"14.0 (considerando un conductor de 65 kg sentado)","Altura del asiento al piso (cm)":"82 - 113 (sin conductor sentado)","Tablero de información":"Digital","Alarma/seguridad":"No","Canasta/asiento":"No. Asiento regulable y comodo.","Puerto USB para carga de celular":"No","Suspensión delantera/trasera":"Telescópica/no","Freno delantero/trasero)":"Disco/Disco","Llanta delantera/trasera":"20 x 1.75 - 20 x 1.75. Con cámara","Largo*ancho*altura (cm)":"160 * 57 * 115","Peso en seco (kg)":"24 kg"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (5, '{"Número modos de manejo":"3","Altura del piso a la base (cm)":"13.0 (considerando un conductor de 65 kg sentado)","Altura del asiento al piso (cm)":"77 (sin conductor sentado)","Tablero de información":"LCD","Alarma/seguridad":"Sí, alarma eléctrica contra robos y bloqueo de timón","Asiento/maletera":"Asiento doble y cómodo con guantera,Si.","Puerto USB para carga de celular":"Sí","Luces direccionales (delantero/posterior)":"Si / Si","Luces intermitentes":"Si","Suspensión delantera/trasera":"Telescópica/doble amortiguador","Freno delantero/trasero)":"Disco/Tambor","Llanta delantera/trasera":"3.00-10 - 3.00-10. Sin cámara","Largo*ancho*altura (cm)":"172 * 71 * 111","Peso en seco (kg)":"57 kg"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (7, '{"Número modos de manejo":"4","Altura del piso a la base (cm)":"12.5 (considerando un conductor de 65 kg sentado)","Altura del asiento al piso (cm)":"74.0 (sin conductor sentado)","Tablero de información":"Digital, pantalla negativa contra rayos de sol y tecnologia NFC","Alarma/seguridad":"Sí, alarma eléctrica contra robos. Bloqueo de timón","Cajuela/Maletera":"si, abajo del asiento (30L) y Maletera (45L) .","Puerto USB para carga de celular":"Sí con guantera para celular","Luces direccionales (delantero/posterior)":"Sí / Si","Luces intermitentes":"Si","Suspensión delantera/trasera":"Telescópica/doble amortiguador","Freno delantero/trasero)":"Disco/Disco","Llanta delantera/trasera":"80/90-12 - 80/80-12. Sin cámara","Largo*ancho*altura (cm)":"185 * 70 * 113","Peso en seco (kg)":"172 kg","DETALLES":"Luz intermitente y faros con diseño, autobloqueo, con maletera, parador central y lateral"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (8, '{"Número modos de manejo":"4","Altura del piso a la base (cm)":"12.5 (considerando un conductor de 65 kg sentado)","Altura del asiento al piso (cm)":"74.0 (sin conductor sentado)","Tablero de información":"Digital, pantalla negativa contra rayos de sol","Alarma/seguridad":"Sí, alarma eléctrica contra robos. Bloqueo de timón","Cajuela/Maletera":"si abajo del asiento (30l)/ No.","Puerto USB para carga de celular":"Sí con guantera para celular","Luces direccionales (delantero/posterior)":"Sí / Si","Luces intermitentes":"Si","Suspensión delantera/trasera":"Telescópica/doble amortiguador","Freno delantero/trasero)":"Disco/Disco","Llanta delantera/trasera":"80/90-12 - 80/90-12. Sin cámara","Largo*ancho*altura (cm)":"185 * 70 * 113","Peso en seco (kg)":"172 kg","DETALLES":"Luz intermitente y faros con diseño, autobloqueo, parlante integrado con bluetooth, parador central y lateral"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (9, '{"Número modos de manejo":"4 (bajo, medio, alto y retroceso)","Altura del piso a la base (cm)":"9 *Conductor de 65 kg sentado","Altura del asiento al piso (cm)":"65.5 *Sin conductor sentado","Tablero de información":"LCD, Muestra velocidad referencial y pantalla de retroceso","Alarma eléctrica antirrobo":"Sí","Canasta/Asiento":"Dos canastas/ asiento grande de 80 cm de ancho","Puerto USB para carga de celular":"Si","Luces Direccionales (delantera/posterior)":"Si / Si","Luces Intermitentes":"Si","Suspensión delantera/trasera":"Telescópica/ amortiguadores","Freno delantero/trasero)":"Disco/tambor","Llanta delantera/trasera":"3.00-10 / 3.00-10, sin cámara","Largo*ancho*altura (cm)":"217 * 95 * 168","Peso en seco (kg)":"144.5 kg"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (10, '{"Número modos de manejo":"4 (bajo, medio, alto y retroceso)","Altura del piso a la base (cm)":"9 *Conductor de 65 kg sentado","Altura del asiento al piso (cm)":"65.5 *Sin conductor sentado","Tablero de información":"LCD, Muestra velocidad referencial","Alarma eléctrica antirrobo":"Sí","Canasta/Asiento":"Dos canastas/ asiento grande de 80 cm de ancho","Puerto USB para carga de celular":"Sí, con porta celular regulable","Luces Direccionales (delantera/posterior)":"Si / Si","Luces Intermitentes":"Si","Suspensión delantera/trasera":"Telescópica/ amortiguadores","Freno delantero/trasera":"Disco/tambor","Llanta delantera/trasera":"3.00-10 / 3.00-10, sin cámara","Largo*ancho*altura (cm)":"220 * 80 * 109","Peso en seco (kg)":"140 kg"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (11, '{"Número modos de manejo":"4","Altura del piso a la base (cm)":"12 (considerando un conductor de 65 kg sentado)","Altura del asiento al piso (cm)":"67 (sin conductor sentado)","Tablero de información":"Digital, pantalla negativa de baja reflexión","Alarma/seguridad":"Sí, alarma eléctrica contra robos. Bloqueo de timón","Cajuela/Maletera":"Si abajo del asiento, también con maletera posterior.","Puerto USB para carga de celular":"Sí","Luces direccionales (delantero/posterior)":"Si / Si","Luces intermitentes":"Sí","Suspensión delantera/trasera":"Telescópica/doble amortiguador","Freno delantero/trasero)":"Disco/Tambor","Llanta delantera/trasera":"3.00-10 - 3.00-10 . Sin cámara","Largo*ancho*altura (cm)":"171 * 44 * 110","Peso en seco (kg)":"95 kg","DETALLES":"Luces direccionales, gancho movible, posapié para copiloto en diseño, parador lateral y central"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (12, '{"Número modos de manejo":"4","Altura del piso a la base (cm)":"12.5 (considerando un conductor de 65 kg sentado)","Altura del asiento al piso (cm)":"74.0 (sin conductor sentado)","Tablero de información":"Digital, pantalla negativa contra rayos de sol","Alarma/seguridad":"Sí, alarma eléctrica contra robos. Bloqueo de timón","Cajuela/asiento":"No, pero amplia guantera abajo del asiento (18 litros).","Puerto USB para carga de celular":"Sí con guantera para celular","Luces direccionales (delantero/posterior)":"Sí / Si","Luces intermitentes":"Si","Suspensión delantera/trasera":"Telescópica/doble amortiguador","Freno delantero/trasero)":"Disco/Tambor","Llanta delantera/trasera":"3.0-10 - 3.0-10. Sin cámara","Largo*ancho*altura (cm)":"172 * 71 * 111","Peso en seco (kg)":"100 kg","DETALLES":"Luz intermitente y faros con diseño, autobloqueo, llave oculta dentro del control inalámbrico, parador central y lateral"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (13, '{"Número modos de manejo":"4","Altura del piso a la base (cm)":"12.5 (considerando un conductor de 65 kg sentado)","Altura del asiento al piso (cm)":"74.0 (sin conductor sentado)","Tablero de información":"Digital","Alarma/seguridad":"Sí, autobloqueo contra robos. Bloqueo de timón","Cajuela/Maletera":"si / bajo del asiento (40L) / Maletera (45L).","Puerto USB para carga de celular":"Sí con guantera para celular","Luces direccionales (delantero/posterior)":"Sí / Si","Luces intermitentes":"Si","Suspensión delantera/trasera":"Telescópica/doble amortiguador","Freno delantero/trasero)":"Disco/Disco","Llanta delantera/trasera":"90/90-12 - 90/90-10. Sin cámara","Largo*ancho*altura (cm)":"192 * 97 * 126","Peso en seco (kg)":"89 kg","DETALLES":"Luz intermitente y faros con diseño, autobloqueo con alarma, barra parachoques completo con posapiés integrados, parador central y lateral"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (14, '{"Número modos de manejo":"4 (bajo, medio, alto y retroceso)","Altura del piso a la base (cm)":"11 *Conductor de 65 kg sentado","Altura del asiento al piso (cm)":"69 *Sin conductor sentado","Tablero de información":"Pantalla digital LCD","Alarma eléctrica antirrobo":"Sí","Canasta/Asiento":"Dos canastas / tres asientos regulables","Puerto USB para carga de celular":"Sí, con porta celular regulable","Luces Direccionales (delantera/posterior)":"Si / Si","Luces Intermitentes":"Si","Suspensión delantera/trasera":"Telescópica / amortiguadores","Freno delantero/trasero)":"Disco / tambor","Llanta delantera/trasera":"3.00-10 / 3.00-10 , sin cámara","Largo*ancho*altura (cm)":"171 * 75 * 169","Peso en seco (kg)":"145 kg"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (15, '{"Número modos de manejo":"1","Altura del piso a la base (cm)":"12.0 (considerando un conductor de 65 kg sentado)","Altura del asiento al piso (cm)":"72.0 (sin conductor sentado)","Tablero de información":"Digital, nivel de bateria","Alarma/seguridad":"Sí, alarma eléctrica contra robos","Canasta/asiento":"Si, amplia canasta. asiento fijo.","Puerto USB para carga de celular":"No","Luces direccionales (delantero/posterior)":"Si / Si","Luces intermitentes":"Si","Suspensión delantera/trasera":"Telescópica/ amortiguador","Freno delantero/trasero)":"Disco/tambor","Llanta delantera/trasera":"3.00-10 - 3.00-10. Sin cámara","Largo*ancho*altura (cm)":"128 * 71 * 105","Peso en seco (kg)":"82 kg"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (16, '{"Número modos de manejo":"4 (bajo, neutro, alto y retroceso)","Altura del piso a la base (cm)":"20 *Conductor de 65 kg sentado","Altura del asiento al piso (cm)":"65 *Sin conductor sentado","Tablero de información":"LCD","Alarma eléctrica antirrobo":"Si","Asiento":"Un asiento amplio 32*74","Tolva (largo * ancho * alto) (cm)":"Sí, 170 * 110 * 47","Puerto USB para carga de celular":"No","Luces Direccionales (delantera/posterior)":"Si / Si","Luces Intermitentes":"si","Suspensión delantera/trasera":"Telescópica/muelle","Freno delantero/trasero)":"Tambor/tambor","Llanta delantera/trasera":"4.50-12 / 4.50-12, tubular","Largo*ancho*altura (cm)":"332 * 130 * 142","Peso en seco (kg)":"440 kg"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (17, '{"Número modos de manejo":"1","Altura del piso a la base (cm)":"12 (considerando un conductor de 65 kg sentado)","Altura del asiento al piso (cm)":"72 (sin conductor sentado)","Tablero de información":"Digital, pantalla negativa de baja reflexión","Alarma/seguridad":"Sí, alarma eléctrica contra robos","Canasta/asiento":"Si, amplia canasta. asiento fijo.","Luces direcciones adelante y posterior":"Si / Si","Suspensión delantera/trasera":"Telescópica/doble amortiguador","Freno delantero/trasero)":"Tambor/tambor","Llanta delantera/trasera":"2.75-10 - 2.75-10. Sin cámara","Largo*ancho*altura (cm)":"158 * 70 * 103","Peso en seco (kg)":"55 kg"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (18, '{"Número modos de manejo":"4 (bajo, neutro, alto y retroceso)","Altura del piso a la base (cm)":"20 *Conductor de 70 kg sentado","Altura del asiento al piso (cm)":"65 *Sin conductor sentado","Tablero de información":"LCD","Alarma eléctrica antirrobo":"Si","Asiento":"3, piloto 77x35cm*, 1er copiloto 88x28cm* y 2do copiloto 82x43cm*","Puerto USB para carga de celular":"Si, capacidad baja","Luces Direccionales (delantera/posterior)":"Si / Si","Luces Intermitentes":"si","Suspensión delantera/trasera":"Telescópica/muelle","Freno delantero/trasero)":"Disco/Disco","Llanta delantera/trasera":"4.00-12 / 4.00-12, tubular","Largo*ancho*altura (cm)":"286 * 102 * 180","Peso en seco (kg)":"240 kg"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (19, '{"Número modos de manejo":"4 (bajo, medio, alto y retroceso)","Altura del piso a la base (cm)":"11 *Conductor de 65 kg sentado","Altura del asiento al piso (cm)":"66 *Sin conductor sentado","Tablero de información":"LCD","Alarma eléctrica antirrobo":"Si","Asiento":"Un asiento de 64 cm y asiento móvil para copiloto","Tolva (largo * ancho * alto) (cm)":"Sí, 110 * 85 * 26","Puerto USB para carga de celular":"No","Luces Direccionales (delantera/posterior)":"Si / Si","Luces Intermitentes":"Si","Suspensión delantera/trasera":"Telescópica/Doble amortiguador","Freno delantero/trasero)":"Tambor/tambor","Llanta delantera/trasera":"3.00-12 / 3.00-12, sin cámara","Largo*ancho*altura (cm)":"250 * 90 * 113","Peso en seco (kg)":"110 kg"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (20, '{"Número modos de manejo":"3","Altura del piso a la base (cm)":"12.5 (considerando un conductor de 65 kg sentado)","Altura del asiento al piso (cm)":"74.0 (sin conductor sentado)","Tablero de información":"Digital, pantalla negativa contra rayos de sol","Alarma/seguridad":"Sí, alarma eléctrica contra robos. Bloqueo de timón","Cajuela/asiento":"No, pero amplia guantera abajo del asiento (32 litros).","Puerto USB para carga de celular":"Sí con guantera para celular","Luces direccionales (delantero/posterior)":"Sí / Si","Luces intermitentes":"No","Suspensión delantera/trasera":"Telescópica/Amortiguador","Freno delantero/trasero)":"Disco/Disco","Llanta delantera/trasera":"3.00-10 - 3.00-10. Sin cámara","Largo*ancho*altura (cm)":"176 * 75 * 106","Peso en seco (kg)":"89 kg","DETALLES":"Luz intermitente y faros con diseño, autobloqueo, parador central y lateral"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (22, '{"Número modos de manejo":"1","Altura del piso a la base (cm)":"11.0 (considerando un conductor de 65 kg sentado)","Altura del asiento al piso (cm)":"72.0 (sin conductor sentado)","Tablero de información":"Digital, pantalla negativa de baja reflexión","Alarma/seguridad":"Sí, alarma eléctrica contra robos","Canasta/asiento":"Si, amplia canasta. asiento fijo.","Puerto USB para carga de celular":"No","Luces direccionales (delantero/posterior)":"si / si","Luces intermitentes":"No","Suspensión delantera/trasera":"Telescópica/doble amortiguador","Freno delantero/trasero)":"Tambor/tambor","Llanta delantera/trasera":"2.5-10 - 2.5-10. Sin cámara","Largo*ancho*altura (cm)":"157 * 72 * 125","Peso en seco (kg)":"63 kg"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (23, '{"Número modos de manejo":"1","Altura del piso a la base (cm)":"13.0 (considerando un conductor de 65 kg sentado)","Altura del asiento al piso (cm)":"71.0 - 79.0 (sin conductor sentado)","Tablero de información":"Digital, pantalla negativa de baja reflexión","Alarma/seguridad":"Sí, alarma eléctrica contra robos","Canasta/asiento":"Si, amplia canasta, Asiento de espuma","Puerto USB para carga de celular":"No","Luces direccionales (delantero/posterior)":"Si / Si","Luces intermitentes":"No","Suspensión delantera/trasera":"Telescópica/doble amortiguador","Freno delantero/trasero)":"Tambor/tambor","Llanta delantera/trasera":"2.5-10 - 2.5-10. Sin cámara","Largo*ancho*altura (cm)":"138 * 61 * 75","Peso en seco (kg)":"42 kg"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data)
+VALUES (24, '{
+  "Canasta/asiento": "2 asientos",
+  "Llanta delantera/trasera": "14*3.00-10",
+  "Largo*ancho*altura (cm)": "128 * 71 * 105",
+  "Peso en seco (kg)": "68.65 kg"
+}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (25, '{"Número modos de manejo":"1","Altura del piso a la base (cm)":"13.0 (considerando un conductor de 65 kg sentado)","Altura del asiento al piso (cm)":"77 (sin conductor sentado)","Tablero de información":"LCD","Alarma/seguridad":"Sí, alarma eléctrica contra robos y bloqueo de timón","Canasta/asiento":"No, Asiento doble y cómodo con guantera.","Puerto USB para carga de celular":"Sí","Luces direccionales (delantero/posterior)":"Si / Si","Luces intermitentes":"Si","Suspensión delantera/trasera":"Telescópica/doble amortiguador","Freno delantero/trasero)":"Disco/Tambor","Llanta delantera/trasera":"3.00-10 - 3.00-10. Sin cámara","Largo*ancho*altura (cm)":"167 * 75 * 107","Peso en seco (kg)":"60 kg"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (26, '{"Número modos de manejo":"4","Altura del piso a la base (cm)":"12.5 (considerando un conductor de 65 kg sentado)","Altura del asiento al piso (cm)":"74.0 (sin conductor sentado)","Tablero de información":"Digital, pantalla negativa contra rayos de sol","Alarma/seguridad":"Sí, alarma eléctrica contra robos. Bloqueo de timón","Cajuela/asiento":"No, pero amplia guantera abajo del asiento (30 litros).","Puerto USB para carga de celular":"Sí con guantera para celular","Luces direccionales (delantero/posterior)":"Sí / Si","Luces intermitentes":"Si","Suspensión delantera/trasera":"Telescópica/doble amortiguador","Freno delantero/trasero)":"Disco/Disco","Llanta delantera/trasera":"3.0-10 - 3.0-10. Sin cámara","Largo*ancho*altura (cm)":"179 * 75 * 124","Peso en seco (kg)":"60 kg","DETALLES":"Luz intermitente y faros con diseño, autobloqueo, llave oculta dentro del control inalámbrico, parador central y lateral"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (27, '{"Número modos de manejo":"4 (bajo, neutro, alto y retroceso)","Altura del piso a la base (cm)":"20 *Conductor de 65 kg sentado","Altura del asiento al piso (cm)":"65 *Sin conductor sentado","Tablero de información":"LCD","Alarma eléctrica antirrobo":"Si","Asiento":"Un asiento amplio 32*74","Tolva (largo * ancho * alto) (cm)":"Sí, 154 * 103 * 47","Puerto USB para carga de celular":"No","Luces Direccionales (delantera/posterior)":"Si / Si","Luces Intermitentes":"si","Suspensión delantera/trasera":"Telescópica/muelle","Freno delantero/trasero)":"Tambor/tambor","Llanta delantera/trasera":"4.00-12 / 4.00-12, tubular","Largo*ancho*altura (cm)":"310 * 170 * 171","Peso en seco (kg)":"199 kg"}'::jsonb);
+
+INSERT INTO info_adicional (producto_id, data) VALUES (28, '{"Número modos de manejo":"3 (bajo, medio, alto y retroceso)","Altura del piso a la base (cm)":"20 *Conductor de 65 kg sentado","Altura del asiento al piso (cm)":"65 *Sin conductor sentado","Tablero de información":"LCD","Alarma eléctrica antirrobo":"Si","Asiento":"Un asiento amplio 32*74","Tolva (largo * ancho * alto) (cm)":"Sí, 160 * 110 * 120","Puerto USB para carga de celular":"No","Luces Direccionales (delantera/posterior)":"Si / Si","Luces Intermitentes":"si","Suspensión delantera/trasera":"Telescópica/muelle","Freno delantero/trasero)":"Sin freno/tambor","Llanta delantera/trasera":"4.00-12 / 4.50-12, tubular","Largo*ancho*altura (cm)":"300 * 110 * 180","Peso en seco (kg)":"250 kg"}'::jsonb);
+
 
 -- RELACIONES PRODUCTO-COLOR
 INSERT INTO prod_color_rel (producto_id, color_id, stock) VALUES (1, 5, 1);

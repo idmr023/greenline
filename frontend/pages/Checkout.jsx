@@ -42,6 +42,12 @@ const EMPTY_FORM = {
 
 const inputClass =
   'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand text-sm';
+const inputErrorClass =
+  'w-full px-4 py-2.5 border border-red-400 bg-red-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-500 text-sm';
+
+function validarNombre(value) {
+  return /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s']+$/.test(value);
+}
 
 export default function Checkout() {
   const { items, removeItem, updateQty, clear, total, count } = useCart();
@@ -50,23 +56,61 @@ export default function Checkout() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const [attempted, setAttempted] = useState(false);
   const [success, setSuccess] = useState(null);
 
   const setField = (field, value) => setForm((f) => ({ ...f, [field]: value }));
+
+  const errors = useMemo(() => {
+    const errs = {};
+    const nombre = form.nombre.trim();
+    const dni = form.dni.trim();
+    const telefono = form.telefono.trim();
+    const email = form.email.trim();
+    const direccion = form.direccion.trim();
+
+    if (nombre.length < 2) errs.nombre = 'Ingresa tu nombre completo.';
+    else if (!validarNombre(nombre)) errs.nombre = 'El nombre solo debe contener letras.';
+
+    if (dni.length === 0) errs.dni = 'Ingresa tu DNI.';
+    else if (!/^\d{8}$/.test(dni)) errs.dni = 'El DNI debe tener 8 números.';
+
+    if (telefono.length === 0) errs.telefono = 'Ingresa tu teléfono.';
+    else if (!/^\d{9}$/.test(telefono))
+      errs.telefono = 'El teléfono debe tener 9 números.';
+
+    if (email.length === 0) errs.email = 'Ingresa tu correo electrónico.';
+    else if (!email.includes('@'))
+      errs.email = 'Ingresa un correo válido con @.';
+
+    if (direccion.length < 5) errs.direccion = 'Ingresa tu dirección de facturación.';
+
+    return errs;
+  }, [form]);
 
   const todoValido = useMemo(
     () =>
       items.length > 0 &&
       form.nombre.trim().length >= 2 &&
-      form.dni.trim().length >= 7 &&
-      form.telefono.trim().length >= 6 &&
+      validarNombre(form.nombre.trim()) &&
+      /^\d{8}$/.test(form.dni.trim()) &&
+      /^\d{9}$/.test(form.telefono.trim()) &&
+      form.email.trim().includes('@') &&
       form.direccion.trim().length >= 5,
     [items, form],
   );
 
+  const showErrors = attempted || sending;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (sending || items.length === 0) return;
+
+    if (!todoValido) {
+      setAttempted(true);
+      setError('');
+      return;
+    }
 
     const codigo = generarCodigo();
     setSending(true);
@@ -89,6 +133,7 @@ export default function Checkout() {
         color: it.color,
         cantidad: it.cantidad,
         precio_actual: it.precio_actual,
+        imagen: it.imagen || null,
       })),
       total: Math.round(total * 100) / 100,
     };
@@ -144,7 +189,7 @@ export default function Checkout() {
               <CheckCircle2 className="w-9 h-9 text-brand" />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">Tu pedido fue recibido</h3>
-            <p className="text-sm text-gray-600 max-w-md mx-auto mb-6">
+            <p className="text-sm text-gray-600 mx-auto mb-6">
               Tu pedido <span className="font-bold text-gray-900">{success.codigo}</span> fue
               registrado. Nuestro equipo te contactará para coordinar el pago y la entrega.
             </p>
@@ -234,8 +279,11 @@ export default function Checkout() {
                   placeholder="Tu nombre y apellido"
                   value={form.nombre}
                   onChange={(e) => setField('nombre', e.target.value)}
-                  className={inputClass}
+                  className={showErrors && errors.nombre ? inputErrorClass : inputClass}
                 />
+                {showErrors && errors.nombre && (
+                  <p className="mt-1 text-xs text-red-600">{errors.nombre}</p>
+                )}
               </div>
               <div>
                 <label htmlFor="dni" className="block text-sm font-medium text-gray-700 mb-1">
@@ -245,11 +293,14 @@ export default function Checkout() {
                   id="dni"
                   type="text"
                   inputMode="numeric"
-                  placeholder="Número de DNI"
+                  placeholder="Número de DNI (8 dígitos)"
                   value={form.dni}
                   onChange={(e) => setField('dni', e.target.value.replace(/\D/g, '').slice(0, 8))}
-                  className={inputClass}
+                  className={showErrors && errors.dni ? inputErrorClass : inputClass}
                 />
+                {showErrors && errors.dni && (
+                  <p className="mt-1 text-xs text-red-600">{errors.dni}</p>
+                )}
               </div>
               <div>
                 <label htmlFor="telefono" className="block text-sm font-medium text-gray-700 mb-1">
@@ -258,15 +309,21 @@ export default function Checkout() {
                 <input
                   id="telefono"
                   type="tel"
-                  placeholder="Ej. 919 445 661"
+                  inputMode="numeric"
+                  placeholder="Ej. 919445661 (9 dígitos)"
                   value={form.telefono}
-                  onChange={(e) => setField('telefono', e.target.value)}
-                  className={inputClass}
+                  onChange={(e) =>
+                    setField('telefono', e.target.value.replace(/\D/g, '').slice(0, 9))
+                  }
+                  className={showErrors && errors.telefono ? inputErrorClass : inputClass}
                 />
+                {showErrors && errors.telefono && (
+                  <p className="mt-1 text-xs text-red-600">{errors.telefono}</p>
+                )}
               </div>
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Correo electrónico
+                  Correo electrónico *
                 </label>
                 <input
                   id="email"
@@ -274,8 +331,11 @@ export default function Checkout() {
                   placeholder="tu@email.com"
                   value={form.email}
                   onChange={(e) => setField('email', e.target.value)}
-                  className={inputClass}
+                  className={showErrors && errors.email ? inputErrorClass : inputClass}
                 />
+                {showErrors && errors.email && (
+                  <p className="mt-1 text-xs text-red-600">{errors.email}</p>
+                )}
               </div>
               <div>
                 <label htmlFor="direccion" className="block text-sm font-medium text-gray-700 mb-1">
@@ -287,8 +347,11 @@ export default function Checkout() {
                   placeholder="Calle, número, distrito, ciudad"
                   value={form.direccion}
                   onChange={(e) => setField('direccion', e.target.value)}
-                  className={`${inputClass} resize-none`}
+                  className={`${showErrors && errors.direccion ? inputErrorClass : inputClass} resize-none`}
                 />
+                {showErrors && errors.direccion && (
+                  <p className="mt-1 text-xs text-red-600">{errors.direccion}</p>
+                )}
               </div>
 
               {error && (
