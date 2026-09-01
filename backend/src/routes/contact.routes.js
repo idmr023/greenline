@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { sendEmail } from '../utils/email.js';
 import { validate } from '../middleware/validate.js';
 import { contactLimiter } from '../middleware/rateLimiter.js';
+import { enqueueEmail } from '../queue/email.queue.js';
 import { env } from '../config/env.js';
 
 const router = Router();
@@ -77,7 +77,8 @@ router.post('/', contactLimiter, validate(contactSchema), async (req, res) => {
       </html>
     `;
 
-    await sendEmail({
+    // Encolar el email y responder al instante (no bloquear con SMTP).
+    await enqueueEmail({
       to: env.MAIL_TO || env.EMAIL_FROM,
       subject: `[Web] ${asunto}`,
       html,

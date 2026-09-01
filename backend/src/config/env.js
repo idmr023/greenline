@@ -30,10 +30,15 @@ const envSchema = z.object({
   PORT: z.coerce.number().default(3000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 
+  /** Conexión Redis para la cola de emails (BullMQ). Si falta, se usa una cola en memoria. */
+  REDIS_URL: z.string().optional(),
+
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(900000),
   RATE_LIMIT_MAX: z.coerce.number().default(100),
   LOGIN_RATE_LIMIT_MAX: z.coerce.number().default(5),
   OTP_RATE_LIMIT_MAX: z.coerce.number().default(3),
+  CONTACT_RATE_LIMIT_MAX: z.coerce.number().default(5),
+  PEDIDOS_RATE_LIMIT_MAX: z.coerce.number().default(10),
 
   SUPABASE_URL: z.string().url().optional(),
   SUPABASE_ANON_KEY: z.string().optional(),

@@ -152,7 +152,7 @@ async function main() {
   console.log(`   ✅ Colaborador creado: ${colaborador.email}`);
 
   // ============================================================
-  // Crear cliente de prueba
+  // Crear clientes de prueba (1 principal + 10 para el load test)
   // ============================================================
   const clienteHash = await argon2.hash('Cliente@2026', {
     type: argon2.argon2id,
@@ -186,12 +186,50 @@ async function main() {
 
   console.log(`   ✅ Cliente creado: ${cliente.email}`);
 
+  // Clientes de prueba para scripts/load/load-test.js.
+  // Misma contraseña que el cliente principal; email único por índice.
+  // Al correr el seed en cualquier entorno (local o staging/prod) siempre se
+  // crean los MISMOS usuarios y credenciales.
+  const LOAD_TEST_CLIENTS = 10;
+  const clientesTest = [];
+  for (let i = 1; i <= LOAD_TEST_CLIENTS; i++) {
+    const email = `cliente${i}@test.com`;
+    const test = await prisma.user.upsert({
+      where: { email },
+      update: {},
+      create: {
+        email,
+        passwordHash: clienteHash,
+        nombre: `Cliente ${i}`,
+        apellido: 'Prueba',
+        rol: 'CLIENTE',
+        nivelAcceso: 'CLIENTE_N',
+        emailVerificado: true,
+        activo: true,
+        clienteProfile: {
+          create: {
+            documento: String(10000000 + i),
+            direccion: 'Av. Prueba 123',
+            ciudad: 'Lima',
+            departamento: 'Lima',
+          },
+        },
+      },
+    });
+    clientesTest.push(test);
+  }
+
+  console.log(`   ✅ ${clientesTest.length} clientes de prueba creados (cliente1@test.com ... cliente${LOAD_TEST_CLIENTS}@test.com)`);
+
   console.log('\n🎉 Seed completado exitosamente!');
   console.log('\n📋 Usuarios creados:');
   console.log('   admin@greenline.com        / GreenLine@2026  (ADMIN)');
   console.log('   gerente.lince@greenline.com / Gerente@2026   (GERENTE_TIENDA)');
   console.log('   colaborador.lince@greenline.com / Colab@2026 (COLABORADOR_TIENDA)');
   console.log('   cliente@test.com           / Cliente@2026    (CLIENTE)');
+  for (let i = 1; i <= LOAD_TEST_CLIENTS; i++) {
+    console.log(`   cliente${i}@test.com          / Cliente@2026    (CLIENTE)`);
+  }
 }
 
 main()
