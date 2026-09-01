@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { sendEmail } from '../utils/email.js';
 import { validate } from '../middleware/validate.js';
 import { pedidosLimiter } from '../middleware/rateLimiter.js';
+import { enqueueEmail } from '../queue/email.queue.js';
 import { env } from '../config/env.js';
 
 const router = Router();
@@ -18,6 +18,7 @@ const itemSchema = z.object({
   color: z.string().trim().optional().nullable(),
   cantidad: z.number().int().positive(),
   precio_actual: z.number().nonnegative(),
+  imagen: z.string().url().optional().nullable(),
 });
 
 const pedidoSchema = z.object({
@@ -41,7 +42,8 @@ router.post('/', pedidosLimiter, validate(pedidoSchema), async (req, res) => {
 
     const html = generarEmailPedido({ codigo, cliente, items, total });
 
-    await sendEmail({
+    // Encolar el email y responder al instante (no bloquear con SMTP).
+    await enqueueEmail({
       to: env.ORDERS_MAIL_TO,
       subject: `Pedido ${codigo} — ${cliente.nombre}`,
       html,
@@ -66,6 +68,9 @@ function generarEmailPedido({ codigo, cliente, items, total }) {
     .map(
       (it) => `
         <tr>
+          <td style="padding:10px 12px;border-bottom:1px solid #eee;">
+            ${it.imagen ? `<img src="${escapeHtml(it.imagen)}" alt="${escapeHtml(it.nombre)}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;display:block;" />` : ''}
+          </td>
           <td style="padding:10px 12px;border-bottom:1px solid #eee;color:#333;">
             ${escapeHtml(it.nombre)}${it.color ? ` <span style="color:#999;font-size:12px;">(${escapeHtml(it.color)})</span>` : ''}
           </td>
@@ -125,6 +130,7 @@ function generarEmailPedido({ codigo, cliente, items, total }) {
           <table>
             <thead>
               <tr>
+                <th style="width:80px;"></th>
                 <th>Producto</th>
                 <th style="text-align:center;">Cant.</th>
                 <th style="text-align:right;">P. unitario</th>
@@ -134,7 +140,7 @@ function generarEmailPedido({ codigo, cliente, items, total }) {
             <tbody>
               ${filas}
               <tr class="total-row">
-                <td colspan="3" class="total-label">Total</td>
+                <td colspan="4" class="total-label">Total</td>
                 <td class="total-value">${formatPrice(total)}</td>
               </tr>
             </tbody>

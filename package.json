@@ -9,6 +9,7 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "sync_image": "node scripts/sincronizar-imagenes-greenline.mjs",
+    "bench": "node scripts/bench.mjs 50",
     "all": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev"

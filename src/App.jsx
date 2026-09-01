@@ -30,6 +30,7 @@ import Checkout from '../frontend/pages/Checkout';
 
 import AdminPanel from '../frontend/components/admin/AdminPanel';
 import CartDrawer from '../frontend/components/CartDrawer';
+import ColdStartBanner from '../frontend/components/ColdStartBanner';
 import NovedadesPage from '../frontend/pages/NovedadesPage';
 import NovedadDetalle from '../frontend/pages/NovedadDetalle';
 
@@ -61,6 +62,7 @@ export default function App() {
       <ScrollToTop />
       <AuthProvider>
         <CartProvider>
+          <ColdStartBanner />
           <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<Layout />}>

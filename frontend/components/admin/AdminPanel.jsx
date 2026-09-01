@@ -8,7 +8,8 @@ import AdminProductoForm from './AdminProductoForm';
 import AdminColores from './AdminColores';
 import AdminTestimonios from './AdminTestimonios';
 import AdminPedidos from './AdminPedidos';
-import { LayoutDashboard, Package, Palette, MessageSquareQuote, ShoppingCart, LogOut, ShieldCheck, Lock, Mail, Loader2, AlertCircle } from 'lucide-react';
+import AdminMetrics from './AdminMetrics';
+import { LayoutDashboard, Package, Palette, MessageSquareQuote, ShoppingCart, LogOut, ShieldCheck, Lock, Mail, Loader2, AlertCircle, Activity } from 'lucide-react';
 
 const VIEWS = {
   DASHBOARD: 'dashboard',
@@ -17,6 +18,7 @@ const VIEWS = {
   COLORES: 'colores',
   TESTIMONIOS: 'testimonios',
   PEDIDOS: 'pedidos',
+  METRICAS: 'metricas',
 };
 
 const NAV_ITEMS = [
@@ -25,6 +27,7 @@ const NAV_ITEMS = [
   { key: VIEWS.COLORES, label: 'Colores', icon: Palette },
   { key: VIEWS.TESTIMONIOS, label: 'Testimonios', icon: MessageSquareQuote },
   { key: VIEWS.PEDIDOS, label: 'Pedidos', icon: ShoppingCart },
+  { key: VIEWS.METRICAS, label: 'Métricas', icon: Activity },
 ];
 
 const PANEL_GRANT_ROLES = ['ADMIN', 'DESARROLLADOR_WEB'];
@@ -313,6 +316,7 @@ export default function AdminPanel() {
         {view === VIEWS.COLORES && <AdminColores />}
         {view === VIEWS.TESTIMONIOS && <AdminTestimonios />}
         {view === VIEWS.PEDIDOS && <AdminPedidos />}
+        {view === VIEWS.METRICAS && <AdminMetrics />}
       </main>
     </div>
   );

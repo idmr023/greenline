@@ -1,15 +1,69 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
+// Umbral (ms) sobre el cual un fetch se considera "cold start" (Render dormido)
+export const COLD_START_THRESHOLD_MS = 1200;
+
+// Instrumentación de rendimiento: expone la latencia medida de cada petición
+// para diagnosticar el ahorro de tiempo entre cold-start y warm.
+export const apiPerf = {
+  coldStart: false,
+  lastLatency: 0,
+  samples: [], // { path, method, ms, at }
+};
+
+function emitColdStart(detail) {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('gl:coldstart', { detail }));
+  }
+}
+
+let slowTimer = null;
+
 async function request(path, options = {}) {
   const { method, body, headers } = options;
-  const res = await fetch(`${API_URL}${path}`, {
-    method,
-    headers: { 'Content-Type': 'application/json', ...headers },
-    body,
-  });
-  const data = await res.json();
+  const started = performance.now();
+
+  // Si tras el umbral la respuesta no ha llegado, asumimos Render dormido
+  // y avisamos para mostrar banner + skeleton ("Despertando sistema...").
+  if (slowTimer) clearTimeout(slowTimer);
+  slowTimer = window.setTimeout(() => {
+    const ms = Math.round(performance.now() - started);
+    apiPerf.coldStart = true;
+    emitColdStart({ coldStart: true, latency: ms, path });
+  }, COLD_START_THRESHOLD_MS);
+
+  let res;
+  let data;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      method,
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body,
+    });
+    data = await res.json();
+  } finally {
+    if (slowTimer) {
+      clearTimeout(slowTimer);
+      slowTimer = null;
+    }
+    const ms = Math.round(performance.now() - started);
+    apiPerf.lastLatency = ms;
+    apiPerf.samples.push({ path, method: method || 'GET', ms, at: Date.now() });
+    if (apiPerf.samples.length > 100) apiPerf.samples.shift();
+    apiPerf.coldStart = false;
+    emitColdStart({ coldStart: false, latency: ms, path });
+  }
+
   if (!res.ok) throw { status: res.status, ...data };
   return data;
+}
+
+/** Devuelve el resumen de rendimiento para diagnóstico (ms promedio, muestras). */
+export function getPerfSummary() {
+  if (apiPerf.samples.length === 0) return { count: 0 };
+  const total = apiPerf.samples.reduce((s, x) => s + x.ms, 0);
+  const avg = Math.round(total / apiPerf.samples.length);
+  return { count: apiPerf.samples.length, avg, last: apiPerf.lastLatency };
 }
 
 function authHeaders(token) {
@@ -78,4 +132,9 @@ export const contactAPI = {
 export const pedidosAPI = {
   send: (payload) =>
     request('/pedidos', { method: 'POST', body: JSON.stringify(payload) }),
+};
+
+export const metricsAPI = {
+  get: (accessToken) =>
+    request('/metrics', { headers: authHeaders(accessToken) }),
 };

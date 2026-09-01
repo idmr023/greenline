@@ -27,6 +27,7 @@ export const CATEGORIAS = [
   'Motos Eléctricas',
   'Trimotos Eléctricas',
   'Cargueros',
+  'Cuatrimotos',
 ];
 
 export const BATERIAS = ['Litio', 'Plomo Ácido', 'Plomo Grafeno'];
@@ -56,6 +57,11 @@ export const BANNERS = {
     title: 'Cargueros Eléctricos',
     subtitle: 'La solución de carga para tu negocio.',
     image: './assets/imagenes/banner_categoria_producto/cargueros.jpg',
+  },
+  Cuatrimotos: {
+    title: 'Cuatrimotos',
+    subtitle: 'Estabilidad, seguridad y movilidad universal.',
+    image: './assets/imagenes/banner_categoria_producto/encabezaado-web-fijo.jpg',
   },
 };
 

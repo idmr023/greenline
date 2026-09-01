@@ -3,7 +3,8 @@ import prisma from '../config/prisma.js';
 import { hashPassword, verifyPassword, needsRehash } from '../utils/argon2.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt.js';
 import { generateTOTPSecret, generateTOTPUri, verifyTOTP, generateQRCode, generateBackupCodes } from '../utils/qr.js';
-import { sendEmail, generateOTPEmail } from '../utils/email.js';
+import { generateOTPEmail } from '../utils/email.js';
+import { enqueueEmail } from '../queue/email.queue.js';
 import { createAuditLog } from '../middleware/auditLog.js';
 
 const MAX_INTENTOS = 5;
@@ -130,8 +131,8 @@ async function generateAndSendOTP(user, ip) {
     },
   });
 
-  // Enviar email
-  await sendEmail({
+  // Enviar email (encolado, no bloquea el request).
+  await enqueueEmail({
     to: user.email,
     subject: 'GreenLine — Tu código de acceso',
     html: generateOTPEmail(codigo, user.nombre),

@@ -74,7 +74,7 @@ function ManualesTab({ producto }) {
       </div>
 
       <div className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 bg-white">
-        <ShieldCheck className="w-8 h-8 text-gray-300 shrink-0" />
+        <ShieldCheck className="w-8 h-8 text-brand shrink-0" />
         <div className="min-w-0 flex-1">
           <p className="font-semibold text-sm text-gray-900">Garantía</p>
           <p className="text-xs text-gray-500">Descargar certificado de garantía</p>
@@ -125,7 +125,7 @@ function ImageCarousel({ images, nombre }) {
             <img
               src={img.src}
               alt={`${nombre} ${img.color || ''} ${i + 1}`}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
               draggable={false}
             />
           </picture>
@@ -177,7 +177,7 @@ function ImageCarousel({ images, nombre }) {
                 i === idx ? 'border-brand' : 'border-transparent hover:border-gray-300'
               }`}
             >
-              <img src={img.src} alt="" className="w-full h-full object-cover" />
+              <img src={img.src} alt="" className="w-full h-full object-contain" />
             </button>
           ))}
         </div>

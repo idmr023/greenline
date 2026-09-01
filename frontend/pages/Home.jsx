@@ -267,7 +267,7 @@ export default function Home() {
             <h2 className="text-2xl sm:text-3xl font-bold mb-3">
               Diseño universal, libertad sin límites
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 mx-auto">
               Las M-CAR son vehículos eléctricos creados con diseño universal: pensados
               desde fábrica para que personas con capacidades diversas se desplacen con
               autonomía, comodidad y total acceso igualitario.
@@ -291,7 +291,7 @@ export default function Home() {
 
           <div className="mt-8 text-center">
             <Link
-              to="/tienda?categoria=Motos%20El%C3%A9ctricas"
+              to="/tienda?categoria=Cuatrimotos"
               className="inline-flex items-center gap-2 px-6 py-3 bg-brand text-white font-semibold rounded-lg hover:bg-brand-dark transition-colors"
             >
               Explorar opciones

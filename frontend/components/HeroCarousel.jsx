@@ -22,7 +22,7 @@ const slides = [
     subtitle: 'Mes de locura: celebramos nuestro aniversario con descuentos y promociones por nuestro 9no aniversario.',
     cta: 'Acerca de los descuentos',
     to: '/tienda',
-    img: '/assets/imagenes/caroussel/3.jpg',
+    img: '/assets/imagenes/caroussel/portada_setiembre_aniversario.png',
   },
   {
     title: 'Siempre hay una Greenline cerca de ti',
@@ -56,10 +56,11 @@ export default function HeroCarousel() {
       </div>
 
       {/* Carousel */}
-      <div className="relative w-full h-[360px] sm:h-[420px] lg:h-[500px] overflow-hidden bg-gray-900">
+      <div className="relative w-full h-[500px] sm:h-[600px] lg:h-[700px] bg-gray-900">
         {slides.map((slide, index) => {
           return (
             <div
+              key={slide.title}
               className={`absolute inset-0 transition-opacity duration-700 ${
                 index === current ? 'opacity-100 z-10' : 'opacity-0 z-0'
               }`}

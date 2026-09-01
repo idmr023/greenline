@@ -4,6 +4,10 @@ import cors from 'cors';
 import { env } from './config/env.js';
 import { corsOptions } from './config/cors.js';
 import { globalLimiter } from './middleware/rateLimiter.js';
+import { metricsMiddleware, getMetrics } from './middleware/metrics.js';
+import { authMiddleware } from './middleware/auth.js';
+import { requirePermission } from './middleware/rbac.js';
+import { initEmailWorker, closeEmailQueue } from './queue/email.queue.js';
 
 // Routes
 import authRoutes from './routes/auth.routes.js';
@@ -48,6 +52,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Rate limiting global
 app.use(globalLimiter);
 
+// Contadores de métricas (RAM/heap/latencia) para monitoreo de carga
+app.use(metricsMiddleware);
+
 // ============================================================
 // ROUTES
 // ============================================================
@@ -55,6 +62,11 @@ app.use(globalLimiter);
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Métricas en vivo (protegido por rol ADMIN/DESARROLLADOR_WEB)
+app.get('/api/metrics', authMiddleware, requirePermission('config:read'), (_req, res) => {
+  res.json(getMetrics());
 });
 
 // API routes
@@ -94,6 +106,16 @@ app.listen(PORT, () => {
   console.log(`🟢 GreenLine Backend corriendo en puerto ${PORT}`);
   console.log(`   Entorno: ${env.NODE_ENV}`);
   console.log(`   Frontend: ${env.FRONTEND_URL}`);
+  initEmailWorker();
 });
+
+// Cierre ordenado de la cola de emails (Redis/BullMQ)
+async function shutdown() {
+  console.log('Apagando servidor...');
+  await closeEmailQueue();
+  process.exit(0);
+}
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
 
 export default app;
