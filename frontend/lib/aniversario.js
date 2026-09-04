@@ -73,8 +73,7 @@ export function temaAniversarioActivo() {
  *  generosas para que los globos suban en una secuencia calmada y escalonada,
  *  sin agobiar con muchos a la vez. */
 export const BALLOONS = [
-  { color: '#ffd400', left: '4%', delay: 0, duration: 16 },     // verde greenline
-  { color: '#ffffff', left: '22%', delay: 5, duration: 15 },    // blanco
+  { color: '#ffd400', left: '4%', delay: 0, duration: 16 },    // blanco
   { color: '#2eb82e', left: '38%', delay: 10, duration: 16 },   // verde claro
   { color: '#006400', left: '55%', delay: 20, duration: 15 },   // verde oscuro
   { color: '#4ade80', left: '70%', delay: 25, duration: 16 },   // verde suave
