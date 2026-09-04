@@ -6,15 +6,22 @@ const STORAGE_KEY = 'greenline_welcome_closed';
 export default function WelcomeBanner() {
   const [visible, setVisible] = useState(false);
 
+  // Llegada redirigida desde la página antigua (glperu.com vía 301).
+  // El browser deja document.referrer con la URL de origen del redirect.
+  const fromOldSite =
+    typeof document !== 'undefined' && /glperu\.com/.test(document.referrer || '');
+
   useEffect(() => {
-    if (!localStorage.getItem(STORAGE_KEY)) {
+    if (fromOldSite || !localStorage.getItem(STORAGE_KEY)) {
       const t = setTimeout(() => setVisible(true), 600);
       return () => clearTimeout(t);
     }
-  }, []);
+  }, [fromOldSite]);
 
   const handleClose = () => {
-    localStorage.setItem(STORAGE_KEY, 'true');
+    if (!fromOldSite) {
+      localStorage.setItem(STORAGE_KEY, 'true');
+    }
     setVisible(false);
   };
 
@@ -59,7 +66,7 @@ export default function WelcomeBanner() {
         </span>
 
         <h2 className="mt-5 text-2xl font-bold text-gray-900">
-          ¡Hola, GreenLover! 🌱
+          ¡Hola, GreenLover!
         </h2>
 
         <p className="mt-3 text-gray-600 leading-relaxed">
@@ -81,13 +88,6 @@ export default function WelcomeBanner() {
           Explorar la tienda
         </a>
 
-        <button
-          type="button"
-          onClick={handleClose}
-          className="mt-3 w-full rounded-xl py-2 text-sm text-gray-500 transition-colors hover:text-gray-700"
-        >
-          Tal vez más tarde
-        </button>
       </div>
     </div>
   );

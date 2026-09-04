@@ -16,6 +16,7 @@ const colorDotClass = {
   'Verde ligero': 'bg-green-400',
   'Verde Esmeralda': 'bg-emerald-600',
   'Verde Metálico': 'bg-emerald-700',
+  'Verde Metalico': 'bg-emerald-700',
   Celeste: 'bg-sky-400',
   Azul: 'bg-blue-600',
   Crema: 'bg-orange-100',
@@ -24,6 +25,7 @@ const colorDotClass = {
   Naranja: 'bg-orange-500',
   Plateado: 'bg-gray-400',
   Camaleón: 'bg-gradient-to-br from-green-400 via-blue-500 to-purple-500',
+  Camaleon: 'bg-gradient-to-br from-green-400 via-blue-500 to-purple-500',
 };
 
 function ImageCarousel({ images, nombre, onClose }) {
@@ -111,7 +113,7 @@ function ImageCarousel({ images, nombre, onClose }) {
               <img
                 src={img.src}
                 alt={`${nombre} ${img.color || ''} ${i + 1}`}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain bg-gray-bg"
                 draggable={false}
               />
             </picture>
@@ -164,7 +166,7 @@ function ImageCarousel({ images, nombre, onClose }) {
                 i === idx ? 'border-brand' : 'border-transparent hover:border-gray-300'
               }`}
             >
-              <img src={img.src} alt="" className="w-full h-full object-cover" />
+              <img src={img.src} alt="" className="w-full h-full object-contain bg-gray-bg" />
             </button>
           ))}
         </div>

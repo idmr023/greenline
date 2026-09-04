@@ -15,6 +15,7 @@ const colorMap = {
   'Verde ligero': 'bg-green-400',
   'Verde Esmeralda': 'bg-emerald-600',
   'Verde Metálico': 'bg-emerald-700',
+  'Verde Metalico': 'bg-emerald-700',
   Celeste: 'bg-sky-400',
   Azul: 'bg-blue-600',
   Crema: 'bg-orange-100',
@@ -25,6 +26,7 @@ const colorMap = {
   Morado: 'bg-purple-600',
   Naranja: 'bg-orange-500',
   Camaleón: 'bg-gradient-to-br from-green-400 via-blue-500 to-purple-500',
+  Camaleon: 'bg-gradient-to-br from-green-400 via-blue-500 to-purple-500',
 };
 
 // COMENTADO (temporal — "últimas unidades" por números. Se reactiva cuando

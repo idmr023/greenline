@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Construction } from 'lucide-react';
+import SEOHead from '../components/SEOHead';
 
 export default function StubPage() {
   return (
     <div className="flex-1 flex items-center justify-center py-24 px-4">
+      <SEOHead title="Próximamente" description="Esta sección está en construcción." url="/proximamente" />
       <div className="text-center max-w-md">
         <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-brand/10 text-brand flex items-center justify-center">
           <Construction className="w-10 h-10" />

@@ -41,6 +41,8 @@ export default function AdminProductoForm({ productoId, onBack, onSaved }) {
   // const [sucursales, setSucursales] = useState([]);
   const [productoColores, setProductoColores] = useState([]);
   const [imagenes, setImagenes] = useState([]);
+  const [idealPara, setIdealPara] = useState('');
+  const [infoAdicionalData, setInfoAdicionalData] = useState({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(!!productoId);
   const [uploading, setUploading] = useState(false);
@@ -122,6 +124,19 @@ potencia_bateria: ft.potencia_bateria || '',
           nombre: r.color?.nombre || '',
           porUbicacion: {},
         })));
+
+        const { data: ia } = await supabase
+          .from('info_adicional')
+          .select('data')
+          .eq('producto_id', id)
+          .single();
+
+        if (ia?.data) {
+          setInfoAdicionalData(ia.data);
+          const ideal = ia.data.ideal_para;
+          if (Array.isArray(ideal)) setIdealPara(ideal.join(', '));
+          else if (typeof ideal === 'string') setIdealPara(ideal);
+        }
 
         // COMENTADO (temporal — carga de stock por sucursal):
         // const { data: pcs } = await supabase
@@ -323,6 +338,18 @@ potencia_bateria: ft.potencia_bateria || '',
       : await supabase.from('ficha_tecnica').insert(fichaData);
     if (fail(fichaErr, 'ficha técnica')) return;
 
+    // Ideal para (se guarda en info_adicional.data como array de personas)
+    const idealList = idealPara.split(',').map((s) => s.trim()).filter(Boolean);
+    if (isEdit || idealList.length) {
+      const infoData = { ...infoAdicionalData };
+      if (idealList.length) infoData.ideal_para = idealList;
+      else delete infoData.ideal_para;
+      const { error: infoErr } = await supabase
+        .from('info_adicional')
+        .upsert({ producto_id: prodId, data: infoData }, { onConflict: 'producto_id' });
+      if (fail(infoErr, 'info adicional')) return;
+    }
+
     // Colores  (el stock por sucursal quedó comentado — TEMPORAL:
     // la lógica numérica de prod_color_stock se reactivará a futuro)
     // COMENTADO:
@@ -436,6 +463,9 @@ potencia_bateria: ft.potencia_bateria || '',
           </Field>
           <Field label="Descripción" full>
             <textarea rows={3} value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} className="input" placeholder="Descripción del producto..." />
+          </Field>
+          <Field label="Ideal para (tipo de persona, separado por comas)" full>
+            <input value={idealPara} onChange={(e) => setIdealPara(e.target.value)} className="input" placeholder="Estudiantes, Comerciantes, Delivery..." />
           </Field>
           <div className="flex items-center gap-2">
             <input

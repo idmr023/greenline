@@ -118,8 +118,8 @@ export function initEmailWorker() {
   worker = new Worker(
     'greenline-emails',
     async (job) => {
-      const { to, subject, html } = job.data;
-      await sendEmail({ to, subject, html });
+      const { to, subject, html, priority } = job.data;
+      await sendEmail({ to, subject, html, priority });
     },
     {
       connection: getConnection(),
@@ -138,7 +138,7 @@ export function initEmailWorker() {
 
 /**
  * Encola un email para envío en segundo plano.
- * @param {{to: string, subject: string, html: string}} payload
+ * @param {{to: string, subject: string, html: string, priority?: string}} payload
  */
 export async function enqueueEmail(payload) {
   if (!env.REDIS_URL || !redisAvailable) {

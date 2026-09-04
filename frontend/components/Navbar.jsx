@@ -4,6 +4,7 @@ import { Menu, X, ChevronDown, GraduationCap, Scale, LogIn, LogOut, User, Extern
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import LiveIndicator from './LiveIndicator';
+import { LOGO } from '../lib/images';
 
 const MI_CUENTA_URL = 'https://glperu.com/mi-cuenta/';
 
@@ -45,7 +46,7 @@ export default function Navbar({ onCommunityOpen }) {
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
             <picture>
-              <img src="/assets/imagenes/logos/logo_final.png" alt="Green Line" className="h-8" />
+              <img src={LOGO} alt="Green Line" className="h-16" />
             </picture>
           </Link>
 
@@ -133,7 +134,7 @@ export default function Navbar({ onCommunityOpen }) {
                   </Link>
                   {isStaff && (
                     <Link to="/admin" className="block px-4 py-2 hover:bg-gray-100 hover:text-brand text-sm text-left">
-                      Admin
+                      {user?.rol === 'EDITORA_BLOG' ? 'Editar Blog' : 'Admin'}
                     </Link>
                   )}
                   <button
@@ -253,7 +254,7 @@ export default function Navbar({ onCommunityOpen }) {
                     </Link>
                     {isStaff && (
                       <Link to="/admin" className="block py-2 text-sm text-gray-600" onClick={() => setMobileOpen(false)}>
-                        Admin
+                        {user?.rol === 'EDITORA_BLOG' ? 'Editar Blog' : 'Admin'}
                       </Link>
                     )}
                     <button

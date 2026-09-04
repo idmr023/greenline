@@ -231,14 +231,16 @@ export default function KilometerMaps({ abierto = true, onKmChange, view = 'full
       zoom: 13,
     });
     L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
       {
-        subdomains: 'abcd',
-        maxZoom: 20,
+        maxZoom: 19,
         attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community',
       }
     ).addTo(map);
+    map.on('tileerror', () => {
+      map.getContainer().classList.add('map-tile-fallback');
+    });
     lineaRef.current = L.polyline([], {
       color: '#059669',
       weight: 4,

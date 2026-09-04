@@ -67,7 +67,7 @@ export default function CartDrawer() {
                     <img
                       src={it.imagen}
                       alt={it.nombre}
-                      className="w-20 h-20 rounded-lg object-cover shrink-0"
+                      className="w-20 h-20 rounded-lg object-contain bg-gray-50 shrink-0"
                     />
                   ) : (
                     <div className="w-20 h-20 rounded-lg bg-gray-100 shrink-0" />

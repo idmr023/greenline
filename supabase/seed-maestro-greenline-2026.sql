@@ -33,8 +33,7 @@ INSERT INTO colores (id, nombre, hex_code) VALUES('Blanco', '#FFFFFF'),
   ('Rosado', '#f472b6'),
   ('Plateado', '#9ca3af'),
   ('Marrón', '#92400e'),
-  ('Naranja', '#f97316'),
-  ('Camaleón', NULL);
+  ('Naranja', '#f97316');
 
 -- PRODUCTOS
 INSERT INTO productos (id, categoria_id, nombre, slug, descripcion, precio_original, precio_actual, destacado, etiquetas) VALUES (1, 1, 'Bicicleta Eléctrica Plegable FL2', 'bicicleta-elctrica-plegable-fl2', E'Bicicleta eléctrica plegable TAILG FL2 con batería extraíble de litio y motor de alto rendimiento. Cuenta con velocidad asistida y diseño de marco de aluminio que cubre el sistema eléctrico. Diseño minimalista, plegable y fácil de guardar.\nIncluye sistema de cambios SHIMANO, pantalla LCD, luz faro LED y asiento para copiloto.', 2150, 2300, false, ARRAY['vmpLitio']::TEXT[]);
@@ -69,7 +68,7 @@ INSERT INTO productos (id, categoria_id, nombre, slug, descripcion, precio_origi
 INSERT INTO productos (id, categoria_id, nombre, slug, descripcion, precio_original, precio_actual, destacado, etiquetas) VALUES (18, 4, 'GreenLine TC-BUS', 'greenline-tc-bus', E'Vehículo Eléctrico GreenLine TC-BUS para transporte urbano y comercial de pasajeros. Capacidad para 5 pasajeros en 3 filas de asientos, techo protector integral, limpiaparabrisas, faros dobles LED, función de retroceso y frenos de disco ventilado.', 7300, 6400, false, ARRAY['carguero-promocion', 'destacado', 'promocion']::TEXT[]);
 INSERT INTO productos (id, categoria_id, nombre, slug, descripcion, precio_original, precio_actual, destacado, etiquetas) VALUES (19, 4, 'Carguero GreenLine TC2-110A', 'carguero-greenline-tc2-110a', E'CARGUERO GREENLINE TC2-110A. Herramienta de trabajo robusta con sistema de transmisión optimizado para alto torque. Incluye asientos amplios, moderno sistema de audio Bluetooth, función de retroceso y doble sistema de frenado.', 7600, 7200, false, ARRAY['carguero-promocion', 'destacado', 'promocion']::TEXT[]);
 INSERT INTO productos (id, categoria_id, nombre, slug, descripcion, precio_original, precio_actual, destacado, etiquetas) VALUES (20, 2, 'GreenLine F4 Pro', 'greenline-f4-pro', E'GreenLine F4 Pro. Elegancia retro y eficiencia. Asiento de espuma de alta calidad, guantera de 32 litros bajo el asiento, gancho utilitario, puerto USB, sistema de autobloqueo sin llave y luces intermitentes de diseño vanguardista.', 4000, 3700, false, ARRAY['destacado', 'MotoElectricaGrafeno', 'promocion']::TEXT[]);
-INSERT INTO productos (id, categoria_id, nombre, slug, descripcion, precio_original, precio_actual, destacado, etiquetas) VALUES (21, 2, 'GreenLine GL3', 'greenline-gl3', E'Greenline GL3. Llantas deportivas, sistema de freno CBS, pantalla digital intuitiva, modo parking, retroceso, sistema de bloqueo en la chapa y un innovador color camaleón (verde/púrpura) que realza su estilo.', 5500, 5200, false, ARRAY['destacado', 'MotoElectricaGrafeno', 'promocion']::TEXT[]);
+INSERT INTO productos (id, categoria_id, nombre, slug, descripcion, precio_original, precio_actual, destacado, etiquetas) VALUES (21, 2, 'GreenLine GL3', 'greenline-gl3', E'Greenline GL3. Llantas deportivas, sistema de freno CBS, pantalla digital intuitiva, modo parking, retroceso, sistema de bloqueo en la chapa y un innovador color azul que realza su estilo.', 5500, 5200, false, ARRAY['destacado', 'MotoElectricaGrafeno', 'promocion']::TEXT[]);
 BEGIN;
 
 -- M-CAR 1
@@ -966,24 +965,30 @@ INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (20, 
 INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (20, IMAGE_BASE_URL || 'motos/f4 pro/f4pro_gris_perfil.webp', 'Gris', 'false', 15);
 INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (21, IMAGE_BASE_URL || 'motos/gl3/gl3_negro_posterior.webp', 'Negro', 'false', 2);
 INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (21, IMAGE_BASE_URL || 'motos/gl3/gl3_negro_perfil.webp', 'Negro', 'false', 3);
-INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (21, IMAGE_BASE_URL || 'motos/gl3/gl3_camaleon_frente.webp', 'Camaleon', 'false', 4);
-INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (21, IMAGE_BASE_URL || 'motos/gl3/gl3_camaleon_frontal.webp', 'Camaleon', 'false', 5);
-INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (21, IMAGE_BASE_URL || 'motos/gl3/gl3_camaleon_posterior.webp', 'Camaleon', 'false', 6);
-INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (21, IMAGE_BASE_URL || 'motos/gl3/gl3_camaleon_perfil.webp', 'Camaleon', 'false', 7);
+INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (21, IMAGE_BASE_URL || 'motos/gl3/gl3_camaleon_frente.webp', 'Azul', 'false', 4);
+INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (21, IMAGE_BASE_URL || 'motos/gl3/gl3_camaleon_frontal.webp', 'Azul', 'false', 5);
+INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (21, IMAGE_BASE_URL || 'motos/gl3/gl3_camaleon_posterior.webp', 'Azul', 'false', 6);
+INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (21, IMAGE_BASE_URL || 'motos/gl3/gl3_camaleon_perfil.webp', 'Azul', 'false', 7);
 INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (21, IMAGE_BASE_URL || 'motos/gl3/gl3_verde_metalico_costado.webp', 'Verde Metalico', 'false', 8);
 INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (21, IMAGE_BASE_URL || 'motos/gl3/gl3_verde_metalico_frontal.webp', 'Verde Metalico', 'false', 9);
 INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (21, IMAGE_BASE_URL || 'motos/gl3/gl3_verde_metalico_posterior.webp', 'Verde Metalico', 'false', 10);
 INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (21, IMAGE_BASE_URL || 'motos/gl3/gl3_verde_metalico_perfil.webp', 'Verde Metalico', 'false', 11);
 
-INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (24, 'https://nxcbtcexsakfenjfdarr.supabase.co/storage/v1/object/public/Greenline_database/assets/imagenes/imagenes/productos/vmp/S4_Pro/s4pro_verde_costado.webp',  'Verde', 'true', 0);
-INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (24, 'https://nxcbtcexsakfenjfdarr.supabase.co/storage/v1/object/public/Greenline_database/assets/imagenes/imagenes/productos/vmp/S4_Pro/s4pro_verde_frontal.webp', 'Verde', 'false', 1);
-INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (24, 'https://nxcbtcexsakfenjfdarr.supabase.co/storage/v1/object/public/Greenline_database/assets/imagenes/imagenes/productos/vmp/S4_Pro/s4pro_verde_perfil.webp',  'Verde', 'false', 2);
-INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (24, 'https://nxcbtcexsakfenjfdarr.supabase.co/storage/v1/object/public/Greenline_database/assets/imagenes/imagenes/productos/vmp/S4_Pro/s4pro_blanco_costado.webp', 'Blanco', 'false', 3);
-INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (24, 'https://nxcbtcexsakfenjfdarr.supabase.co/storage/v1/object/public/Greenline_database/assets/imagenes/imagenes/productos/vmp/S4_Pro/s4pro_blanco_frontal.webp', 'Blanco', 'false', 4);
-INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (24, 'https://nxcbtcexsakfenjfdarr.supabase.co/storage/v1/object/public/Greenline_database/assets/imagenes/imagenes/productos/vmp/S4_Pro/s4pro_blanco_perfil.webp',  'Blanco', 'false', 5);
-INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (24, 'https://nxcbtcexsakfenjfdarr.supabase.co/storage/v1/object/public/Greenline_database/assets/imagenes/imagenes/productos/vmp/S4_Pro/s4pro_azul_costado.webp',  'Azul', 'false', 6);
-INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (24, 'https://nxcbtcexsakfenjfdarr.supabase.co/storage/v1/object/public/Greenline_database/assets/imagenes/imagenes/productos/vmp/S4_Pro/s4pro_azul_frontal.webp', 'Azul', 'false', 7);
-INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (24, 'https://nxcbtcexsakfenjfdarr.supabase.co/storage/v1/object/public/Greenline_database/assets/imagenes/imagenes/productos/vmp/S4_Pro/s4pro_azul_perfil.webp',  'Azul', 'false', 8);
+INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (24, IMAGE_BASE_URL || '/vmp/S4_Pro/s4pro_verde_costado.webp',  'Verde', 'true', 0);
+INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (24, IMAGE_BASE_URL || '/vmp/S4_Pro/s4pro_verde_frontal.webp', 'Verde', 'false', 1);
+INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (24, IMAGE_BASE_URL || '/vmp/S4_Pro/s4pro_verde_perfil.webp',  'Verde', 'false', 2);
+INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (24, IMAGE_BASE_URL || '/vmp/S4_Pro/s4pro_blanco_costado.webp', 'Blanco', 'false', 3);
+INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (24, IMAGE_BASE_URL || '/vmp/S4_Pro/s4pro_blanco_frontal.webp', 'Blanco', 'false', 4);
+INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (24, IMAGE_BASE_URL || '/vmp/S4_Pro/s4pro_blanco_perfil.webp',  'Blanco', 'false', 5);
+INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (24, IMAGE_BASE_URL || '/vmp/S4_Pro/s4pro_azul_costado.webp',  'Azul', 'false', 6);
+INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (24, IMAGE_BASE_URL || '/vmp/S4_Pro/s4pro_azul_frontal.webp', 'Azul', 'false', 7);
+INSERT INTO imagenes (producto_id, url, color, es_principal, orden) VALUES (24, IMAGE_BASE_URL || '/vmp/S4_Pro/s4pro_azul_perfil.webp',  'Azul', 'false', 8);
+
+INSERT INTO imagenes (producto_id, url, color, es_principal, orden)
+VALUES (32, 'https://nxcbtcexsakfenjfdarr.supabase.co/storage/v1/object/public/Greenline_database/assets/imagenes/imagenes/productos/cuatrimotros/m_car_3/m_car_3_negro_costado.webp', 'Negro', false, 6);
+
+INSERT INTO imagenes (producto_id, url, color, es_principal, orden)
+VALUES (32, 'https://nxcbtcexsakfenjfdarr.supabase.co/storage/v1/object/public/Greenline_database/assets/imagenes/imagenes/productos/cuatrimotros/m_car_3/m_car_3_rojo_costado.webp', 'Rojo', false, 7);
 
 END $$
 

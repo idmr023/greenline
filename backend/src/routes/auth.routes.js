@@ -45,7 +45,7 @@ const supabaseSyncSchema = z.object({
 
 const panelGrantSchema = z.object({
   body: z.object({
-    rol: z.enum(['ADMIN', 'LOGISTICA', 'EDITOR_ARTICULOS', 'GERENTE_TIENDA',
+    rol: z.enum(['ADMIN', 'LOGISTICA', 'DISTRIBUCION', 'GERENTE_TIENDA',
       'COLABORADOR_TIENDA', 'GERENTE_ALMACEN', 'COLABORADOR_ALMACEN', 'DESARROLLADOR_WEB']),
     activo: z.boolean(),
   }),

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { AuthProvider } from '../frontend/contexts/AuthContext';
 import { CartProvider } from '../frontend/contexts/CartContext';
@@ -10,29 +10,41 @@ import WelcomeBanner from '../frontend/components/WelcomeBanner';
 import WhatsAppButton from '../frontend/components/WhatsAppButton';
 import CommunityDrawer from '../frontend/components/CommunityDrawer';
 import ProtectedRoute, { ADMIN_ROLES } from '../frontend/components/ProtectedRoute';
-import Home from '../frontend/pages/Home';
-import Shop from '../frontend/pages/Shop';
-import Nosotros from '../frontend/pages/Us';
-import Tiendas from '../frontend/pages/Shops';
-import Contactanos from '../frontend/pages/Contact';
-import Comparar from '../frontend/pages/Comparar';
-import StubPage from '../frontend/pages/StubPage';
-import ProductPage from '../frontend/pages/ProductPage';
-import PreguntasFrecuentes from '../frontend/pages/PreguntasFrecuentes';
-import LoginPage from '../frontend/pages/LoginPage';
-import PoliticaPrivacidad from '../frontend/pages/PoliticaPrivacidad';
-import TrabajaConNosotros from '../frontend/pages/TrabajaConNosotros';
-import ManualesDeUso from '../frontend/pages/ManualesDeUso';
-import LibroReclamaciones from '../frontend/pages/LibroReclamaciones';
-import NotFoundPage from '../frontend/pages/NotFoundPage';
-import MiCuenta from '../frontend/pages/MiCuenta';
-import Checkout from '../frontend/pages/Checkout';
-
-import AdminPanel from '../frontend/components/admin/AdminPanel';
 import CartDrawer from '../frontend/components/CartDrawer';
-import ColdStartBanner from '../frontend/components/ColdStartBanner';
-import NovedadesPage from '../frontend/pages/NovedadesPage';
-import NovedadDetalle from '../frontend/pages/NovedadDetalle';
+import AnniversaryTheme from '../frontend/components/AnniversaryTheme';
+
+const Home = lazy(() => import('../frontend/pages/Home'));
+const Shop = lazy(() => import('../frontend/pages/Shop'));
+const Nosotros = lazy(() => import('../frontend/pages/Us'));
+const Tiendas = lazy(() => import('../frontend/pages/Shops'));
+const Contactanos = lazy(() => import('../frontend/pages/Contact'));
+const Comparar = lazy(() => import('../frontend/pages/Comparar'));
+const StubPage = lazy(() => import('../frontend/pages/StubPage'));
+const ProductPage = lazy(() => import('../frontend/pages/ProductPage'));
+const PreguntasFrecuentes = lazy(() => import('../frontend/pages/PreguntasFrecuentes'));
+const LoginPage = lazy(() => import('../frontend/pages/LoginPage'));
+const PoliticaPrivacidad = lazy(() => import('../frontend/pages/PoliticaPrivacidad'));
+const TrabajaConNosotros = lazy(() => import('../frontend/pages/TrabajaConNosotros'));
+const ManualesDeUso = lazy(() => import('../frontend/pages/ManualesDeUso'));
+const LibroReclamaciones = lazy(() => import('../frontend/pages/LibroReclamaciones'));
+const NotFoundPage = lazy(() => import('../frontend/pages/NotFoundPage'));
+const MiCuenta = lazy(() => import('../frontend/pages/MiCuenta'));
+const Checkout = lazy(() => import('../frontend/pages/Checkout'));
+const AdminPanel = lazy(() => import('../frontend/components/admin/AdminPanel'));
+const NovedadesPage = lazy(() => import('../frontend/pages/NovedadesPage'));
+const NovedadDetalle = lazy(() => import('../frontend/pages/NovedadDetalle'));
+const Aniversario = lazy(() => import('../frontend/pages/Aniversario'));
+
+function PageLoader() {
+  return (
+    <div className="flex items-center justify-center min-h-[50vh]">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-10 h-10 border-4 border-brand/20 border-t-brand rounded-full animate-spin" />
+        <p className="text-sm text-gray-400">Cargando...</p>
+      </div>
+    </div>
+  );
+}
 
 function Layout() {
   const [communityOpen, setCommunityOpen] = useState(false);
@@ -41,7 +53,9 @@ function Layout() {
     <>
       <Navbar onCommunityOpen={() => setCommunityOpen(true)} />
       <main className="flex-1">
-        <Outlet />
+        <Suspense fallback={<PageLoader />}>
+          <Outlet />
+        </Suspense>
       </main>
       <Footer />
       <ScrollTopButton />
@@ -52,6 +66,7 @@ function Layout() {
         onClose={() => setCommunityOpen(false)}
       />
       <CartDrawer />
+      <AnniversaryTheme />
     </>
   );
 }
@@ -62,9 +77,12 @@ export default function App() {
       <ScrollToTop />
       <AuthProvider>
         <CartProvider>
-          <ColdStartBanner />
           <Routes>
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={
+            <Suspense fallback={<PageLoader />}>
+              <LoginPage />
+            </Suspense>
+          } />
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="tienda" element={<Shop />} />
@@ -79,6 +97,7 @@ export default function App() {
             <Route path="proximamente" element={<StubPage />} />
             <Route path="politica-privacidad" element={<PoliticaPrivacidad />} />
             <Route path="trabaja-con-nosotros" element={<TrabajaConNosotros />} />
+            <Route path="aniversario" element={<Aniversario />} />
             <Route path="manuales-de-uso" element={<ManualesDeUso />} />
             <Route path="checkout" element={<Checkout />} />
             <Route path="libro-de-reclamaciones" element={<LibroReclamaciones />} />
@@ -91,7 +110,9 @@ export default function App() {
           </Route>
           <Route path="/admin" element={
             <ProtectedRoute requiredRoles={ADMIN_ROLES}>
-              <AdminPanel />
+              <Suspense fallback={<PageLoader />}>
+                <AdminPanel />
+              </Suspense>
             </ProtectedRoute>
           } />
         </Routes>

@@ -9,19 +9,27 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "sync_image": "node scripts/sincronizar-imagenes-greenline.mjs",
+    "sync_image:original": "node scripts/sincronizar-imagenes-greenline.mjs --original",
     "bench": "node scripts/bench.mjs 50",
     "all": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev"
   },
   "dependencies": {
-    "@google/model-viewer": "^4.3.1",
     "@supabase/supabase-js": "^2.112.3",
     "@tailwindcss/vite": "^4.3.3",
+    "@tiptap/extension-image": "^3.31.3",
+    "@tiptap/extension-placeholder": "^3.31.3",
+    "@tiptap/pm": "^3.31.3",
+    "@tiptap/react": "^3.31.3",
+    "@tiptap/starter-kit": "^3.31.3",
+    "argon2": "^0.45.1",
+    "canvas-confetti": "^1.9.4",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.32.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-helmet-async": "^3.0.0",
     "react-router-dom": "^7.18.2",
     "sharp": "^0.35.3",
     "tailwindcss": "^4.3.3"
@@ -33,6 +41,7 @@
     "concurrently": "^10.0.5",
     "dotenv": "^17.4.2",
     "oxlint": "^1.75.0",
+    "terser": "^5.51.2",
     "vite": "^8.2.0"
   }
 }

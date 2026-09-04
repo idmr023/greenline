@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import NovedadImagen from "../components/NovedadImagen";
+import SEOHead, { articleSchema, breadcrumbSchema } from "../components/SEOHead";
+import TextToVoice from "../components/TextToVoice";
 
 type Post = {
   id: string;
@@ -273,10 +275,39 @@ export default function NovedadDetalle() {
   const imageUrl = post.image_url;
   const imageAlt = cleanAlt(post.image_alt) ?? post.title;
   const hasContent = post.content_html || post.content_text;
-  const excerptClean = cleanText(post.excerpt);
+  const excerptClean = cleanText(post.excerpt) || cleanText(post.content_text) || post.title;
 
   return (
     <main className="min-h-screen bg-white">
+      <SEOHead
+        title={post.title}
+        description={
+          excerptClean.length > 155
+            ? excerptClean.slice(0, 155) + "…"
+            : excerptClean
+        }
+        image={imageUrl || undefined}
+        url={`/novedades/${post.slug}`}
+        type="article"
+        keywords={[post.category, 'movilidad eléctrica', 'Green Line']}
+        jsonLd={[
+          articleSchema(
+            {
+              title: post.title,
+              excerpt: post.excerpt,
+              image_url: imageUrl,
+              published_at: post.published_at,
+            },
+            `/novedades/${post.slug}`,
+          ),
+          breadcrumbSchema([
+            { name: 'Inicio', url: '/' },
+            { name: 'Blog', url: '/blog' },
+            { name: post.title, url: `/novedades/${post.slug}` },
+          ]),
+        ]}
+      />
+
       {/* Reading progress bar */}
       <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-neutral-100">
         <div
@@ -291,7 +322,7 @@ export default function NovedadDetalle() {
           <img
             src={imageUrl}
             alt={imageAlt}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         </div>
@@ -337,6 +368,8 @@ export default function NovedadDetalle() {
             {excerptClean}
           </p>
         )}
+
+        <TextToVoice texto={post.content_text} />
 
         {/* Share bar */}
         <div className="flex items-center gap-3 mb-10 pb-6 border-b border-neutral-200">
@@ -504,12 +537,12 @@ export default function NovedadDetalle() {
               <article key={rp.id} className="group">
                 <Link
                   to={`/novedades/${rp.slug}`}
-                  className="relative block aspect-[16/10] overflow-hidden rounded-2xl bg-neutral-100"
+                  className="relative block aspect-[4/3] overflow-hidden rounded-2xl bg-neutral-100"
                 >
                   <NovedadImagen
                     src={rp.image_url ?? null}
                     alt={cleanAlt(rp.image_alt) ?? rp.title}
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    className="h-full w-full object-contain"
                   />
                   <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-800 backdrop-blur">
                     {rp.category}

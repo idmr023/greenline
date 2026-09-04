@@ -7,7 +7,7 @@ const METRICAS_HIGHLIGHT = [
   { key: 'autonomia_km', unidad: ' km', label: 'más de autonomía', mejor: 'mayor' },
   { key: 'capacidad_bateria', unidad: '', label: 'más de capacidad de batería', mejor: 'mayor' },
   { key: 'potencia_motor', unidad: 'W', label: 'más de potencia de motor', mejor: 'mayor' },
-  { key: 'tiempo_carga_min', unidad: ' min', label: 'menos de tiempo de carga', mejor: 'menor' },
+  { key: 'tiempo_carga_min', unidad: ' h', label: 'menos de tiempo de carga', mejor: 'menor' },
 ];
 
 const GRUPOS = [
@@ -43,7 +43,7 @@ const GRUPOS = [
 const UNIDADES_FILA = {
   velocidad_max_kmh: 'km/h',
   autonomia_km: 'km',
-  tiempo_carga_min: 'min',
+  tiempo_carga_min: 'h',
   carga_maxima_kg: 'kg',
   largo_cm: 'cm',
   ancho_cm: 'cm',

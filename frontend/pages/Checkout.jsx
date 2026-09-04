@@ -10,6 +10,7 @@ import { pedidosAPI } from '../lib/api';
 import { formatPrice } from '../lib/utils';
 import { CONTACT, BRAND } from '../lib/config';
 import PageBanner from '../components/PageBanner';
+import SEOHead from '../components/SEOHead';
 
 function generarCodigo() {
   const stamp = Date.now().toString(36).toUpperCase().slice(-6);
@@ -257,6 +258,11 @@ export default function Checkout() {
 
   return (
     <div>
+      <SEOHead
+        title="Checkout"
+        description="Completa tu compra de vehículos de movilidad eléctrica Green Line."
+        url="/checkout"
+      />
       <PageBanner
         title="Finalizar compra"
         subtitle="Registra tu pedido sin necesidad de crear una cuenta"
@@ -403,7 +409,7 @@ export default function Checkout() {
                       <img
                         src={it.imagen}
                         alt={it.nombre}
-                        className="w-16 h-16 rounded-lg object-cover shrink-0"
+                        className="w-16 h-16 rounded-lg object-contain bg-gray-50 shrink-0"
                       />
                     ) : (
                       <div className="w-16 h-16 rounded-lg bg-gray-100 shrink-0" />

@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Home, ArrowLeft } from 'lucide-react';
+import SEOHead from '../components/SEOHead';
 
 export default function NotFoundPage() {
   return (
     <div className="flex-1 flex items-center justify-center py-24 px-4">
+      <SEOHead title="Página no encontrada" description="La página que buscas no existe. Vuelve a la página de inicio de Green Line." />
       <div className="text-center max-w-md">
         <div className="text-8xl font-black text-brand/20 mb-4">404</div>
         <h1 className="text-2xl font-bold text-gray-900 mb-3">Página no encontrada</h1>

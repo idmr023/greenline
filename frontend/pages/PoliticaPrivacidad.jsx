@@ -1,9 +1,20 @@
 import { CONTACT } from '../lib/config';
 import PageBanner from '../components/PageBanner';
+import SEOHead, { breadcrumbSchema } from '../components/SEOHead';
 
 export default function PoliticaPrivacidad() {
   return (
     <div>
+      <SEOHead
+        title="Política de Privacidad"
+        description="Conoce cómo Green Line protege tus datos personales y su política de privacidad."
+        url="/politica-privacidad"
+        keywords={['política de privacidad', 'datos personales', 'Green Line']}
+        jsonLd={[breadcrumbSchema([
+          { name: 'Inicio', url: '/' },
+          { name: 'Política de Privacidad', url: '/politica-privacidad' },
+        ])]}
+      />
       <PageBanner
         title="Política de Privacidad"
         subtitle="Conoce cómo protegemos tus datos personales"

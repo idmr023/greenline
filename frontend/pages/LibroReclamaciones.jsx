@@ -9,6 +9,7 @@ import {
   FileSignature,
 } from 'lucide-react';
 import PageBanner from '../components/PageBanner';
+import SEOHead, { breadcrumbSchema } from '../components/SEOHead';
 import { CONTACT, BRAND } from '../lib/config';
 
 const DOC_TYPES = ['DNI', 'Carné de extranjería', 'Pasaporte', 'RUC'];
@@ -106,6 +107,16 @@ export default function LibroReclamaciones() {
 
   return (
     <div>
+      <SEOHead
+        title="Libro de Reclamaciones"
+        description="Presenta tu queja o reclamo en el Libro de Reclamaciones de Green Line conforme al Código de Protección y Defensa del Consumidor."
+        url="/libro-de-reclamaciones"
+        keywords={['libro de reclamaciones', 'quejas', 'reclamos', 'Green Line']}
+        jsonLd={[breadcrumbSchema([
+          { name: 'Inicio', url: '/' },
+          { name: 'Libro de Reclamaciones', url: '/libro-de-reclamaciones' },
+        ])]}
+      />
       <PageBanner
         title="Libro de Reclamaciones"
         subtitle="Presenta tus reclamos y quejas de acuerdo al Código de Protección y Defensa del Consumidor"

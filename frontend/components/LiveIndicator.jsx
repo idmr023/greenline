@@ -1,121 +1,100 @@
 import { useState, useEffect, useRef } from 'react';
-import { Radio, X, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 
-const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
-const YOUTUBE_CHANNEL_ID = import.meta.env.VITE_YOUTUBE_CHANNEL_ID;
-
-const CHECK_INTERVAL = 60000; // Check every 60 seconds
+// Tiempos en milisegundos
+const CHECK_INTERVAL = 15 * 60 * 1000; // 15 minutos (búsqueda normal o pausa local)
+const LIVE_HOLD_INTERVAL = 90 * 60 * 1000; // 1.5 horas (cuando ya lo encontró)
 
 export default function LiveIndicator() {
   const [isLive, setIsLive] = useState(false);
-  const [liveTitle, setLiveTitle] = useState('');
-  const [liveVideoId, setLiveVideoId] = useState(null);
-  const [showPlayer, setShowPlayer] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [liveUrl, setLiveUrl] = useState('');
   const timeoutRef = useRef(null);
 
+  // Define la ventana exacta de búsqueda (Límite de 1 hora)
+  const isSearchWindow = () => {
+    const now = new Date();
+    const limaTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Lima" }));
+    
+    const day = limaTime.getDay();
+    const hours = limaTime.getHours();
+    const minutes = limaTime.getMinutes();
+    const totalMinutes = hours * 60 + minutes;
+
+    const isSaturday = day === 6;
+
+    // Horario Lunes a Viernes (y sábados tarde): 2:30 PM a 3:30 PM
+    const everydayStart = 14 * 60 + 30; // 14:30
+    const everydayEnd = 15 * 60 + 30;   // 15:30 (Límite de 1 hora)
+
+    // Horario extra Sábados: 9:30 AM a 10:30 AM
+    const saturdayStart = 9 * 60 + 30;  // 09:30
+    const saturdayEnd = 10 * 60 + 30;   // 10:30 (Límite de 1 hora)
+
+    // Valida si estamos dentro de la hora límite del sábado por la mañana
+    if (isSaturday && totalMinutes >= saturdayStart && totalMinutes <= saturdayEnd) return true;
+    
+    // Valida si estamos dentro de la hora límite de las tardes
+    if (totalMinutes >= everydayStart && totalMinutes <= everydayEnd) return true;
+
+    return false;
+  };
+
   useEffect(() => {
-    if (!YOUTUBE_API_KEY || !YOUTUBE_CHANNEL_ID) {
-      setLoading(false);
-      return;
-    }
+    const scheduleNextCheck = (delay) => {
+      timeoutRef.current = setTimeout(checkLive, delay);
+    };
 
     const checkLive = async () => {
+      // 1. Si no estamos en la "ventana de 1 hora", el frontend duerme. NO llama a la API.
+      if (!isSearchWindow()) {
+        setIsLive(false); 
+        scheduleNextCheck(CHECK_INTERVAL);
+        return;
+      }
+
       try {
-        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${YOUTUBE_CHANNEL_ID}&eventType=live&type=video&key=${YOUTUBE_API_KEY}`;
-        const res = await fetch(url);
+        // 2. Solo llega aquí si estamos dentro de la hora de búsqueda permitida
+        const res = await fetch('/api/tiktok-live');
         const data = await res.json();
 
-        if (data.items && data.items.length > 0) {
-          const live = data.items[0];
+        if (data.isLive) {
           setIsLive(true);
-          setLiveTitle(live.snippet.title);
-          setLiveVideoId(live.id.videoId);
+          setLiveUrl(data.liveUrl);
+          // ¡Lo encontró! Pausa la búsqueda por 1.5 horas
+          scheduleNextCheck(LIVE_HOLD_INTERVAL);
         } else {
           setIsLive(false);
-          setLiveTitle('');
-          setLiveVideoId(null);
+          setLiveUrl('');
+          // Sigue buscando (cada 15 mins) porque aún estamos dentro de la hora límite
+          scheduleNextCheck(CHECK_INTERVAL);
         }
       } catch (err) {
         console.error('Live check failed:', err);
-      } finally {
-        setLoading(false);
+        scheduleNextCheck(CHECK_INTERVAL);
       }
     };
 
     checkLive();
-    timeoutRef.current = setInterval(checkLive, CHECK_INTERVAL);
 
-    return () => clearInterval(timeoutRef.current);
+    return () => clearTimeout(timeoutRef.current);
   }, []);
 
-  if (loading || !YOUTUBE_API_KEY || !YOUTUBE_CHANNEL_ID) return null;
+  if (!isLive) return null;
 
   return (
-    <>
-      {/* Live Badge in Navbar */}
-      {isLive && (
-        <button
-          onClick={() => setShowPlayer(true)}
-          className="flex items-center gap-2 px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-full animate-pulse hover:bg-red-700 transition-colors"
-          title={liveTitle}
-        >
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-75 animate-ping" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-          </span>
-          EN VIVO
-        </button>
-      )}
-
-      {/* Floating Player Modal */}
-      {showPlayer && liveVideoId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-gray-900 rounded-2xl overflow-hidden shadow-2xl w-full max-w-3xl">
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75 animate-ping" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
-                </span>
-                <span className="text-sm font-semibold text-white">EN VIVO</span>
-                <span className="text-xs text-gray-400 ml-2 truncate max-w-xs">{liveTitle}</span>
-              </div>
-              <button
-                onClick={() => setShowPlayer(false)}
-                className="p-1 text-gray-400 hover:text-white transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* YouTube Embed */}
-            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-              <iframe
-                src={`https://www.youtube.com/embed/${liveVideoId}?autoplay=1&rel=0`}
-                className="absolute inset-0 w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title={liveTitle}
-              />
-            </div>
-
-            {/* Footer */}
-            <div className="px-4 py-3 border-t border-gray-800 flex items-center justify-between">
-              <span className="text-xs text-gray-500">Transmitiendo en YouTube</span>
-              <a
-                href={`https://www.youtube.com/watch?v=${liveVideoId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-xs text-brand hover:underline"
-              >
-                Ver en YouTube <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+    <a
+      href={liveUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="fixed bottom-24 right-6 z-40 flex items-center gap-2 px-4 py-3 bg-[#00f2fe] text-black text-sm font-bold rounded-full shadow-[0_0_15px_rgba(0,242,254,0.5)] animate-pulse hover:bg-[#00d2fe] transition-all hover:scale-105"
+      title="¡Ir al en vivo de TikTok!"
+    >
+      <span className="relative flex h-3 w-3">
+        <span className="absolute inline-flex h-full w-full rounded-full bg-black opacity-75 animate-ping" />
+        <span className="relative inline-flex rounded-full h-3 w-3 bg-black" />
+      </span>
+      <span>Almudena EN VIVO</span>
+      <ExternalLink className="w-4 h-4 ml-1" />
+    </a>
   );
 }

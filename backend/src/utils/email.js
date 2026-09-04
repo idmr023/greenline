@@ -31,13 +31,14 @@ function getTransporter() {
   return transporterPromise;
 }
 
-export async function sendEmail({ to, subject, html }) {
+export async function sendEmail({ to, subject, html, priority }) {
   const transporter = await getTransporter();
   const info = await transporter.sendMail({
     from: env.EMAIL_FROM,
     to,
     subject,
     html,
+    ...(priority ? { priority } : {}),
   });
   return info;
 }

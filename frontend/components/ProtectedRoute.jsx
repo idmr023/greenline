@@ -3,11 +3,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 
 const STAFF_ROLES = [
-  'ADMIN', 'LOGISTICA', 'EDITOR_ARTICULOS', 'GERENTE_TIENDA',
+  'ADMIN', 'LOGISTICA', 'EDITORA_BLOG', 'DISTRIBUCION', 'GERENTE_TIENDA',
   'COLABORADOR_TIENDA', 'GERENTE_ALMACEN', 'COLABORADOR_ALMACEN', 'DESARROLLADOR_WEB',
 ];
 
-const ADMIN_ROLES = ['ADMIN', 'DESARROLLADOR_WEB'];
+const ADMIN_ROLES = ['ADMIN', 'DESARROLLADOR_WEB', 'EDITORA_BLOG'];
 
 export default function ProtectedRoute({ children, requiredRoles = null }) {
   const { user, loading } = useAuth();

@@ -1,12 +1,14 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Accessibility, ArrowLeftRight, ShieldCheck } from 'lucide-react';
+import SEOHead, { organizationSchema, breadcrumbSchema } from '../components/SEOHead';
 import HeroCarousel from '../components/HeroCarousel';
 import Pillars from '../components/Pillars';
 import ProductCard from '../components/ProductCard';
 import Benefits from '../components/Benefits';
 import Testimonials from '../components/Testimonials';
 import Objecciones from '../components/Objeciones';
+import VideoSection from '../components/VideoSection';
 import { CATEGORIAS, sortProducts } from '../lib/utils';
 import { fetchProductos } from '../lib/productos';
 
@@ -62,8 +64,16 @@ export default function Home() {
 
   return (
     <>
+      <SEOHead
+        title="Vehículos de Movilidad Eléctrica en Perú"
+        description="Green Line es la tienda de vehículos de movilidad eléctrica en Perú. Scooters, motos, trimotos, bicicletas eléctricas y más. Compra online con envío a todo el Perú."
+        url="/"
+        keywords={['movilidad eléctrica', 'scooter eléctrico', 'moto eléctrica', 'bicicleta eléctrica', 'trimoto eléctrica', 'vehículos eléctricos Perú', 'Green Line']}
+        jsonLd={[organizationSchema(), breadcrumbSchema([{ name: 'Inicio', url: '/' }])]}
+      />
+      <h1 className="sr-only">Green Line - Vehículos de Movilidad Eléctrica en Perú</h1>
       <HeroCarousel />
-      <Pillars />
+      <Pillars /> 
 
       {/* Organic Grid - Destacados */}
       <section className="py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -110,11 +120,7 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {displayed.map((p) => (
-              <ProductCard
-                key={p.id}
-                producto={p}
-                featured={p.destacado}
-              />
+              <ProductCard key={p.id} producto={p} featured={p.destacado} />
             ))}
           </div>
         )}
@@ -155,7 +161,7 @@ export default function Home() {
         </section>
       )} */}
 
-            {/* E-commerce Marketplaces */}
+    {/* E-commerce Marketplaces */}
       <section className="py-14 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
@@ -301,6 +307,8 @@ export default function Home() {
         </div>
       </section>
 
+      <VideoSection />
+        
       <Benefits />
       <Objecciones />
 

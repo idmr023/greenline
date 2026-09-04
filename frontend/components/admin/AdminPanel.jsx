@@ -8,8 +8,11 @@ import AdminProductoForm from './AdminProductoForm';
 import AdminColores from './AdminColores';
 import AdminTestimonios from './AdminTestimonios';
 import AdminPedidos from './AdminPedidos';
+import AdminBlog from './AdminBlog';
 import AdminMetrics from './AdminMetrics';
-import { LayoutDashboard, Package, Palette, MessageSquareQuote, ShoppingCart, LogOut, ShieldCheck, Lock, Mail, Loader2, AlertCircle, Activity } from 'lucide-react';
+import AdminDistribuidores from './AdminDistribuidores';
+import { LayoutDashboard, Package, Palette, MessageSquareQuote, ShoppingCart, LogOut, ShieldCheck, Lock, Mail, Loader2, AlertCircle, Activity, FileText, Gift, MapPin } from 'lucide-react';
+import { toggleTemaAniversario, temaAniversarioActivo } from '../../lib/aniversario';
 
 const VIEWS = {
   DASHBOARD: 'dashboard',
@@ -19,12 +22,16 @@ const VIEWS = {
   TESTIMONIOS: 'testimonios',
   PEDIDOS: 'pedidos',
   METRICAS: 'metricas',
+  BLOG: 'blog',
+  DISTRIBUIDORES: 'distribuidores',
 };
 
 const NAV_ITEMS = [
   { key: VIEWS.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
   { key: VIEWS.PRODUCTOS, label: 'Productos', icon: Package },
   { key: VIEWS.COLORES, label: 'Colores', icon: Palette },
+  { key: VIEWS.BLOG, label: 'Blog', icon: FileText },
+  { key: VIEWS.DISTRIBUIDORES, label: 'Distribuidores', icon: MapPin },
   { key: VIEWS.TESTIMONIOS, label: 'Testimonios', icon: MessageSquareQuote },
   { key: VIEWS.PEDIDOS, label: 'Pedidos', icon: ShoppingCart },
   { key: VIEWS.METRICAS, label: 'Métricas', icon: Activity },
@@ -32,8 +39,17 @@ const NAV_ITEMS = [
 
 const PANEL_GRANT_ROLES = ['ADMIN', 'DESARROLLADOR_WEB'];
 
+// Solo administradores y desarrolladores web pueden activar/desactivar el tema aniversario.
+const ANIV_ROLES = ['ADMIN', 'DESARROLLADOR_WEB'];
+
+// Solo gestión de blog (pueden editar/eliminar cualquier artículo del blog).
+const BLOG_ROLES = ['EDITORA_BLOG'];
+
+// Solo gestión de distribuidores.
+const DISTRIBUCION_ROLES = ['DISTRIBUCION'];
+
 const STAFF_ROLES = [
-  'ADMIN', 'DESARROLLADOR_WEB', 'LOGISTICA', 'EDITOR_ARTICULOS',
+  'ADMIN', 'DESARROLLADOR_WEB', 'LOGISTICA', 'EDITORA_BLOG', 'DISTRIBUCION',
   'GERENTE_TIENDA', 'COLABORADOR_TIENDA', 'GERENTE_ALMACEN', 'COLABORADOR_ALMACEN',
 ];
 
@@ -160,6 +176,18 @@ export default function AdminPanel() {
 
   const canGrant = user ? PANEL_GRANT_ROLES.includes(user.rol) : false;
 
+  const canManageAniv = user ? ANIV_ROLES.includes(user.rol) : false;
+  const [anivOn, setAnivOn] = useState(() => temaAniversarioActivo());
+  const handleAnivToggle = () => setAnivOn(toggleTemaAniversario());
+
+  // Los roles de blog solo ven Dashboard + Blog.
+  let visibleNav = NAV_ITEMS;
+  if (user && BLOG_ROLES.includes(user.rol)) {
+    visibleNav = NAV_ITEMS.filter((i) => i.key === VIEWS.DASHBOARD || i.key === VIEWS.BLOG);
+  } else if (user && DISTRIBUCION_ROLES.includes(user.rol)) {
+    visibleNav = NAV_ITEMS.filter((i) => i.key === VIEWS.DASHBOARD || i.key === VIEWS.DISTRIBUIDORES);
+  }
+
   const refreshGrants = useCallback(async () => {
     setGrantsLoading(true);
     try {
@@ -224,13 +252,13 @@ export default function AdminPanel() {
             </div>
             <div>
               <p className="text-sm font-bold text-gray-900">GreenLine</p>
-              <p className="text-[10px] text-gray-400">Admin Panel</p>
+              <p className="text-[10px] text-gray-400">{user?.rol === 'EDITORA_BLOG' ? 'Editar Blog' : 'Admin Panel'}</p>
             </div>
           </div>
         </div>
 
         <nav className="flex-1 p-3 space-y-1">
-          {NAV_ITEMS.map((item) => {
+          {visibleNav.map((item) => {
             const Icon = item.icon;
             const active = view === item.key || (item.key === VIEWS.PRODUCTOS && view === VIEWS.PRODUCTO_FORM);
             return (
@@ -286,6 +314,33 @@ export default function AdminPanel() {
           </div>
         )}
 
+        {canManageAniv && (
+          <div className="mx-3 mb-3 p-3 rounded-lg bg-rose-50 border border-rose-100">
+            <div className="flex items-center gap-2 mb-1">
+              <Gift className="w-4 h-4 text-rose-500" />
+              <p className="text-xs font-bold text-gray-700">Tema aniversario</p>
+            </div>
+            <p className="text-[10px] text-gray-400 mb-2">Solo administradores y desarrolladores</p>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] text-gray-600">{anivOn ? 'Activado' : 'Desactivado'}</span>
+              <button
+                type="button"
+                onClick={handleAnivToggle}
+                className={`relative w-9 h-5 rounded-full transition-colors ${
+                  anivOn ? 'bg-rose-500' : 'bg-gray-300'
+                } hover:opacity-80`}
+                title={anivOn ? 'Desactivar tema de aniversario' : 'Activar tema de aniversario'}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                    anivOn ? 'translate-x-4' : ''
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="p-3 border-t border-gray-100">
           <button
             onClick={logout}
@@ -314,6 +369,8 @@ export default function AdminPanel() {
           />
         )}
         {view === VIEWS.COLORES && <AdminColores />}
+        {view === VIEWS.BLOG && <AdminBlog />}
+        {view === VIEWS.DISTRIBUIDORES && <AdminDistribuidores />}
         {view === VIEWS.TESTIMONIOS && <AdminTestimonios />}
         {view === VIEWS.PEDIDOS && <AdminPedidos />}
         {view === VIEWS.METRICAS && <AdminMetrics />}

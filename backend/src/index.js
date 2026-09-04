@@ -1,6 +1,7 @@
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
+import compression from 'compression';
 import { env } from './config/env.js';
 import { corsOptions } from './config/cors.js';
 import { globalLimiter } from './middleware/rateLimiter.js';
@@ -16,6 +17,7 @@ import stockRoutes from './routes/stock.routes.js';
 import auditRoutes from './routes/audit.routes.js';
 import contactRoutes from './routes/contact.routes.js';
 import pedidosRoutes from './routes/pedidos.routes.js';
+import blogRoutes from './routes/blog.routes.js';
 
 const app = express();
 
@@ -38,6 +40,23 @@ app.use(helmet({
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
   crossOriginEmbedderPolicy: false,
 }));
+
+// GZIP Compression
+app.use(compression({
+  level: 6,
+  threshold: 1024,
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) return false;
+    return compression.filter(req, res);
+  },
+}));
+
+// Keep-Alive
+app.use((_req, res, next) => {
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Keep-Alive', 'timeout=5, max=100');
+  next();
+});
 
 // CORS
 app.use(cors(corsOptions));
@@ -76,6 +95,7 @@ app.use('/api/stock', stockRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/pedidos', pedidosRoutes);
+app.use('/api/blog', blogRoutes);
 
 // 404
 app.use((req, res) => {
