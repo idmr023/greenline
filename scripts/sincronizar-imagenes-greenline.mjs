@@ -14,7 +14,7 @@ import {
   eliminarStorage,
   formatearTamano,
   normalizarRuta,
-} from './image-utils.mjs';
+} from '../backend/scripts/image-utils.mjs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
