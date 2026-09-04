@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { ExternalLink } from 'lucide-react';
+import { API_URL } from '../lib/api';
 
 // Tiempos en milisegundos
 const CHECK_INTERVAL = 15 * 60 * 1000; // 15 minutos (búsqueda normal o pausa local)
@@ -54,7 +55,7 @@ export default function LiveIndicator() {
 
       try {
         // 2. Solo llega aquí si estamos dentro de la hora de búsqueda permitida
-        const res = await fetch('/api/tiktok-live');
+        const res = await fetch(`${API_URL}/tiktok-live`);
         const data = await res.json();
 
         if (data.isLive) {
