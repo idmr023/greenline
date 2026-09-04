@@ -6,7 +6,7 @@ import {
   procesarImagen,
   subirStorage,
   formatearTamano,
-} from '../../../scripts/image-utils.mjs';
+} from '../../scripts/image-utils.mjs';
 
 const router = Router();
 
