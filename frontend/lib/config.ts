@@ -28,6 +28,8 @@ export const SOCIAL = {
   youtube: 'https://www.youtube.com/@GreenLinePeru',
   linkedin: 'https://www.linkedin.com/company/greenline-peru/',
   tiktok: 'https://www.tiktok.com/@greenline_peru',
+  tiktok_aniversario: 'https://www.tiktok.com/@greenline_peru/video/7680709590303919381?is_from_webapp=1&sender_device=pc',
+  instagram_aniversario: 'https://www.instagram.com/reel/DcoNbZmDS7S/?utm_source=ig_web_copy_link&igsi=NTc4MTIwNjQ2YQ==',
 };
 
 export const BRAND = {

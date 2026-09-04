@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Download, FileText, ShieldCheck, Loader2, HelpCircle } from 'lucide-react';
 import PageBanner from '../components/PageBanner';
+import SEOHead, { breadcrumbSchema } from '../components/SEOHead';
 import { supabase } from '../lib/supabase';
 import { CONTACT } from '../lib/config';
 import { manualUrl } from '../lib/manuales';
@@ -72,6 +73,16 @@ export default function ManualesDeUso() {
 
   return (
     <div>
+      <SEOHead
+        title="Manuales de Uso"
+        description="Descarga los manuales de uso de todos los modelos de vehículos eléctricos Green Line: scooters, motos, trimotos y más."
+        url="/manuales-de-uso"
+        keywords={['manual de uso', 'manual scooters eléctricos', 'manual Green Line']}
+        jsonLd={[breadcrumbSchema([
+          { name: 'Inicio', url: '/' },
+          { name: 'Manuales de Uso', url: '/manuales-de-uso' },
+        ])]}
+      />
       <PageBanner
         title="Manuales de Uso"
         subtitle="Descarga el manual de uso de tu modelo Green Line"

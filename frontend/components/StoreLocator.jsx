@@ -6,18 +6,12 @@ import {
   Loader2, ChevronRight, Phone, MapPinned, Building2,
 } from 'lucide-react';
 import { fetchStores, fetchDistributors, fetchProvinceSales } from '../lib/locations';
+import { TIENDAS } from '../lib/images';
 
 const CENTRO_PERU = [-9.19, -75.015];
 
 // ── Fotos de sedes (por distrito) ──────────────────────────
-const STORE_PHOTOS = {
-  Lince: '/assets/imagenes/tiendas/tienda_lince.webp',
-  Surco: '/assets/imagenes/tiendas/tienda_surco.webp',
-  'La Molina': '/assets/imagenes/tiendas/tienda_molina.webp',
-  Comas: '/assets/imagenes/tiendas/tienda_comas.jpg',
-  Ate: '/assets/imagenes/tiendas/tienda_ate.jpeg',
-  Huancayo: '/assets/imagenes/tiendas/tienda_huancayo.jpeg',
-};
+const STORE_PHOTOS = TIENDAS;
 
 // ── Pin icons ──────────────────────────────────────────────
 
@@ -126,13 +120,19 @@ function StoreCard({ store, activa, onClick }) {
 
 // ── Distributor Card ───────────────────────────────────────
 
+// Por seguridad (evitar extorsión por exponer el nombre completo del dueño),
+// el distribuidor permanece en el anonimato: solo se muestra la razón social /
+// nombre de la empresa, NUNCA el nombre de contacto. Único caso en el que se
+// muestra el nombre: cuando coincide con el de la empresa (persona natural cuyo
+// nombre real es su razón social).
 function DistributorCard({ d }) {
+  const esPersonaNatural = d.contact_name && d.name && d.contact_name.trim().toLowerCase() === d.name.trim().toLowerCase();
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition-shadow">
       <div className="flex items-start gap-3">
         <div className="flex-1 min-w-0">
           <h4 className="font-bold text-gray-900 text-sm">{d.name}</h4>
-          {d.contact_name && <p className="text-xs text-gray-500 mt-0.5">{d.contact_name}</p>}
+          {esPersonaNatural && <p className="text-xs text-gray-500 mt-0.5">{d.contact_name}</p>}
           {d.ruc && <p className="text-xs text-gray-400 mt-0.5">RUC: {d.ruc}</p>}
         </div>
       </div>
@@ -318,14 +318,16 @@ export default function StoreLocator() {
       scrollWheelZoom: false,
     });
     L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
       {
-        subdomains: 'abcd',
-        maxZoom: 20,
+        maxZoom: 19,
         attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community',
       }
     ).addTo(map);
+    map.on('tileerror', () => {
+      map.getContainer().classList.add('map-tile-fallback');
+    });
     mapRef.current = map;
     return () => {
       marcadoresRef.current = [];

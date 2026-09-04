@@ -43,10 +43,12 @@ router.post('/', pedidosLimiter, validate(pedidoSchema), async (req, res) => {
     const html = generarEmailPedido({ codigo, cliente, items, total });
 
     // Encolar el email y responder al instante (no bloquear con SMTP).
+    // Prioridad alta para que el equipo distinga pedidos de notificaciones.
     await enqueueEmail({
       to: env.ORDERS_MAIL_TO,
       subject: `Pedido ${codigo} — ${cliente.nombre}`,
       html,
+      priority: 'high',
     });
 
     res.status(200).json({ ok: true });
@@ -82,13 +84,22 @@ function generarEmailPedido({ codigo, cliente, items, total }) {
     )
     .join('');
 
-  const camposCliente = `
-    <div class="campo"><div class="etiqueta">Nombre del cliente</div><div class="valor">${escapeHtml(cliente.nombre)}</div></div>
-    <div class="campo"><div class="etiqueta">Dirección de facturación</div><div class="valor">${escapeHtml(cliente.direccion)}</div></div>
-    <div class="campo"><div class="etiqueta">Correo</div><div class="valor">${escapeHtml(cliente.email || '—')}</div></div>
-    <div class="campo"><div class="etiqueta">Teléfono</div><div class="valor">${escapeHtml(cliente.telefono)}</div></div>
-    <div class="campo"><div class="etiqueta">DNI</div><div class="valor">${escapeHtml(cliente.dni)}</div></div>
-  `;
+  const camposCliente = [
+    { etiqueta: 'Nombre del cliente', valor: cliente.nombre },
+    { etiqueta: 'Dirección de facturación', valor: cliente.direccion },
+    ...(cliente.email && String(cliente.email).trim()
+      ? [{ etiqueta: 'Correo', valor: cliente.email }]
+      : []),
+    { etiqueta: 'Teléfono', valor: cliente.telefono },
+    { etiqueta: 'DNI', valor: cliente.dni },
+  ]
+    .filter((campo) => campo.valor !== undefined && campo.valor !== null && String(campo.valor).trim() !== '')
+    .map(
+      (campo) => `
+        <div class="campo"><div class="etiqueta">${escapeHtml(campo.etiqueta)}</div><div class="valor">${escapeHtml(campo.valor)}</div></div>
+      `,
+    )
+    .join('');
 
   return `
     <!DOCTYPE html>

@@ -69,8 +69,7 @@ INSERT INTO colores (nombre, hex_code) VALUES
   ('Rosado', '#f472b6'),
   ('Plateado', '#9ca3af'),
   ('Marrón', '#92400e'),
-  ('Naranja', '#f97316'),
-  ('Camaleón', NULL);
+  ('Naranja', '#f97316');
 
 -- 4. Relación Producto-Color (N:M + stock)
 CREATE TABLE prod_color_rel (

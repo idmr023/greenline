@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, MessageCircle, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import PageBanner from '../components/PageBanner';
+import SEOHead, { organizationSchema, breadcrumbSchema } from '../components/SEOHead';
 import { contactAPI } from '../lib/api';
 import { CONTACT } from '../lib/config';
 
@@ -47,10 +48,19 @@ export default function Contactanos() {
 
   return (
     <div>
+      <SEOHead
+        title="Contacto"
+        description={`Contáctanos en Green Line. Te ayudamos a elegir tu vehículo de movilidad eléctrica. Teléfono ${CONTACT.phoneDisplay} - ${CONTACT.address}.`}
+        url="/contacto"
+        keywords={['contacto Green Line', 'atención al cliente', 'scooters eléctricos Lima']}
+        jsonLd={[organizationSchema(), breadcrumbSchema([
+          { name: 'Inicio', url: '/' },
+          { name: 'Contacto', url: '/contacto' },
+        ])]}
+      />
       <PageBanner
         title="Contáctanos"
         subtitle="Estamos aquí para ayudarte a encontrar tu greenline ideal"
-        bgClass="bg-gradient-to-br from-brand to-brand-dark"
       />
 
       <section className="py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
