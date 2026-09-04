@@ -18,6 +18,7 @@ import auditRoutes from './routes/audit.routes.js';
 import contactRoutes from './routes/contact.routes.js';
 import pedidosRoutes from './routes/pedidos.routes.js';
 import blogRoutes from './routes/blog.routes.js';
+import tiktokRoutes from './routes/tiktok.routes.js';
 
 const app = express();
 
@@ -96,6 +97,7 @@ app.use('/api/audit', auditRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/blog', blogRoutes);
+app.use('/api/tiktok-live', tiktokRoutes);
 
 // 404
 app.use((req, res) => {
