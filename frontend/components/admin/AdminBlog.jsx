@@ -111,7 +111,7 @@ function GalleryManager({ _postId, images, onImagesChange, uploadingGallery, set
         }
         newImages.push({ image_url: data.url, image_alt: '', sort_order: images.length + newImages.length });
       } catch (err) {
-        alert('Error de conexión: ' + err.message);
+        alert(`Error de conexión al API (${apiUrl}): ` + err.message);
       }
     }
     if (newImages.length > 0) {
@@ -353,7 +353,7 @@ export default function AdminBlog() {
 
       setField('image_url', data.url);
     } catch (err) {
-      alert('Error de conexión: ' + err.message);
+      alert(`Error de conexión al API (${apiUrl}): ` + err.message);
     }
     setUploading(false);
   };
