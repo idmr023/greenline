@@ -1,5 +1,6 @@
 import { Briefcase, Users, Heart, Zap, Mail, MapPin, ArrowRight } from 'lucide-react';
 import PageBanner from '../components/PageBanner';
+import SEOHead, { breadcrumbSchema } from '../components/SEOHead';
 
 const beneficios = [
   {
@@ -55,6 +56,16 @@ const areas = [
 export default function TrabajaConNosotros() {
   return (
     <div>
+      <SEOHead
+        title="Trabaja con Nosotros"
+        description="Únete al equipo de Green Line, líderes en movilidad eléctrica en Perú. Revisa nuestras vacantes y envía tu postulación."
+        url="/trabaja-con-nosotros"
+        keywords={['trabaja con nosotros', 'Green Line', 'empleo', 'movilidad eléctrica']}
+        jsonLd={[breadcrumbSchema([
+          { name: 'Inicio', url: '/' },
+          { name: 'Trabaja con Nosotros', url: '/trabaja-con-nosotros' },
+        ])]}
+      />
       <PageBanner
         title="Trabaja con Nosotros"
         subtitle="Únete al equipo que está transformando la movilidad en Perú"

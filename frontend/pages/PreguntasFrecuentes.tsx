@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { CONTACT } from '../lib/config';
 import PageBanner from '../components/PageBanner';
+import SEOHead, { breadcrumbSchema } from '../components/SEOHead';
 import AccordionItem from '../components/faq/AccordionItem';
 import SeccionNavegacion from '../components/faq/SeccionNavegacion';
 import TablaComparativa from '../components/faq/TablaComparativa';
@@ -75,6 +76,16 @@ export default function PreguntasFrecuentes() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEOHead
+        title="Preguntas Frecuentes"
+        description="Resolvemos las dudas más comunes sobre vehículos de movilidad eléctrica: baterías, carga, mantenimiento, costos y garantía."
+        url="/preguntas-frecuentes"
+        keywords={['preguntas frecuentes', 'moto eléctrica', 'batería', 'carga', 'garantía Green Line']}
+        jsonLd={[breadcrumbSchema([
+          { name: 'Inicio', url: '/' },
+          { name: 'Preguntas Frecuentes', url: '/preguntas-frecuentes' },
+        ])]}
+      />
       <PageBanner
         title="Preguntas Frecuentes"
         subtitle="Todo lo que necesitas saber sobre tu vehículo eléctrico"

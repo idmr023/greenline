@@ -1,14 +1,17 @@
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Play, Tag, Minus, Plus, Download, FileText, ShieldCheck } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Tag, Minus, Plus, Download, FileText, ShieldCheck, Star, User } from 'lucide-react';
 import ProductImage from '../components/ProductImage';
+import SEOHead, { productSchema, breadcrumbSchema } from '../components/SEOHead';
 import { BBVACard } from '../components/BBVACard';
 import { costoRecargaDeProducto } from '../utils/batteryCalculator';
 import { formatPrice } from '../lib/utils';
 import { fetchProductos } from '../lib/productos';
+import { fetchTestimonios } from '../lib/testimonios';
 import { useCart } from '../contexts/CartContext';
 import { manualUrl } from '../lib/manuales';
 import stripHtml, { cleanBateria } from '../utils/stripHtml';
+import { CONTACT } from '../lib/config';
 
 const LazyYouTube = lazy(() => import('../components/YouTubeEmbed'));
 
@@ -22,6 +25,7 @@ const colorDotClass = {
   'Verde ligero': 'bg-green-400',
   'Verde Esmeralda': 'bg-emerald-600',
   'Verde Metálico': 'bg-emerald-700',
+  'Verde Metalico': 'bg-emerald-700',
   Celeste: 'bg-sky-400',
   Azul: 'bg-blue-600',
   Crema: 'bg-orange-100',
@@ -32,7 +36,37 @@ const colorDotClass = {
   Rosado: 'bg-pink-400',
   Marrón: 'bg-amber-800',
   Camaleón: 'bg-gradient-to-br from-green-400 via-blue-500 to-purple-500',
+  Camaleon: 'bg-gradient-to-br from-green-400 via-blue-500 to-purple-500',
 };
+
+function WhatsAppIcon({ className = 'w-5 h-5' }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
+    </svg>
+  );
+}
+
+function StarRating({ rating }) {
+  return (
+    <div className="flex gap-0.5">
+      {Array.from({ length: 5 }, (_, i) => (
+        <Star
+          key={i}
+          className={`w-4 h-4 ${i < rating ? 'fill-amber-400 text-amber-400' : 'fill-gray-200 text-gray-200'}`}
+        />
+      ))}
+    </div>
+  );
+}
+
+function normalizeText(text) {
+  return (text || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
 
 const TAB_LIST = [
   { key: 'descripcion', label: 'Descripción' },
@@ -209,7 +243,7 @@ const FICHA_LABELS = {
 function formatFichaValue(key, value) {
   if (value == null || value === '' || (Array.isArray(value) && value.length === 0)) return null;
   if (key === 'bateria_extraible') return value ? 'Sí' : 'No';
-  if (key === 'tiempo_carga_min') return `${value} min`;
+  if (key === 'tiempo_carga_min') return `${value} horas`;
   if (key === 'velocidad_max_kmh') return `${value} km/h`;
   if (key === 'autonomia_km') return `${value} km`;
   if (key.includes('_cm')) return `${value} cm`;
@@ -242,7 +276,11 @@ function FichaTecnicaTab({ ficha }) {
 // ── Tab: Info Adicional ────────────────────────────────────────
 function InfoAdicionalTab({ info }) {
   const entries = Object.entries(info || {}).filter(
-    ([, v]) => v != null && v !== '' && !(Array.isArray(v) && v.length === 0),
+    ([key, v]) =>
+      key !== 'ideal_para' &&
+      v != null &&
+      v !== '' &&
+      !(Array.isArray(v) && v.length === 0),
   );
 
   if (!entries.length) {
@@ -286,6 +324,7 @@ function InfoAdicionalTab({ info }) {
 export default function ProductPage() {
   const { slug } = useParams();
   const [productos, setProductos] = useState([]);
+  const [testimonios, setTestimonios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('descripcion');
   const [activeColor, setActiveColor] = useState(null);
@@ -298,6 +337,10 @@ export default function ProductPage() {
       .then(setProductos)
       .catch(console.error)
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    fetchTestimonios().then(setTestimonios).catch(console.error);
   }, []);
 
   const product = useMemo(
@@ -339,6 +382,23 @@ export default function ProductPage() {
     return product.imagenes.filter((img) => img.color === currentColor);
   }, [product?.imagenes, currentColor]);
 
+  const testimoniosRelacionados = useMemo(() => {
+    if (!product || !testimonios.length) return [];
+    const nombre = normalizeText(product.nombre);
+    return testimonios.filter((t) => {
+      const veh = normalizeText(t.vehiculo);
+      if (!veh) return false;
+      return veh.includes(nombre) || nombre.includes(veh);
+    });
+  }, [product, testimonios]);
+
+  const idealParaList = useMemo(() => {
+    const raw = product?.info_adicional?.ideal_para;
+    if (Array.isArray(raw)) return raw.filter(Boolean);
+    if (typeof raw === 'string') return raw.split(',').map((s) => s.trim()).filter(Boolean);
+    return [];
+  }, [product]);
+
   const chargingCost = useMemo(
     () => costoRecargaDeProducto(product),
     [product],
@@ -369,8 +429,30 @@ export default function ProductPage() {
   const cleanDescription = stripHtml(product.descripcion);
   const hasRealImages = displayedImages.length > 0;
 
+  const whatsappCotizarHref = `https://wa.me/${CONTACT.whatsappNumber}?text=${encodeURIComponent(
+    `¡Hola! Vi la ${product.nombre}${
+      currentColor ? ` en color ${currentColor}` : ''
+    } en su web y me interesa. ¿Me pasan precio y disponibilidad?`,
+  )}`;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <SEOHead
+        title={product.nombre}
+        description={cleanDescription ? cleanDescription.slice(0, 155) : `${product.nombre} - Vehículo de movilidad eléctrica GreenLine. ${product.ficha_tecnica?.autonomia_km ? `Autonomía ${product.ficha_tecnica.autonomia_km} km.` : ''} Compra online o visita nuestras tiendas en Lima.`}
+        url={`/producto/${product.slug}`}
+        image={product.imagenes?.[0]?.src}
+        type="product"
+        keywords={[product.nombre, product.categoria, 'movilidad eléctrica', 'Green Line', 'venta de scooters', 'Perú']}
+        jsonLd={[
+          productSchema(product),
+          breadcrumbSchema([
+            { name: 'Inicio', url: '/' },
+            { name: 'Tienda', url: '/tienda' },
+            { name: product.nombre, url: `/producto/${product.slug}` },
+          ]),
+        ]}
+      />
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
         <Link to="/" className="hover:text-brand transition-colors">Inicio</Link>
@@ -452,6 +534,26 @@ export default function ProductPage() {
             <p className="text-gray-600 text-sm leading-relaxed mb-5 line-clamp-4">
               {cleanDescription}
             </p>
+          )}
+
+          {/* Ideal para */}
+          {idealParaList.length > 0 && (
+            <div className="mb-5">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                Ideal para
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {idealParaList.map((persona) => (
+                  <span
+                    key={persona}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full bg-brand/10 text-brand-dark"
+                  >
+                    <User className="w-3.5 h-3.5" />
+                    {persona}
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
 
           {/* Colores */}
@@ -555,6 +657,23 @@ export default function ProductPage() {
                 {outOfStock ? 'Agotado' : 'Agregar al carrito'}
               </button>
             </div>
+
+            <a
+              href={whatsappCotizarHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-base bg-[#25D366] text-white hover:bg-[#1eb355] transition-colors"
+            >
+              <WhatsAppIcon />
+              Cotizar por WhatsApp
+            </a>
+
+            <Link
+              to="/tiendas"
+              className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-lg font-semibold text-sm border-2 border-brand text-brand hover:bg-brand hover:text-white transition-colors"
+            >
+              Consultar disponibilidad en tiendas
+            </Link>
           </div>
         </div>
       </div>
@@ -587,6 +706,12 @@ export default function ProductPage() {
                 <p className="whitespace-pre-line">{cleanDescription}</p>
               ) : (
                 <p className="text-gray-500">No hay descripción disponible para este producto.</p>
+              )}
+              {(/camale[oó]n/i.test(currentColor || '') ||
+                (/gl3/i.test(product.nombre || '') && /azul/i.test(currentColor || ''))) && (
+                <p className="mt-3 text-sm text-gray-600">
+                  El color azul de la GL3 es un tono que cambia dependiendo del punto de referencia.
+                </p>
               )}
             </div>
           )}
@@ -621,6 +746,39 @@ export default function ProductPage() {
           )}
         </div>
       </div>
+
+      {/* Testimonios de clientes de este modelo */}
+      {testimoniosRelacionados.length > 0 && (
+        <section className="mt-12">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">
+            Lo que dicen nuestros clientes
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {testimoniosRelacionados.map((t) => (
+              <div
+                key={t.id}
+                className="bg-gray-50 rounded-xl p-6 border border-gray-100 hover:shadow-md transition-shadow"
+              >
+                <StarRating rating={t.rating} />
+                <p className="text-gray-700 text-sm leading-relaxed mt-3 mb-4">
+                  &ldquo;{t.texto}&rdquo;
+                </p>
+                <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm">{t.nombre}</p>
+                    {t.rol && <p className="text-xs text-gray-500">{t.rol}</p>}
+                  </div>
+                  {t.vehiculo && (
+                    <span className="text-xs font-semibold text-brand bg-brand/10 px-2 py-1 rounded">
+                      {t.vehiculo}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

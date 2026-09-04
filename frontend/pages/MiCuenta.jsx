@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { User, Mail, Shield, LogOut, Package, Settings, ExternalLink } from 'lucide-react';
+import { User, Mail, Shield, LogOut } from 'lucide-react';
 import PageBanner from '../components/PageBanner';
+import SEOHead from '../components/SEOHead';
 
 export default function MiCuenta() {
   const { user, logout, isStaff, isAdmin } = useAuth();
@@ -16,12 +17,14 @@ export default function MiCuenta() {
     GERENTE_ALMACEN: 'Gerente de Almacén',
     COLABORADOR_ALMACEN: 'Colaborador de Almacén',
     LOGISTICA: 'Logística',
-    EDITOR_ARTICULOS: 'Editor de Artículos',
+    EDITORA_BLOG: 'Editora de Blog',
+    DISTRIBUCION: 'Distribución',
     CLIENTE: 'Cliente',
   };
 
   return (
     <div>
+      <SEOHead title="Mi Cuenta" description="Gestiona tu cuenta Green Line: pedidos, datos personales y acceso a paneles." url="/mi-cuenta" />
       <PageBanner
         title="Mi Cuenta"
         subtitle="Gestiona tu perfil y revisa tu actividad"
@@ -67,58 +70,6 @@ export default function MiCuenta() {
 
           {/* Contenido principal */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Accesos rápidos */}
-            <div className="bg-white rounded-xl border border-gray-100 p-6">
-              <h3 className="font-bold text-gray-900 mb-4">Accesos rápidos</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Link
-                  to="/tienda"
-                  className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:border-brand/30 hover:bg-brand/5 transition-colors"
-                >
-                  <Package className="w-5 h-5 text-brand" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">Tienda</p>
-                    <p className="text-xs text-gray-500">Explora nuestros productos</p>
-                  </div>
-                </Link>
-
-                {isStaff && (
-                  <Link
-                    to="/admin"
-                    className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:border-brand/30 hover:bg-brand/5 transition-colors"
-                  >
-                    <Settings className="w-5 h-5 text-brand" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">Admin Panel</p>
-                      <p className="text-xs text-gray-500">Gestionar productos y más</p>
-                    </div>
-                  </Link>
-                )}
-
-                <Link
-                  to="/preguntas-frecuentes"
-                  className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:border-brand/30 hover:bg-brand/5 transition-colors"
-                >
-                  <ExternalLink className="w-5 h-5 text-brand" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">Preguntas Frecuentes</p>
-                    <p className="text-xs text-gray-500">Resuelve tus dudas</p>
-                  </div>
-                </Link>
-
-                <Link
-                  to="/contacto"
-                  className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:border-brand/30 hover:bg-brand/5 transition-colors"
-                >
-                  <Mail className="w-5 h-5 text-brand" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">Contacto</p>
-                    <p className="text-xs text-gray-500">Soporte y atención</p>
-                  </div>
-                </Link>
-              </div>
-            </div>
-
             {/* Info de cuenta */}
             <div className="bg-white rounded-xl border border-gray-100 p-6">
               <h3 className="font-bold text-gray-900 mb-4">Información de cuenta</h3>

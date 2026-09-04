@@ -121,6 +121,39 @@ function normalizeDistributor(raw) {
 }
 
 // ============================================================
+// Distributors (Escritura - panel /admin)
+// ============================================================
+
+export async function createDistributor(payload) {
+  const { data, error } = await supabase
+    .from('greenline_distributors')
+    .insert(payload)
+    .select()
+    .single();
+  if (error) throw error;
+  _distributorsCache = null;
+  return data;
+}
+
+export async function updateDistributor(id, payload) {
+  const { data, error } = await supabase
+    .from('greenline_distributors')
+    .update(payload)
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  _distributorsCache = null;
+  return data;
+}
+
+export async function deleteDistributor(id) {
+  const { error } = await supabase.from('greenline_distributors').delete().eq('id', id);
+  if (error) throw error;
+  _distributorsCache = null;
+}
+
+// ============================================================
 // Province Sales (Ventas Provincias)
 // ============================================================
 

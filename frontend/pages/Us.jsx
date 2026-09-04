@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, Target, Leaf, Users, Award } from 'lucide-react';
 import PageBanner from '../components/PageBanner';
+import SEOHead, { organizationSchema, breadcrumbSchema } from '../components/SEOHead';
+import { NOSOTROS_HEADER, NOSOTROS_CARRUSEL } from '../lib/images';
 
 const values = [
   {
@@ -70,11 +72,21 @@ const milestones = [
 export default function Nosotros() {
   return (
     <div>
+      <SEOHead
+        title="Sobre Nosotros"
+        description="Green Line es la empresa líder en movilidad eléctrica en el Perú desde 2017. Scooters, motos, trimotos y más vehículos eléctricos con garantía y servicio técnico."
+        url="/nosotros"
+        keywords={['Green Line', 'movilidad eléctrica', 'sobre nosotros', 'empresa vehículos eléctricos Perú']}
+        jsonLd={[organizationSchema(), breadcrumbSchema([
+          { name: 'Inicio', url: '/' },
+          { name: 'Nosotros', url: '/nosotros' },
+        ])]}
+      />
       <div className="relative h-[40vh] min-h-280px max-h-420px overflow-hidden">
           <PageBanner
             title="Sobre Nosotros" 
             subtitle="Líderes en movilidad eléctrica en el Perú desde 2017"
-            image="/assets/imagenes/paginas/nosotros/nosotros_header.webp"
+            image={NOSOTROS_HEADER}
           />
       </div>
 
@@ -88,7 +100,7 @@ export default function Nosotros() {
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
               Transformando la movilidad urbana en el Perú
             </h2>
-            <div className="space-y-3 text-gray-600 leading-relaxed">
+            <div className="space-y-3 text-gray-600 leading-relaxed text-justify">
               <p>
                 Green Line nació con la visión de hacer accesible la movilidad eléctrica
                 en el Perú. Desde nuestra sede en Lima, hemos trabajado incansablemente para
@@ -109,12 +121,12 @@ export default function Nosotros() {
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative w-xs mx-auto">
             <picture>
               <img
-                src="/assets/imagenes/paginas/nosotros/nosotros_carrousel_1.jpg"
+                src={NOSOTROS_CARRUSEL(1)}
                 alt="Equipo Green Line"
-                className="rounded-xl shadow-lg w-full object-cover aspect-[4/3]"
+                className="rounded-xl shadow-lg w-full object-cover"
                 loading="lazy"
               />
             </picture>
@@ -181,7 +193,7 @@ export default function Nosotros() {
             {Array.from({ length: 10 }, (_, i) => (
               <picture key={i} className="rounded-lg overflow-hidden aspect-square">
                 <img
-                  src={`/assets/imagenes/paginas/nosotros/nosotros_carrousel_${i + 1}.jpg`}
+                  src={NOSOTROS_CARRUSEL(i + 1)}
                   alt={`Green Line equipo ${i + 1}`}
                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   loading="lazy"

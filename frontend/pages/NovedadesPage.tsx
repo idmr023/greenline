@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import NovedadImagen from "../components/NovedadImagen";
 import PageBanner from "../components/PageBanner";
+import SEOHead, { breadcrumbSchema } from "../components/SEOHead";
 
 type Category = {
   id: string;
@@ -172,7 +173,16 @@ export default function NovedadesPage() {
 
   return (
     <main className="min-h-screen bg-white text-neutral-950">
-
+      <SEOHead
+        title="Blog de Movilidad Eléctrica"
+        description="Noticias, novedades y artículos sobre movilidad eléctrica de la mano de Green Line Perú."
+        url="/blog"
+        keywords={['blog movilidad eléctrica', 'noticias scooters', 'Green Line blog']}
+        jsonLd={[breadcrumbSchema([
+          { name: 'Inicio', url: '/' },
+          { name: 'Blog', url: '/blog' },
+        ])]}
+      />
       <PageBanner 
         title="Novedades" 
         subtitle="Noticias, consejos y contenido sobre movilidad eléctrica." 
@@ -241,7 +251,7 @@ export default function NovedadesPage() {
                 key={index}
                 className="overflow-hidden rounded-3xl border border-neutral-100"
               >
-                <div className="aspect-[16/10] animate-pulse bg-neutral-100" />
+                <div className="aspect-[4/3] animate-pulse bg-neutral-100" />
 
                 <div className="space-y-4 p-6">
                   <div className="h-3 w-24 animate-pulse rounded bg-neutral-100" />
@@ -292,10 +302,10 @@ export default function NovedadesPage() {
               <NovedadImagen
                 src={getImage(featuredPost)}
                 alt={cleanAlt(featuredPost.image_alt) ?? featuredPost.title}
-                className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                className="absolute inset-0 w-full h-full object-cover bg-black transition duration-700"
               />
 
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent h-full" />
 
               <span className="absolute left-6 top-6 rounded-full bg-white px-4 py-2 text-xs font-semibold text-neutral-950">
                 Destacado
@@ -348,12 +358,12 @@ export default function NovedadesPage() {
               <article key={post.id} className="group">
                 <a
                   href={getArticleUrl(post)}
-                  className="relative block aspect-[16/10] overflow-hidden rounded-3xl bg-neutral-100"
+                  className="relative block aspect-[4/3] overflow-hidden rounded-3xl bg-neutral-100"
                 >
                   <NovedadImagen
                     src={getImage(post)}
                     alt={cleanAlt(post.image_alt) ?? post.title}
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    className="h-full w-full object-contain"
                   />
 
                   <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-800 backdrop-blur">

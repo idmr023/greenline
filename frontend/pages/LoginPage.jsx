@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authAPI } from '../lib/api';
 import { supabase } from '../lib/supabase';
+import SEOHead from '../components/SEOHead';
 import { Lock, Mail, AlertCircle, ArrowLeft } from 'lucide-react';
 import OTPVerify from '../components/auth/OTPVerify';
 import TwoFactorVerify from '../components/auth/TwoFactorVerify';
 
 const STAFF_ROLES = [
-  'ADMIN', 'LOGISTICA', 'EDITOR_ARTICULOS', 'GERENTE_TIENDA',
+  'ADMIN', 'LOGISTICA', 'EDITORA_BLOG', 'DISTRIBUCION', 'GERENTE_TIENDA',
   'COLABORADOR_TIENDA', 'GERENTE_ALMACEN', 'COLABORADOR_ALMACEN', 'DESARROLLADOR_WEB',
 ];
 
@@ -113,6 +114,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <SEOHead title="Iniciar Sesión" description="Accede al panel de administración de Green Line." url="/login" />
       <div className="w-full max-w-sm">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
           <div className="text-center mb-8">

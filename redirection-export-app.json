@@ -1,0 +1,1264 @@
+{
+  "plugin": {
+    "version": "5.9.0",
+    "date": "Tue, 01 Sep 2026 23:04:33 +0000"
+  },
+  "groups": [
+    {
+      "id": 1,
+      "name": "Redirecciones",
+      "module_id": 1,
+      "status": "enabled"
+    }
+  ],
+  "redirects": [
+    {
+      "id": 1,
+      "url": "/woodmart_slide/best-seller-slide-1-3/",
+      "match_url": "/woodmart_slide/best-seller-slide-1-3",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/woodmart_slide/mejor-bicimoto-s2x/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 0,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 2,
+      "url": "/tienda/llanta-aro-10-para-scooters/",
+      "match_url": "/tienda/llanta-aro-10-para-scooters",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/llanta-para-moto-electrica-aro-10/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 1,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 3,
+      "url": "/tienda/bicicleta-electrica-fl1/",
+      "match_url": "/tienda/bicicleta-electrica-fl1",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/producto/bicicleta-elctrica-plegable-fl2"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 2,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 4,
+      "url": "/greenline-empresa-lider-en-vehiculos-menores-electricos￼/",
+      "match_url": "/greenline-empresa-lider-en-vehiculos-menores-electricos%ef%bf%bc",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/nosotros"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 3,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 5,
+      "url": "/greenline-empresa-lider-en-vehiculos-menores-electricos/",
+      "match_url": "/greenline-empresa-lider-en-vehiculos-menores-electricos",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/nosotros"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 4,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 6,
+      "url": "/tienda/cargador-72v-3a-3/",
+      "match_url": "/tienda/cargador-72v-3a-3",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/cargador-72v-3a-lima/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 5,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 7,
+      "url": "/tienda/cargador-72v-3a-2/",
+      "match_url": "/tienda/cargador-72v-3a-2",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/cargador-72v-3a-greenline/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 6,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 8,
+      "url": "/tienda/cargador-72v-3a-tailg/",
+      "match_url": "/tienda/cargador-72v-3a-tailg",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/cargador-72v-3a-greenline/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 7,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 9,
+      "url": "/tienda/cargador-72v-3a/",
+      "match_url": "/tienda/cargador-72v-3a",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/cargador-tailg-72v3a/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 8,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 10,
+      "url": "/tienda/cargador-60v-3ah/",
+      "match_url": "/tienda/cargador-60v-3ah",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/cargador-60v-3a-tailg/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 9,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 11,
+      "url": "/tienda/cargador-48v-2a-modelo-vmp-s2/",
+      "match_url": "/tienda/cargador-48v-2a-modelo-vmp-s2",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/48v2a-cargador-vmp-s2/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 10,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 12,
+      "url": "/tienda/cargador-36v-8-8ah/",
+      "match_url": "/tienda/cargador-36v-8-8ah",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/cargador-36v-8ah/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 11,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 13,
+      "url": "/tienda/cargador-48v-2a-litio/",
+      "match_url": "/tienda/cargador-48v-2a-litio",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/cargador-48v2a-litio/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 12,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 14,
+      "url": "/tienda/cargador-48v-3a/",
+      "match_url": "/tienda/cargador-48v-3a",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/cargador-48v3a-litiol24/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 13,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 15,
+      "url": "/tienda/cargador-48v3a-litio/",
+      "match_url": "/tienda/cargador-48v3a-litio",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/cargador-48v3a-litiol24/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 14,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 16,
+      "url": "/tienda/cargador-tailg/",
+      "match_url": "/tienda/cargador-tailg",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/cargador-tailg-72v3a/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 15,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 17,
+      "url": "/tienda/20-1-95-llanta-bicicleta/",
+      "match_url": "/tienda/20-1-95-llanta-bicicleta",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/20-195-llanta-bicicleta/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 16,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 18,
+      "url": "/elementor-13529/",
+      "match_url": "/elementor-13529",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/blog"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 17,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 19,
+      "url": "/nuevos-cascos/",
+      "match_url": "/nuevos-cascos",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/blog"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 18,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 20,
+      "url": "/tienda/bicicleta-electrica-plegable-fl1/",
+      "match_url": "/tienda/bicicleta-electrica-plegable-fl1",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/producto/bicicleta-elctrica-plegable-fl2"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 19,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 21,
+      "url": "/tienda/12v-35ah-bateria-de-plomo-con-tecnologia-grafeno/",
+      "match_url": "/tienda/12v-35ah-bateria-de-plomo-con-tecnologia-grafeno",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/12v-35-5ah-bateria-de-plomo-con-tecnologia-grafeno/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 20,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 22,
+      "url": "/tienda/12v-22ah-bateria-plomo-grafeno-2/",
+      "match_url": "/tienda/12v-22ah-bateria-plomo-grafeno-2",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/12v-22-3ah-bateria-plomo-grafeno/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 21,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 23,
+      "url": "/woodmart_slide/best-seller-slide-1/",
+      "match_url": "/woodmart_slide/best-seller-slide-1",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/woodmart_slide/mejor-moto-e5/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 22,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 24,
+      "url": "/woodmart_slide/best-seller-slide-1-3-2/",
+      "match_url": "/woodmart_slide/best-seller-slide-1-3-2",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/woodmart_slide/mejor-bicimoto-s2x/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 23,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 25,
+      "url": "/8886/",
+      "match_url": "/8886",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/?cms_block=redes-gl"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 24,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 26,
+      "url": "/tienda/48v14ah-bateria-de-litio/",
+      "match_url": "/tienda/48v14ah-bateria-de-litio",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/tianneng-litio-48v12ah-bateria/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 25,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 27,
+      "url": "/tienda/48v24ah-bateria-de-litio-t3/",
+      "match_url": "/tienda/48v24ah-bateria-de-litio-t3",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/poweramp-litio-48v24ah-bateria/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 26,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 28,
+      "url": "/tienda/48v12ah-bateria-de-litio/",
+      "match_url": "/tienda/48v12ah-bateria-de-litio",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/tianneng-litio-48v12ah-bateria/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 27,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 29,
+      "url": "/tienda/rng701-certificado/",
+      "match_url": "/tienda/rng701-certificado",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/casco-certificado-dot-rng701m/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 28,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 30,
+      "url": "/tienda/bicicleta-electrica-tailg-fl1/",
+      "match_url": "/tienda/bicicleta-electrica-tailg-fl1",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/producto/bicicleta-elctrica-plegable-fl2"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 29,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 31,
+      "url": "/tienda/cargador-60v-3a/",
+      "match_url": "/tienda/cargador-60v-3a",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/cargador-60v-3a-tailg/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 30,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 32,
+      "url": "/tienda/pack-x-06-12v-23ah-chilwee-6-dzf-23-baterias-plomo-acido-con-grafeno-para-set-72v23ah/",
+      "match_url": "/tienda/pack-x-06-12v-23ah-chilwee-6-dzf-23-baterias-plomo-acido-con-grafeno-para-set-72v23ah",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/pack-x-06-12v-23ah-chilwee-6-dzf-23/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 31,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 33,
+      "url": "/tienda/pack-05-12v-23ah-chilwee-6-dzf-23-bateria-plomo-acido-con-grafeno/",
+      "match_url": "/tienda/pack-05-12v-23ah-chilwee-6-dzf-23-bateria-plomo-acido-con-grafeno",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/pack-05-12v-23ah-chilwee-6-dzf-23/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 32,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 34,
+      "url": "/tienda/casco-greenline-bk800-negro-mecanico/",
+      "match_url": "/tienda/casco-greenline-bk800-negro-mecanico",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/casco-bk800-negro-mecanico/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 33,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 35,
+      "url": "/nueva-tienda-greenline/",
+      "match_url": "/nueva-tienda-greenline",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/tiendas"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 34,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 36,
+      "url": "/nueva-tienda-greenline-comas/",
+      "match_url": "/nueva-tienda-greenline-comas",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/tiendas"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 35,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 37,
+      "url": "/contenido-para-moto-gasolinera-pf/",
+      "match_url": "/contenido-para-moto-gasolinera-pf",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/preguntas-frecuentes"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 36,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 38,
+      "url": "/diferencia-de-motos/",
+      "match_url": "/diferencia-de-motos",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/preguntas-frecuentes"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 37,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 39,
+      "url": "/la-conversion-de-w-hp/",
+      "match_url": "/la-conversion-de-w-hp",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/preguntas-frecuentes"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 38,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 40,
+      "url": "/la-conversion-de-w-hp-2/",
+      "match_url": "/la-conversion-de-w-hp-2",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/preguntas-frecuentes"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 39,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 41,
+      "url": "/elementor-31420/",
+      "match_url": "/elementor-31420",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/preguntas-frecuentes"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 40,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 42,
+      "url": "/costo-en-consumo-de-energia/",
+      "match_url": "/costo-en-consumo-de-energia",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/preguntas-frecuentes"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 41,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 43,
+      "url": "/costo-en-mantener-una-moto-electrica/",
+      "match_url": "/costo-en-mantener-una-moto-electrica",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/preguntas-frecuentes"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 42,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 44,
+      "url": "/son-costosos-los-repuestos-de-una-moto-electrica/",
+      "match_url": "/son-costosos-los-repuestos-de-una-moto-electrica",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/preguntas-frecuentes"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 43,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 45,
+      "url": "/mantenimiento-o-revision-para-una-moto-electrica/",
+      "match_url": "/mantenimiento-o-revision-para-una-moto-electrica",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/preguntas-frecuentes"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 44,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 46,
+      "url": "/acudir-al-soporte-tecnico/",
+      "match_url": "/acudir-al-soporte-tecnico",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/preguntas-frecuentes"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 45,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 47,
+      "url": "/tienda/greenline-x6-pro__trashed/",
+      "match_url": "/tienda/greenline-x6-pro__trashed",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://glperu.com/tienda/greenline-x6-pro/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 0,
+      "regex": false,
+      "group_id": 1,
+      "position": 46,
+      "last_access": "-",
+      "enabled": true
+    },
+    {
+      "id": 48,
+      "url": "/",
+      "match_url": "/",
+      "match_data": {
+        "source": {
+          "flag_query": "exact",
+          "flag_case": true,
+          "flag_trailing": true,
+          "flag_regex": false
+        }
+      },
+      "action_code": 301,
+      "action_type": "url",
+      "action_data": {
+        "url": "https://greenline-eta.vercel.app/"
+      },
+      "match_type": "url",
+      "title": "",
+      "hits": 24,
+      "regex": false,
+      "group_id": 1,
+      "position": 47,
+      "last_access": "1 septiembre 2026",
+      "enabled": true
+    }
+  ]
+}

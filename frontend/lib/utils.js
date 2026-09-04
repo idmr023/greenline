@@ -32,38 +32,7 @@ export const CATEGORIAS = [
 
 export const BATERIAS = ['Litio', 'Plomo Ácido', 'Plomo Grafeno'];
 
-export const BANNERS = {
-  default: {
-    title: 'Tienda Green Line',
-    subtitle: 'Encuentra tu vehículo eléctrico ideal.',
-    image: '',
-  },
-  VMP: {
-    title: 'Vehículos de Movilidad Personal',
-    subtitle: 'Bicimotos, monopatines y más para tu día a día.',
-    image: './assets/imagenes/banner_categoria_producto/vmp.jpg',
-  },
-  'Motos Eléctricas': {
-    title: 'Motos Eléctricas',
-    subtitle: 'Potencia, autonomía y cero emisiones.',
-    image: './assets/imagenes/banner_categoria_producto/motos.jpg',
-  },
-  'Trimotos Eléctricas': {
-    title: 'Trimotos Eléctricas',
-    subtitle: 'Estabilidad y carga para tu trabajo diario.',
-    image: './assets/imagenes/banner_categoria_producto/trimotos.jpg',
-  },
-  Cargueros: {
-    title: 'Cargueros Eléctricos',
-    subtitle: 'La solución de carga para tu negocio.',
-    image: './assets/imagenes/banner_categoria_producto/cargueros.jpg',
-  },
-  Cuatrimotos: {
-    title: 'Cuatrimotos',
-    subtitle: 'Estabilidad, seguridad y movilidad universal.',
-    image: './assets/imagenes/banner_categoria_producto/encabezaado-web-fijo.jpg',
-  },
-};
+export { BANNERS } from './images';
 
 export function sortProducts(products, sortBy = 'price_asc') {
   const sorted = [...products];
