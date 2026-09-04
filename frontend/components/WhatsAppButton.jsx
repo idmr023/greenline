@@ -1,6 +1,6 @@
 const WHATSAPP_NUMBER = '51919445661';
 const WHATSAPP_MESSAGE =
-  '¡Hola! Les escribo desde la web de GreenLine. Tenía una consulta sobre sus vehículos eléctricos, sea por una compra, servicio técnico o lo que sea. ¿Me pueden ayudar?';
+  '¡Hola! Les escribo desde la web de GreenLine. Tenía una consulta sobre sus vehículos eléctricos. ¿Me pueden ayudar?';
 
 const WHATSAPP_ICON = (
   <svg
