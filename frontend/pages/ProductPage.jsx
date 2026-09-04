@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Play, Tag, Minus, Plus, Download, FileText, ShieldCheck, Star, User } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Tag, Minus, Plus, Download, FileText, ShieldCheck, Star, User, Battery, Check, Gauge, ShieldAlert, X } from 'lucide-react';
 import ProductImage from '../components/ProductImage';
 import SEOHead, { productSchema, breadcrumbSchema } from '../components/SEOHead';
 import { BBVACard } from '../components/BBVACard';
@@ -55,6 +55,59 @@ function StarRating({ rating }) {
           key={i}
           className={`w-4 h-4 ${i < rating ? 'fill-amber-400 text-amber-400' : 'fill-gray-200 text-gray-200'}`}
         />
+      ))}
+    </div>
+  );
+}
+
+function FeatureCards({ ficha, onGoFicha }) {
+  const extraible = ficha?.bateria_extraible;
+  const autonomia = ficha?.autonomia_km;
+  const requierePlaca = ficha?.requiere_placa_soat;
+
+  const cards = [
+    extraible === null || extraible === undefined ? null : {
+      Icon: Battery,
+      label: 'Batería extraíble',
+      value: extraible ? 'Sí' : 'No',
+      ok: extraible,
+    },
+    autonomia ? {
+      Icon: Gauge,
+      label: 'Autonomía',
+      value: `${autonomia} km`,
+      ok: null,
+    } : null,
+    {
+      Icon: ShieldAlert,
+      label: 'Placa / SOAT',
+      value: requierePlaca === true ? 'Sí' : requierePlaca === false ? 'No' : 'Consultar',
+      ok: requierePlaca,
+    },
+  ].filter(Boolean);
+
+  if (!cards.length) return null;
+
+  return (
+    <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-4">
+      {cards.map(({ Icon, label, value, ok }) => (
+        <button
+          key={label}
+          type="button"
+          onClick={onGoFicha}
+          className="flex flex-col items-center gap-1 px-2 py-3 bg-white border border-gray-200 rounded-xl hover:border-brand hover:shadow-sm transition-colors"
+          title="Ver ficha técnica"
+        >
+          <span className="flex items-center justify-center w-8 h-8 rounded-full bg-brand/10">
+            <Icon className="w-4 h-4 text-brand" />
+          </span>
+          <span className="text-[10px] sm:text-[11px] font-medium text-gray-500 leading-tight text-center">{label}</span>
+          <span className="flex items-center gap-1 text-sm font-bold text-gray-900">
+            {ok === true && <Check className="w-4 h-4 text-green-600" />}
+            {ok === false && <X className="w-4 h-4 text-red-500" />}
+            {value}
+          </span>
+        </button>
       ))}
     </div>
   );
@@ -478,6 +531,11 @@ export default function ProductPage() {
               />
             </div>
           )}
+
+          <FeatureCards
+            ficha={product.ficha_tecnica}
+            onGoFicha={() => setActiveTab('ficha')}
+          />
 
           {/* Video */}
           {product.videoId && (
