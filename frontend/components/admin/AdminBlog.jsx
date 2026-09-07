@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
+import { versionarImagen } from '../../lib/imagenVersionada';
 import stripHtml from '../../utils/stripHtml';
-import BlockEditor from './blog/BlockEditor';
+import RichTextEditor from './blog/RichTextEditor';
+import VistaPreviaModal from './blog/VistaPreviaModal';
 import {
   Plus, Pencil, Trash2, ArrowLeft, Save, Upload, FileText,
   Eye, EyeOff, GripVertical, X, AlertTriangle, Image as ImageIcon,
@@ -142,7 +144,7 @@ function GalleryManager({ _postId, images, onImagesChange, uploadingGallery, set
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {images.map((img, idx) => (
             <div key={idx} className="relative group border border-gray-200 rounded-lg overflow-hidden">
-              <img src={img.image_url} alt={img.image_alt || ''} className="w-full h-28 object-cover" />
+              <img src={versionarImagen(img.image_url)} alt={img.image_alt || ''} className="w-full h-28 object-cover" />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
                 <button
                   type="button"
@@ -195,6 +197,7 @@ export default function AdminBlog() {
   const [uploadingGallery, setUploadingGallery] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [vistaPreviaOpen, setVistaPreviaOpen] = useState(false);
 
   const categoryById = useMemo(() => {
     const map = {};
@@ -563,14 +566,23 @@ export default function AdminBlog() {
             <p className="text-sm text-gray-500 mt-0.5">Publicado en la página de Novedades</p>
           </div>
         </div>
-        <button
-          onClick={requestSave}
-          disabled={saving}
-          className="flex items-center gap-2 px-5 py-2.5 bg-brand text-white rounded-lg text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-50"
-        >
-          <Save className="w-4 h-4" />
-          {saving ? 'Guardando...' : 'Guardar'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setVistaPreviaOpen(true)}
+            className="flex items-center gap-2 px-5 py-2.5 bg-white border border-brand text-brand rounded-lg text-sm font-semibold hover:bg-brand/5 transition-colors"
+          >
+            <Eye className="w-4 h-4" />
+            Vista Previa
+          </button>
+          <button
+            onClick={requestSave}
+            disabled={saving}
+            className="flex items-center gap-2 px-5 py-2.5 bg-brand text-white rounded-lg text-sm font-semibold hover:bg-brand-dark transition-colors disabled:opacity-50"
+          >
+            <Save className="w-4 h-4" />
+            {saving ? 'Guardando...' : 'Guardar Artículo'}
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
@@ -654,14 +666,14 @@ export default function AdminBlog() {
 
       <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
         <h2 className="text-lg font-bold text-gray-900 mb-4">Contenido</h2>
-        <BlockEditor
+        <RichTextEditor
           key={editingId || 'nuevo'}
           value={form.content_html}
           onChange={(html) => setField('content_html', html)}
           onUpload={uploadBlogImage}
         />
         <p className="mt-3 text-xs text-gray-400">
-          Cada bloque se edita directamente haciendo clic en él. Arrastra con el asa para reordenar la estructura del artículo.
+          Tipos de letra, listas, tablas y columnas (2 o 3) directamente sobre el editor. Las imágenes se suben con el botón Subir.
         </p>
       </div>
 
@@ -669,7 +681,7 @@ export default function AdminBlog() {
         <h2 className="text-lg font-bold text-gray-900 mb-4">Imagen de portada</h2>
         <div className="flex items-start gap-4">
           {form.image_url && (
-            <img src={form.image_url} alt="" className="w-40 h-28 object-cover rounded-lg border border-gray-200" />
+            <img src={versionarImagen(form.image_url)} alt="" className="w-40 h-28 object-cover rounded-lg border border-gray-200" />
           )}
           <div className="flex-1 space-y-3">
             <div className="flex items-center gap-3">
@@ -712,7 +724,14 @@ export default function AdminBlog() {
         />
       </div>
 
-      <div className="flex justify-end mt-8 pb-8">
+      <div className="flex justify-end gap-2 mt-8 pb-8">
+        <button
+          onClick={() => setVistaPreviaOpen(true)}
+          className="flex items-center gap-2 px-6 py-3 bg-white border border-brand text-brand rounded-lg text-sm font-semibold hover:bg-brand/5 transition-colors"
+        >
+          <Eye className="w-4 h-4" />
+          Vista Previa
+        </button>
         <button
           onClick={requestSave}
           disabled={saving}
@@ -731,6 +750,21 @@ export default function AdminBlog() {
         onConfirm={handleConfirm}
         onCancel={() => setConfirmOpen(false)}
         danger={confirmAction?.type === 'delete'}
+      />
+
+      <VistaPreviaModal
+        open={vistaPreviaOpen}
+        onClose={() => setVistaPreviaOpen(false)}
+        dato={{
+          title: form.title,
+          excerpt: form.excerpt,
+          category:
+            categories.find((c) => String(c.id) === String(form.category_id))
+              ?.name || null,
+          image_url: form.image_url,
+          image_alt: form.image_alt,
+          content_html: form.content_html,
+        }}
       />
     </div>
   );

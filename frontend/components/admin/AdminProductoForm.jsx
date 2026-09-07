@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { clearCache } from '../../lib/productos';
+import { versionarImagen } from '../../lib/imagenVersionada';
 import { ArrowLeft, Save, Upload, X, GripVertical } from 'lucide-react';
 
 const EMPTY_PRODUCT = {
@@ -408,6 +410,7 @@ potencia_bateria: ft.potencia_bateria || '',
     }
 
     setSaving(false);
+    clearCache();
     onSaved();
   };
 
@@ -653,7 +656,7 @@ potencia_bateria: ft.potencia_bateria || '',
                 </label>
               </div>
               {img.url && (
-                <img src={img.url} alt="" className="w-16 h-16 object-cover rounded-lg border border-gray-200" />
+                <img src={versionarImagen(img.url)} alt="" className="w-16 h-16 object-cover rounded-lg border border-gray-200" />
               )}
               <button onClick={() => removeImage(i)} className="p-1.5 text-gray-400 hover:text-red-500 transition-colors mt-1">
                 <X className="w-4 h-4" />

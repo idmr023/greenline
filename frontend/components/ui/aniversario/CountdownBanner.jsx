@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Clock, Gift } from 'lucide-react';
 import useCountdown from '../../../hooks/useCountdown';
 import { isAniversarioActivo, aniversarioNumero } from '../../../lib/aniversario';
+import AnniversaryPromo from './AniversaryPromo';
 
 const UNIDADES = [
   { key: 'dias', label: 'Días' },
@@ -68,6 +69,7 @@ export default function CountdownBanner() {
           </Link>
         </div>
       </div>
+
     </aside>
   );
 }
