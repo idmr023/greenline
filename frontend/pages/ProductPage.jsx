@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Play, Tag, Minus, Plus, Download, FileText, ShieldCheck, Star, User, Battery, Check, Gauge, ShieldAlert, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Play, Tag, Minus, Plus, Download, FileText, ShieldCheck, Star, User, Battery, Check, Gauge, ShieldAlert, X, Weight, Truck } from 'lucide-react';
 import ProductImage from '../components/ProductImage';
 import SEOHead, { productSchema, breadcrumbSchema } from '../components/SEOHead';
 import { BBVACard } from '../components/BBVACard';
@@ -12,6 +12,7 @@ import { useCart } from '../contexts/CartContext';
 import { manualUrl } from '../lib/manuales';
 import stripHtml, { cleanBateria } from '../utils/stripHtml';
 import { CONTACT } from '../lib/config';
+import { capacidadCargaTexto, equivalentesDeCarga } from '../lib/capacidadCarga';
 
 const LazyYouTube = lazy(() => import('../components/YouTubeEmbed'));
 
@@ -306,7 +307,13 @@ function formatFichaValue(key, value) {
 
 function FichaTecnicaTab({ ficha }) {
   const entries = Object.entries(ficha || {})
-    .filter(([k, v]) => formatFichaValue(k, v) != null && k !== 'id' && k !== 'producto_id');
+    .filter(
+      ([k, v]) =>
+        formatFichaValue(k, v) != null &&
+        k !== 'id' &&
+        k !== 'producto_id' &&
+        k !== 'carga_minima_kg',
+    );
 
   if (!entries.length) {
     return <p className="text-gray-500">No hay información de ficha técnica disponible.</p>;
@@ -318,10 +325,75 @@ function FichaTecnicaTab({ ficha }) {
         <div key={key} className="flex justify-between py-2 border-b border-gray-100">
           <span className="text-sm text-gray-500">{FICHA_LABELS[key] || key}</span>
           <span className="text-sm font-medium text-gray-900 text-right">
-            {formatFichaValue(key, value)}
+            {key === 'carga_maxima_kg'
+              ? `${capacidadCargaTexto(ficha) || formatFichaValue(key, value)} kg`
+              : formatFichaValue(key, value)}
           </span>
         </div>
       ))}
+    </div>
+  );
+}
+
+// ── Tab: Capacidad de Carga (cargueros) ────────────────────────
+function CapacidadCargaTab({ ficha }) {
+  const texto = capacidadCargaTexto(ficha);
+  const equivalencias = equivalentesDeCarga(ficha);
+  const esRango = ficha?.carga_minima_kg && ficha.carga_minima_kg !== ficha.carga_maxima_kg;
+
+  if (!texto) {
+    return (
+      <p className="text-gray-500">
+        La capacidad de carga de este modelo se indica en la ficha técnica. Contacta a tu
+        asesor para conocerla en detalle.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center gap-4 p-5 rounded-2xl bg-brand text-white">
+        <span className="flex items-center justify-center w-12 h-12 rounded-full bg-white/15 shrink-0">
+          <Weight className="w-6 h-6" />
+        </span>
+        <div>
+          <p className="text-white/80 text-xs font-semibold uppercase tracking-wide">
+            Capacidad de carga
+          </p>
+          <p className="text-3xl sm:text-4xl font-extrabold leading-tight">
+            {texto} <span className="text-xl font-bold text-white/90">kg</span>
+          </p>
+        </div>
+      </div>
+
+      <p className="text-sm text-gray-600 leading-relaxed max-w-3xl">
+        Cuánto peso puede cargar tu {esRango ? `entre ${texto} kg` : `hasta ${texto} kg`} sin
+        afectar la seguridad ni el rendimiento del vehículo. Para que lo veas fácil, lo
+        comparamos con cosas de todos los días:
+      </p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {equivalencias.map((e) => (
+          <div
+            key={e.nombre}
+            className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 bg-white"
+          >
+            <span className="flex items-center justify-center w-10 h-10 rounded-full bg-brand/10 shrink-0">
+              <Truck className="w-5 h-5 text-brand" />
+            </span>
+            <div>
+              <p className="text-[11px] text-gray-500">Equivale aproximadamente a</p>
+              <p className="font-bold text-gray-900 text-sm">{e.texto}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <p className="text-xs text-gray-400 max-w-3xl">
+        * Referencias aproximadas para que dimensiones la carga (saco de papas 50 kg, garrafón de
+        agua 20 kg, costal de abono 25 kg, persona adulta ≈70 kg). Siempre carga repartida y dentro
+        de los límites indicados por el fabricante.
+      </p>
     </div>
   );
 }
@@ -384,6 +456,10 @@ export default function ProductPage() {
   const [cantidad, setCantidad] = useState(1);
   const [showVideo, setShowVideo] = useState(false);
   const { addItem, openCart } = useCart();
+  const descRef = useRef(null);
+  const [descExpandida, setDescExpandida] = useState(false);
+  const [descExcedida, setDescExcedida] = useState(false);
+  const MAX_DESC_ALTURA = 170;
 
   useEffect(() => {
     fetchProductos()
@@ -401,6 +477,15 @@ export default function ProductPage() {
     [productos, slug],
   );
 
+  const tabs = useMemo(() => {
+    const list = TAB_LIST.filter((t) => t.key !== 'capacidad');
+    if (product?.categoria === 'Cargueros') {
+      const idx = list.findIndex((t) => t.key === 'ficha');
+      list.splice(idx + 1, 0, { key: 'capacidad', label: 'Capacidad de Carga' });
+    }
+    return list;
+  }, [product?.categoria]);
+
   useEffect(() => {
     setActiveColor(null);
     setActiveTab('descripcion');
@@ -408,6 +493,17 @@ export default function ProductPage() {
     setShowVideo(false);
     window.scrollTo(0, 0);
   }, [slug]);
+
+  useEffect(() => {
+    setDescExpandida(false);
+    const el = descRef.current;
+    const check = () => {
+      if (el && !descExpandida) setDescExcedida(el.scrollHeight > MAX_DESC_ALTURA + 2);
+    };
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, [slug, product?.descripcion]);
 
   const availableColors = useMemo(() => {
     if (!product?.imagenes?.length) return [];
@@ -740,7 +836,7 @@ export default function ProductPage() {
       <div className="border-t border-gray-200 pt-8">
         {/* Tab headers */}
         <div className="flex gap-1 overflow-x-auto border-b border-gray-200 mb-6">
-          {TAB_LIST.map((tab) => (
+          {tabs.map((tab) => (
             <button
               key={tab.key}
               type="button"
@@ -761,7 +857,34 @@ export default function ProductPage() {
           {activeTab === 'descripcion' && (
             <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
               {cleanDescription ? (
-                <p className="whitespace-pre-line">{cleanDescription}</p>
+                <>
+                  <div
+                    ref={descRef}
+                    className={descExpandida ? '' : 'relative max-h-[170px] overflow-hidden'}
+                  >
+                    <p className="whitespace-pre-line">{cleanDescription}</p>
+                    {!descExpandida && descExcedida && (
+                      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+                    )}
+                  </div>
+                  {descExcedida && (
+                    <button
+                      type="button"
+                      onClick={() => setDescExpandida((v) => !v)}
+                      className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-dark transition-colors"
+                    >
+                      {descExpandida ? (
+                        <>
+                          <ChevronUp className="w-4 h-4" /> Ver menos
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="w-4 h-4" /> Ver más
+                        </>
+                      )}
+                    </button>
+                  )}
+                </>
               ) : (
                 <p className="text-gray-500">No hay descripción disponible para este producto.</p>
               )}
@@ -776,6 +899,10 @@ export default function ProductPage() {
 
           {activeTab === 'ficha' && (
             <FichaTecnicaTab ficha={product.ficha_tecnica} />
+          )}
+
+          {activeTab === 'capacidad' && (
+            <CapacidadCargaTab ficha={product.ficha_tecnica} />
           )}
 
           {activeTab === 'info' && (

@@ -87,14 +87,14 @@ export default function LiveIndicator() {
       href={liveUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-24 right-6 z-40 flex items-center gap-2 px-4 py-3 bg-[#00f2fe] text-black text-sm font-bold rounded-full shadow-[0_0_15px_rgba(0,242,254,0.5)] animate-pulse hover:bg-[#00d2fe] transition-all hover:scale-105"
+      className="fixed bottom-24 right-6 z-40 flex items-center gap-2 px-4 py-3 bg-brand text-black text-sm font-bold rounded-full shadow-[0_0_15px_rgba(0,242,254,0.5)] animate-pulse hover:bg-brand-light transition-all hover:scale-105"
       title="¡Ir al en vivo de TikTok!"
     >
       <span className="relative flex h-3 w-3">
         <span className="absolute inline-flex h-full w-full rounded-full bg-black opacity-75 animate-ping" />
         <span className="relative inline-flex rounded-full h-3 w-3 bg-black" />
       </span>
-      <span>Almudena EN VIVO</span>
+      <span>¡Estamos en vivo, Greenlover!</span>
       <ExternalLink className="w-4 h-4 ml-1" />
     </a>
   );

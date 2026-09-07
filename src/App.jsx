@@ -10,6 +10,7 @@ import WelcomeBanner from '../frontend/components/WelcomeBanner';
 import WhatsAppButton from '../frontend/components/WhatsAppButton';
 import CommunityDrawer from '../frontend/components/CommunityDrawer';
 import ProtectedRoute, { ADMIN_ROLES } from '../frontend/components/ProtectedRoute';
+import LegacyRedirect from '../frontend/components/LegacyRedirect';
 import CartDrawer from '../frontend/components/CartDrawer';
 import AnniversaryTheme from '../frontend/components/AnniversaryTheme';
 
@@ -75,6 +76,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <LegacyRedirect />
       <AuthProvider>
         <CartProvider>
           <Routes>

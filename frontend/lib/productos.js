@@ -171,6 +171,7 @@ function normalizeSupabase(raw) {
       tiempo_carga_min: ficha.tiempo_carga_min || null,
       velocidad_max_kmh: ficha.velocidad_max_kmh || null,
       autonomia_km: ficha.autonomia_km || null,
+      carga_minima_kg: ficha.carga_minima_kg ?? null,
       carga_maxima_kg: ficha.carga_maxima_kg || null,
       largo_cm: ficha.largo_cm || null,
       ancho_cm: ficha.ancho_cm || null,
