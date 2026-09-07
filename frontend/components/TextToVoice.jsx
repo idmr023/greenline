@@ -75,15 +75,14 @@ export default function LectorFichaTecnica({texto}) {
   };
 
   return (
-    <div className="flex bg-white border border-gray-200 rounded-xl p-4 shadow-sm max-w-520">
+    <div className="flex bg-white border border-gray-200 rounded-xl p-4 shadow-sm w-full max-w-full">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-bold text-gray-700">Lectura en voz alta</span>
         <button 
           onClick={() => setMostrarAjustes(!mostrarAjustes)}
           className="text-gray-400 hover:text-brand transition-colors"
           title="Ajustes de voz"
         >
-          <Settings2 className="w-5 h-5" />
+          <Settings2 className="w-5 h-5 mt-3 m-1.5" />
         </button>
       </div>
 

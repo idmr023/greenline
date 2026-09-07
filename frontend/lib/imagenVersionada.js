@@ -1,17 +1,29 @@
 /**
- * Versionado (cache-busting) de imágenes del catálogo.
+ * Versionado (cache-busting) GLOBAL de imágenes de Supabase Storage.
  *
- * Las fotos nuevas de familias como GL4 y M3 ECO comparten el mismo nombre de
- * archivo que las anteriores en Supabase Storage, por lo que el navegador
- * muestra copias en caché. Añadir `?v=...` fuerza a descargar la versión nueva.
+ * Cuando se reemplaza una foto que conserva el mismo nombre de archivo en el
+ * bucket, el navegador sigue mostrando la copia en caché. Añadir `?v=...` a
+ * TODA URL pública de Storage fuerza a recargar la versión nueva.
+ *
+ * La estampa se toma de la variable de build `VITE_IMAGE_VERSION` (si la defines
+ * en Vercel, cada deploy la cambias ahí) o de la constante por defecto.
+ * Búmpala cada vez que subas/reemplaces fotos para refrescar el caché.
  */
 
-const FAMILIAS_VERSIONADAS = ['gl4', 'm3eco'];
-const VERSION = '20260901';
+function buildVersion() {
+  const env = import.meta.env?.VITE_IMAGE_VERSION;
+  if (env) return String(env);
+  return "20260915";
+}
+
+const VERSION = buildVersion();
+
+const STORAGE_PUBLIC = "/storage/v1/object/public/";
+const VERSION_RE = /[?&]v=([\w.-]+)/;
 
 export function versionarImagen(src) {
   if (!src) return src;
-  const lower = src.toLowerCase();
-  if (!FAMILIAS_VERSIONADAS.some((f) => lower.includes(`/${f}/`))) return src;
-  return src + (src.includes('?') ? '&' : '?') + `v=${VERSION}`;
+  if (!src.includes(STORAGE_PUBLIC)) return src;
+  if (VERSION_RE.test(src)) return src;
+  return src + (src.includes("?") ? "&" : "?") + `v=${VERSION}`;
 }

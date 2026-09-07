@@ -12,9 +12,11 @@
 
 export const CDN_BASE = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/Greenline_database/assets/imagenes/imagenes`;
 
-/** Construye una URL pública a partir de una ruta relativa dentro del bucket. */
+import { versionarImagen } from './imagenVersionada';
+
+/** Construye una URL pública a partir de una ruta relativa dentro del bucket (con cache-busting). */
 export function img(path) {
-  return `${CDN_BASE}/${path}`;
+  return versionarImagen(`${CDN_BASE}/${path}`);
 }
 
 // ----------------------------------------------------------------------------

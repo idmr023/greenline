@@ -456,10 +456,13 @@ export default function ProductPage() {
   const [cantidad, setCantidad] = useState(1);
   const [showVideo, setShowVideo] = useState(false);
   const { addItem, openCart } = useCart();
+  const descBreveRef = useRef(null);
+  const [descBreveExpandida, setDescBreveExpandida] = useState(false);
+  const [descBreveExcedida, setDescBreveExcedida] = useState(false);
   const descRef = useRef(null);
   const [descExpandida, setDescExpandida] = useState(false);
   const [descExcedida, setDescExcedida] = useState(false);
-  const MAX_DESC_ALTURA = 170;
+  const MAX_DESC_ALTURA = 200;
 
   useEffect(() => {
     fetchProductos()
@@ -477,6 +480,11 @@ export default function ProductPage() {
     [productos, slug],
   );
 
+  const cleanDescription = useMemo(
+    () => (product?.descripcion ? stripHtml(product.descripcion) : ''),
+    [product?.descripcion],
+  );
+
   const tabs = useMemo(() => {
     const list = TAB_LIST.filter((t) => t.key !== 'capacidad');
     if (product?.categoria === 'Cargueros') {
@@ -491,19 +499,32 @@ export default function ProductPage() {
     setActiveTab('descripcion');
     setCantidad(1);
     setShowVideo(false);
+    setDescBreveExpandida(false);
+    setDescExpandida(false);
     window.scrollTo(0, 0);
   }, [slug]);
 
   useEffect(() => {
-    setDescExpandida(false);
+    const elBreve = descBreveRef.current;
+    if (elBreve) {
+      setDescBreveExcedida(
+        elBreve.scrollHeight > elBreve.clientHeight + 2 ||
+          cleanDescription.length > 200,
+      );
+    }
+  }, [cleanDescription, descBreveExpandida, slug]);
+
+  useEffect(() => {
     const el = descRef.current;
     const check = () => {
-      if (el && !descExpandida) setDescExcedida(el.scrollHeight > MAX_DESC_ALTURA + 2);
+      if (el) {
+        setDescExcedida(el.scrollHeight > MAX_DESC_ALTURA + 2);
+      }
     };
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
-  }, [slug, product?.descripcion]);
+  }, [slug, cleanDescription, activeTab, descExpandida]);
 
   const availableColors = useMemo(() => {
     if (!product?.imagenes?.length) return [];
@@ -548,11 +569,6 @@ export default function ProductPage() {
     return [];
   }, [product]);
 
-  const chargingCost = useMemo(
-    () => costoRecargaDeProducto(product),
-    [product],
-  );
-
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -575,7 +591,6 @@ export default function ProductPage() {
     );
   }
 
-  const cleanDescription = stripHtml(product.descripcion);
   const hasRealImages = displayedImages.length > 0;
 
   const whatsappCotizarHref = `https://wa.me/${CONTACT.whatsappNumber}?text=${encodeURIComponent(
@@ -685,9 +700,33 @@ export default function ProductPage() {
 
           {/* Descripción breve */}
           {cleanDescription && (
-            <p className="text-gray-600 text-sm leading-relaxed mb-5 line-clamp-4">
-              {cleanDescription}
-            </p>
+            <div className="mb-5">
+              <div
+                ref={descBreveRef}
+                className={`text-gray-600 text-sm leading-relaxed whitespace-pre-line ${
+                  descBreveExpandida ? '' : 'line-clamp-4'
+                }`}
+              >
+                {cleanDescription}
+              </div>
+              {(descBreveExcedida || cleanDescription.length > 200) && (
+                <button
+                  type="button"
+                  onClick={() => setDescBreveExpandida((v) => !v)}
+                  className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-brand hover:text-brand-dark transition-colors"
+                >
+                  {descBreveExpandida ? (
+                    <>
+                      <ChevronUp className="w-3.5 h-3.5" /> Ver menos
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-3.5 h-3.5" /> Leer más
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           )}
 
           {/* Ideal para */}
@@ -860,7 +899,11 @@ export default function ProductPage() {
                 <>
                   <div
                     ref={descRef}
-                    className={descExpandida ? '' : 'relative max-h-[170px] overflow-hidden'}
+                    className={
+                      !descExpandida && descExcedida
+                        ? 'relative max-h-[200px] overflow-hidden'
+                        : ''
+                    }
                   >
                     <p className="whitespace-pre-line">{cleanDescription}</p>
                     {!descExpandida && descExcedida && (

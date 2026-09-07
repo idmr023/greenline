@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @theme {
   --color-brand: #009000;
@@ -305,4 +306,287 @@ p, span, a, li, button, input, textarea {
   50% {
     transform: translateY(-4px);
   }
+}
+
+/* ============================================================
+   Cuerpo de artículo (blog) — compartido entre la vista pública,
+   la Vista Previa y el patrón de estilos que antes vivía en
+   clases utilitarias dentro de NovedadDetalle.
+   ============================================================ */
+.gl-article-body {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.9;
+  color: #404040;
+}
+
+.gl-article-body h2 {
+  margin: 3.5rem 0 1rem;
+  scroll-margin-top: 6rem;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 1.875rem;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  color: #0a0a0a;
+}
+
+.gl-article-body h3 {
+  margin: 2.5rem 0 0.75rem;
+  scroll-margin-top: 6rem;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #171717;
+}
+
+.gl-article-body p {
+  margin: 0 0 1.5rem;
+}
+
+.gl-article-body ul {
+  margin: 0 0 1.5rem;
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+
+.gl-article-body ol {
+  margin: 0 0 1.5rem;
+  list-style: decimal;
+  padding-left: 1.5rem;
+}
+
+.gl-article-body li {
+  margin: 0 0 0.5rem;
+  line-height: 1.75rem;
+}
+
+.gl-article-body a {
+  color: #006400;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+.gl-article-body strong {
+  font-weight: 600;
+  color: #171717;
+}
+
+.gl-article-body em {
+  font-style: italic;
+}
+
+.gl-article-body blockquote {
+  margin: 2.5rem 0;
+  border-left: 4px solid #009000;
+  background: #fafafa;
+  padding: 1.25rem 1.5rem;
+  font-size: 1.125rem;
+  line-height: 2rem;
+  color: #525252;
+}
+
+.gl-article-body hr {
+  margin: 3rem 0;
+  border: 0;
+  border-top: 1px solid #e5e5e5;
+}
+
+.gl-article-body img {
+  margin: 2.5rem auto;
+  width: 100%;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* Tablas */
+.gl-article-body table {
+  width: 100%;
+  margin: 2rem 0;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.gl-article-body th,
+.gl-article-body td {
+  border: 1px solid #e5e5e5;
+  padding: 0.65rem 0.9rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.gl-article-body th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #171717;
+}
+
+.gl-article-body tr:nth-child(even) td {
+  background: #fafafa;
+}
+
+/* Columnas (2 y 3) */
+.gl-columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+  margin: 1.5rem 0;
+}
+
+.gl-col {
+  min-width: 0;
+}
+
+.gl-col > :first-child {
+  margin-top: 0;
+}
+
+.gl-col > :last-child {
+  margin-bottom: 0;
+}
+
+@media (min-width: 768px) {
+  .gl-columns-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .gl-columns-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ============================================================
+   RichTextEditor (TipTap) — área editable del admin
+   ============================================================ */
+.rich-text-editor {
+  padding: 1.25rem;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.85;
+  color: #374151;
+}
+
+.rich-text-editor p {
+  margin: 0 0 0.5rem;
+}
+
+.rich-text-editor ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.rich-text-editor ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.rich-text-editor blockquote {
+  border-left: 3px solid #009000;
+  padding-left: 1rem;
+  color: #525252;
+  font-style: italic;
+  margin: 0.75rem 0;
+}
+
+.rich-text-editor img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+  margin: 0.75rem auto;
+}
+
+.rich-text-editor table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  font-size: 0.9375rem;
+}
+
+.rich-text-editor th,
+.rich-text-editor td {
+  border: 1px solid #e5e5e5;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+  position: relative;
+}
+
+.rich-text-editor th {
+  background: #fafafa;
+  font-weight: 600;
+}
+
+.rich-text-editor .selectedCell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 144, 0, 0.12);
+  pointer-events: none;
+}
+
+.rich-text-editor .gl-columns {
+  margin: 0.5rem 0;
+}
+
+.rich-text-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* ============================================================
+   Columnas (2/3) y tablas — editor y vista pública (prose)
+   ============================================================ */
+.rich-text-editor .gl-columns,
+.prose .gl-columns {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.rich-text-editor .gl-columns-2,
+.prose .gl-columns-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rich-text-editor .gl-columns-3,
+.prose .gl-columns-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.rich-text-editor .gl-columns .gl-col,
+.prose .gl-columns .gl-col {
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .rich-text-editor .gl-columns-2,
+  .rich-text-editor .gl-columns-3,
+  .prose .gl-columns-2,
+  .prose .gl-columns-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.prose table {
+  width: 100%;
+  font-size: 0.9375rem;
+  margin: 1.25rem 0;
+}
+
+.prose :where(table) th,
+.prose :where(table) td {
+  border: 1px solid #e5e5e5;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose :where(table) thead th {
+  background: #fafafa;
+  font-weight: 600;
 }

@@ -32,6 +32,7 @@ const NotFoundPage = lazy(() => import('../frontend/pages/NotFoundPage'));
 const MiCuenta = lazy(() => import('../frontend/pages/MiCuenta'));
 const Checkout = lazy(() => import('../frontend/pages/Checkout'));
 const AdminPanel = lazy(() => import('../frontend/components/admin/AdminPanel'));
+const NuevoArticuloPage = lazy(() => import('../frontend/pages/admin/NuevoArticuloPage'));
 const NovedadesPage = lazy(() => import('../frontend/pages/NovedadesPage'));
 const NovedadDetalle = lazy(() => import('../frontend/pages/NovedadDetalle'));
 const Aniversario = lazy(() => import('../frontend/pages/Aniversario'));
@@ -114,6 +115,13 @@ export default function App() {
             <ProtectedRoute requiredRoles={ADMIN_ROLES}>
               <Suspense fallback={<PageLoader />}>
                 <AdminPanel />
+              </Suspense>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/nuevo-articulo" element={
+            <ProtectedRoute requiredRoles={ADMIN_ROLES}>
+              <Suspense fallback={<PageLoader />}>
+                <NuevoArticuloPage />
               </Suspense>
             </ProtectedRoute>
           } />
