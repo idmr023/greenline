@@ -164,7 +164,6 @@ function normalizeSupabase(raw) {
       potencia_bateria: ficha.potencia_bateria || null,
       tipo_bateria: ficha.tipo_bateria || null,
       bateria_extraible: ficha.bateria_extraible ?? null,
-      requiere_placa_soat: ficha.requiere_placa_soat ?? null,
       capacidad_bateria: ficha.capacidad_bateria || null,
       vida_util_bateria: ficha.vida_util_bateria || null,
       tipo_toma_corriente: ficha.tipo_toma_corriente || null,

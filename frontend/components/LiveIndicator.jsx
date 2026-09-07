@@ -94,7 +94,7 @@ export default function LiveIndicator() {
         <span className="absolute inline-flex h-full w-full rounded-full bg-black opacity-75 animate-ping" />
         <span className="relative inline-flex rounded-full h-3 w-3 bg-black" />
       </span>
-      <span>Almudena EN VIVO</span>
+      <span>Estamos en vivo Greenlover</span>
       <ExternalLink className="w-4 h-4 ml-1" />
     </a>
   );

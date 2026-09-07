@@ -7,7 +7,7 @@ const STAFF_ROLES = [
   'COLABORADOR_TIENDA', 'GERENTE_ALMACEN', 'COLABORADOR_ALMACEN', 'DESARROLLADOR_WEB',
 ];
 
-const ADMIN_ROLES = ['ADMIN', 'DESARROLLADOR_WEB', 'EDITORA_BLOG', 'DISTRIBUCION'];
+const ADMIN_ROLES = ['ADMIN', 'DESARROLLADOR_WEB', 'EDITORA_BLOG'];
 
 export default function ProtectedRoute({ children, requiredRoles = null }) {
   const { user, loading } = useAuth();

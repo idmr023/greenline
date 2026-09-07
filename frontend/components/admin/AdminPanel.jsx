@@ -252,7 +252,7 @@ export default function AdminPanel() {
             </div>
             <div>
               <p className="text-sm font-bold text-gray-900">GreenLine</p>
-              <p className="text-[10px] text-gray-400">{user?.rol === 'EDITORA_BLOG' ? 'Editar Blog' : user?.rol === 'DISTRIBUCION' ? 'Distribuidores' : 'Admin Panel'}</p>
+              <p className="text-[10px] text-gray-400">{user?.rol === 'EDITORA_BLOG' ? 'Editar Blog' : 'Admin Panel'}</p>
             </div>
           </div>
         </div>

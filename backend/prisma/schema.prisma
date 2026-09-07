@@ -332,7 +332,6 @@ model FichaTecnica {
   potenciaBateria     String? @map("potencia_bateria")
   tipoBateria         String? @map("tipo_bateria")
   bateriaExtraible    Boolean? @map("bateria_extraible")
-  requierePlacaSoat   Boolean? @map("requiere_placa_soat")
   capacidadBateria    String? @map("capacidad_bateria")
   vidaUtilBateria     String? @map("vida_util_bateria")
   tipoTomaCorriente   String? @map("tipo_toma_corriente")
