@@ -626,12 +626,18 @@ export default function NovedadDetalle() {
             </>
           )}
 
-          <div className="max-w-4xl max-h-[85vh] mx-4" onClick={(e) => e.stopPropagation()}>
-            <img
-              src={post.gallery_images[lightboxIndex].image_url}
-              alt={cleanAlt(post.gallery_images[lightboxIndex].image_alt) ?? post.title}
-              className="max-h-[80vh] w-auto mx-auto rounded-lg object-contain"
-            />
+          <div className="mx-4 w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-stretch justify-center max-h-[85vh]">
+              <span aria-hidden="true" className="hidden md:block w-16 lg:w-24 shrink-0 rounded-l-2xl bg-white" />
+              <div className="flex items-center justify-center bg-white px-2 py-2 sm:px-3">
+                <img
+                  src={post.gallery_images[lightboxIndex].image_url}
+                  alt={cleanAlt(post.gallery_images[lightboxIndex].image_alt) ?? post.title}
+                  className="max-h-[75vh] w-auto object-contain"
+                />
+              </div>
+              <span aria-hidden="true" className="hidden md:block w-16 lg:w-24 shrink-0 rounded-r-2xl bg-white" />
+            </div>
             {(post.gallery_images[lightboxIndex].caption || post.gallery_images.length > 1) && (
               <div className="mt-3 text-center text-white/80 text-sm">
                 {post.gallery_images[lightboxIndex].caption && (

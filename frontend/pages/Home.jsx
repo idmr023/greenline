@@ -5,10 +5,12 @@ import SEOHead, { organizationSchema, breadcrumbSchema } from '../components/SEO
 import HeroCarousel from '../components/HeroCarousel';
 import Pillars from '../components/Pillars';
 import ProductCard from '../components/ProductCard';
+import CountdownBanner from '../components/ui/aniversario/CountdownBanner';
 import Benefits from '../components/Benefits';
 import Testimonials from '../components/Testimonials';
 import Objecciones from '../components/Objeciones';
 import VideoSection from '../components/VideoSection';
+import GreenTipsSection from '../components/ui/greenTips/GreenTipsSection';
 import { CATEGORIAS, sortProducts } from '../lib/utils';
 import { fetchProductos } from '../lib/productos';
 
@@ -73,6 +75,7 @@ export default function Home() {
       />
       <h1 className="sr-only">Green Line - Vehículos de Movilidad Eléctrica en Perú</h1>
       <HeroCarousel />
+      <CountdownBanner />
       <Pillars /> 
 
       {/* Organic Grid - Destacados */}
@@ -311,6 +314,8 @@ export default function Home() {
         
       <Benefits />
       <Objecciones />
+
+      <GreenTipsSection />
 
       <Testimonials />
     </>

@@ -9,21 +9,21 @@ const slides = [
     // subtitle: 'Ahorra tiempo y dinero con nuestros vehículos eléctricos.',
     // cta: 'Simular ahorro',
     to: '/tienda',
-    img: CARRUSEL[1].img,
+  img: CARRUSEL[1],
   },
   {
     title: 'Nueve años contigo',
     subtitle: 'Mes de locura: celebramos nuestro aniversario con descuentos y promociones por nuestro 9no aniversario.',
     cta: 'Acerca de los descuentos',
     to: '/aniversario',
-    img: CARRUSEL[2].img,
+    img: CARRUSEL[2],
   },
   {
     title: 'Siempre hay una Greenline cerca de ti',
     subtitle: 'Visita nuestras tiendas en Perú y Chile, o encuentra un distribuidor.',
     cta: 'Ver tiendas',
     to: '/tiendas',
-    img: CARRUSEL[3].img,
+    img: CARRUSEL[3],
   },
   {
     title: 'Nueve años contigo',
@@ -92,11 +92,6 @@ export default function HeroCarousel() {
               )}
             </a>
 
-            /* 3. LOS TEXTOS (Superpuestos) */
-            /* Nota: pointer-events-none permite que el clic "atraviese" el texto y funcione el enlace de atrás */
-            /* En el slide del banner de aniversario (reactBanner) el texto ya
-               vive dentro del propio banner; se omite el superpuesto para no
-               duplicarlo ni saturarlo. */
             {!slide.reactBanner && (
               <div className="absolute inset-0 flex items-center pointer-events-none">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">

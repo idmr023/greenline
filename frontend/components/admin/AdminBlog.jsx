@@ -1,13 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
-import Placeholder from '@tiptap/extension-placeholder';
 import { supabase } from '../../lib/supabase';
+import stripHtml from '../../utils/stripHtml';
+import BlockEditor from './blog/BlockEditor';
 import {
   Plus, Pencil, Trash2, ArrowLeft, Save, Upload, FileText,
   Eye, EyeOff, GripVertical, X, AlertTriangle, Image as ImageIcon,
-  Bold, Italic, Heading1, Heading2, List, ListOrdered, Quote, Minus, Undo, Redo,
 } from 'lucide-react';
 
 const EMPTY = {
@@ -65,19 +62,6 @@ function ConfirmModal({ open, title, message, confirmLabel, onConfirm, onCancel,
   );
 }
 
-function ToolbarButton({ onClick, active, children, title }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      className={`p-1.5 rounded transition-colors ${active ? 'bg-brand/10 text-brand' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
-    >
-      {children}
-    </button>
-  );
-}
-
 function GalleryManager({ _postId, images, onImagesChange, uploadingGallery, setUploadingGallery }) {
   const handleUploadGallery = async (files) => {
     if (!files || !files.length) return;
@@ -111,7 +95,7 @@ function GalleryManager({ _postId, images, onImagesChange, uploadingGallery, set
         }
         newImages.push({ image_url: data.url, image_alt: '', sort_order: images.length + newImages.length });
       } catch (err) {
-        alert('Error de conexión: ' + err.message);
+        alert(`Error de conexión al API (${apiUrl}): ` + err.message);
       }
     }
     if (newImages.length > 0) {
@@ -212,18 +196,6 @@ export default function AdminBlog() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Image,
-      Placeholder.configure({ placeholder: 'Escribe el contenido del artículo aquí...' }),
-    ],
-    content: form.content_html || '',
-    onUpdate: ({ editor: e }) => {
-      setForm((f) => ({ ...f, content_html: e.getHTML() }));
-    },
-  });
-
   const categoryById = useMemo(() => {
     const map = {};
     for (const cat of categories) map[cat.id] = cat;
@@ -234,12 +206,6 @@ export default function AdminBlog() {
     loadMeta();
     loadPosts();
   }, []);
-
-  useEffect(() => {
-    if (editor && !editingId) {
-      editor.commands.setContent(form.content_html || '');
-    }
-  }, [form.content_html, editor, editingId]);
 
   async function loadMeta() {
     const { data } = await supabase
@@ -285,7 +251,6 @@ export default function AdminBlog() {
       title: '',
       slug: '',
     });
-    if (editor) editor.commands.setContent('');
   };
 
   const startEdit = (post) => {
@@ -302,7 +267,6 @@ export default function AdminBlog() {
       featured: post.featured,
       active: post.active,
     });
-    if (editor) editor.commands.setContent(post.content_html || '');
     loadGallery(post.id);
   };
 
@@ -310,7 +274,6 @@ export default function AdminBlog() {
     setEditingId(null);
     setForm(EMPTY);
     setGalleryImages([]);
-    if (editor) editor.commands.setContent('');
   };
 
   const onTitleChange = (val) => {
@@ -327,35 +290,38 @@ export default function AdminBlog() {
     if (!file) return;
     setUploading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        alert('Sesión no válida. Inicia sesión de nuevo.');
-        setUploading(false);
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('image', file);
-
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-      const res = await fetch(`${apiUrl}/blog/upload`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${session.access_token}` },
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        alert('Error subiendo imagen: ' + (data.error || res.statusText));
-        setUploading(false);
-        return;
-      }
-
-      setField('image_url', data.url);
-    } catch (err) {
-      alert('Error de conexión: ' + err.message);
+      const url = await uploadBlogImage(file);
+      if (url) setField('image_url', url);
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
+  };
+
+  const uploadBlogImage = async (file) => {
+    if (!file) return null;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      alert('Sesión no válida. Inicia sesión de nuevo.');
+      return null;
+    }
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+    const res = await fetch(`${apiUrl}/blog/upload`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${session.access_token}` },
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      alert('Error subiendo imagen: ' + (data.error || res.statusText));
+      return null;
+    }
+
+    return data.url;
   };
 
   const handleDelete = async (post) => {
@@ -386,7 +352,7 @@ export default function AdminBlog() {
   };
 
   const requestSave = () => {
-    if (!form.title.trim() || !editor?.getHTML().trim()) {
+    if (!form.title.trim() || !stripHtml(form.content_html).trim()) {
       alert('Título y contenido son obligatorios');
       return;
     }
@@ -407,8 +373,8 @@ export default function AdminBlog() {
       slug: form.slug.trim() || slugify(form.title),
       category_id: form.category_id,
       excerpt: form.excerpt || null,
-      content_html: editor?.getHTML() || form.content_html,
-      content_text: form.excerpt || (editor?.getText() || ''),
+      content_html: form.content_html,
+      content_text: form.excerpt || stripHtml(form.content_html),
       image_url: form.image_url || null,
       image_alt: form.image_alt || null,
       published_at: form.published_at || new Date().toISOString().slice(0, 10),
@@ -688,49 +654,15 @@ export default function AdminBlog() {
 
       <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
         <h2 className="text-lg font-bold text-gray-900 mb-4">Contenido</h2>
-        {editor && (
-          <>
-            <div className="flex flex-wrap items-center gap-1 p-2 border border-gray-200 rounded-t-lg bg-gray-50">
-              <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="Negrita">
-                <Bold className="w-4 h-4" />
-              </ToolbarButton>
-              <ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive('italic')} title="Cursiva">
-                <Italic className="w-4 h-4" />
-              </ToolbarButton>
-              <div className="w-px h-5 bg-gray-200 mx-1" />
-              <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={editor.isActive('heading', { level: 1 })} title="Título 1">
-                <Heading1 className="w-4 h-4" />
-              </ToolbarButton>
-              <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} active={editor.isActive('heading', { level: 2 })} title="Título 2">
-                <Heading2 className="w-4 h-4" />
-              </ToolbarButton>
-              <div className="w-px h-5 bg-gray-200 mx-1" />
-              <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive('bulletList')} title="Lista">
-                <List className="w-4 h-4" />
-              </ToolbarButton>
-              <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive('orderedList')} title="Lista numerada">
-                <ListOrdered className="w-4 h-4" />
-              </ToolbarButton>
-              <ToolbarButton onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} title="Cita">
-                <Quote className="w-4 h-4" />
-              </ToolbarButton>
-              <div className="w-px h-5 bg-gray-200 mx-1" />
-              <ToolbarButton onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Línea horizontal">
-                <Minus className="w-4 h-4" />
-              </ToolbarButton>
-              <div className="flex-1" />
-              <ToolbarButton onClick={() => editor.chain().focus().undo().run()} title="Deshacer">
-                <Undo className="w-4 h-4" />
-              </ToolbarButton>
-              <ToolbarButton onClick={() => editor.chain().focus().redo().run()} title="Rehacer">
-                <Redo className="w-4 h-4" />
-              </ToolbarButton>
-            </div>
-            <div className="border border-t-0 border-gray-200 rounded-b-lg min-h-[300px] max-h-[500px] overflow-y-auto">
-              <EditorContent editor={editor} className="prose prose-sm max-w-none p-4 [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[280px] [&_.ProseMirror_p.is-editor-empty:first-child]:before:content-[attr(data-placeholder)] [&_.ProseMirror_p.is-editor-empty:first-child]:before:text-gray-400 [&_.ProseMirror_p.is-editor-empty:first-child]:before:float-left [&_.ProseMirror_p.is-editor-empty:first-child]:before:pointer-events-none [&_.ProseMirror_p.is-editor-empty:first-child]:before:h-0" />
-            </div>
-          </>
-        )}
+        <BlockEditor
+          key={editingId || 'nuevo'}
+          value={form.content_html}
+          onChange={(html) => setField('content_html', html)}
+          onUpload={uploadBlogImage}
+        />
+        <p className="mt-3 text-xs text-gray-400">
+          Cada bloque se edita directamente haciendo clic en él. Arrastra con el asa para reordenar la estructura del artículo.
+        </p>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">

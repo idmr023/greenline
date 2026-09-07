@@ -302,7 +302,7 @@ export default function NovedadesPage() {
               <NovedadImagen
                 src={getImage(featuredPost)}
                 alt={cleanAlt(featuredPost.image_alt) ?? featuredPost.title}
-                className="absolute inset-0 w-full h-full object-cover bg-black transition duration-700"
+                className="absolute inset-0 w-full h-full object-contain bg-white transition"
               />
 
               <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent h-full" />
@@ -358,24 +358,26 @@ export default function NovedadesPage() {
               <article key={post.id} className="group">
                 <a
                   href={getArticleUrl(post)}
-                  className="relative block aspect-[4/3] overflow-hidden rounded-3xl bg-neutral-100"
+                  className="relative block overflow-hidden rounded-3xl bg-neutral-100"
                 >
                   <NovedadImagen
                     src={getImage(post)}
                     alt={cleanAlt(post.image_alt) ?? post.title}
-                    className="h-full w-full object-contain"
+                    className="h-full w-full object-contain bg-neutral-100"
                   />
-
-                  <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-800 backdrop-blur">
-                    {post.category}
-                  </span>
                 </a>
 
                 <div className="pt-5">
                   {post.published_at && (
-                    <p className="text-xs font-medium uppercase tracking-wider text-neutral-400">
-                      {formatDate(post.published_at)}
-                    </p>
+                    <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-neutral-400">
+                      <p className="text-xs font-medium uppercase tracking-wider text-neutral-400">
+                        {formatDate(post.published_at)} 
+                      </p>
+
+                      <p className="mt-1 text-xs font-medium uppercase tracking-wider text-brand-light">
+                        - {post.category}
+                      </p>
+                    </div>
                   )}
 
                   <a href={getArticleUrl(post)}>

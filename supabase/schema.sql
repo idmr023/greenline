@@ -105,6 +105,7 @@ CREATE TABLE ficha_tecnica (
   tiempo_carga_min INT,
   velocidad_max_kmh INT,
   autonomia_km INT,
+  carga_minima_kg INT,
   carga_maxima_kg INT,
   largo_cm INT,
   ancho_cm INT,
