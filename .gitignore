@@ -38,4 +38,3 @@ Thumbs.db
 .agents/*
 
 # Migrated images (served from Supabase Storage CDN)
-public/assets/imagenes/articulos/*

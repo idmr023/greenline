@@ -15,7 +15,6 @@ datasource db {
 
 enum Rol {
   ADMIN
-  LOGISTICA
   EDITORA_BLOG
   DISTRIBUCION
   GERENTE_TIENDA
@@ -31,7 +30,6 @@ enum NivelAcceso {
   ALMACEN
   TIENDA
   CONTENIDO
-  LOGISTICA_N
   CLIENTE_N
 }
 

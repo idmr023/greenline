@@ -50,6 +50,10 @@ const ARGS = process.argv.slice(2);
 const FORCE = ARGS.includes('--force');
 const DRY_RUN = ARGS.includes('--dry-run');
 
+// Sube SOLO las imágenes que aún no existen en Supabase.
+// No sobrescribe existentes y nunca elimina sobrantes.
+const SOLO_NUEVO = ARGS.includes('--solo-nuevo') || ARGS.includes('--solo-nuevas');
+
 // Modo descarga: trae imágenes de Supabase → local (inverso del sync).
 // El script se convierte en descargar-imagenes cuando está presente.
 const DESCARGAR = ARGS.includes('--descargar') || ARGS.includes('--download') || ARGS.includes('-d');
@@ -72,13 +76,17 @@ Uso:
   node scripts/sincronizar-imagenes-greenline.mjs [opciones]
 
 Opciones (subida local → Supabase):
-  --dry-run    Vista previa: procesa imágenes y muestra before/without subir
-  --force      Re-subir todo sin preguntar (override interactivo)
+  --dry-run    Vista previa: procesa imágenes y muestra el resultado sin subir
+  --force      Re-subir todo sin preguntar (salta el modo interactivo)
+  --solo-nuevo Sube SOLO las imágenes nuevas: no sobrescribe existentes
+               ni elimina sobrantes
   --original   No redimensiona ni recorta: sube cada imagen en su tamaño
-               original, solo convertida a WebP (conserva la calidad).
-               Además re-subirá también las imágenes ya existentes en
-               Supabase (con confirmación), reemplazándolas.
+               original, solo convertida a WebP (conserva la calidad)
   --help, -h   Mostrar esta ayuda
+
+En el modo interactivo las imágenes existentes se REEMPLAZAN por defecto
+(el archivo del bucket se sobrescribe con la misma ruta). Para no tocarlas,
+usa --solo-nuevo o elige la opción correspondiente al ejecutar.
 
 Opciones (descarga Supabase → local, modo inverso):
   --descargar, -d, --download   Trae imágenes del bucket a public/assets.
@@ -88,9 +96,10 @@ Opciones (descarga Supabase → local, modo inverso):
 
 Ejemplos:
   node scripts/sincronizar-imagenes-greenline.mjs --dry-run
+  node scripts/sincronizar-imagenes-greenline.mjs
+  node scripts/sincronizar-imagenes-greenline.mjs --solo-nuevo
   node scripts/sincronizar-imagenes-greenline.mjs --force
   node scripts/sincronizar-imagenes-greenline.mjs --original
-  node scripts/sincronizar-imagenes-greenline.mjs
   node scripts/sincronizar-imagenes-greenline.mjs --descargar
   node scripts/sincronizar-imagenes-greenline.mjs --descargar --force
 `);
@@ -112,14 +121,60 @@ const preguntar = (pregunta) =>
     rl.question(pregunta, resolve)
   );
 
-const confirmar = async (pregunta) =>
-  ['s', 'si'].includes(
-    (
-      await preguntar(`${pregunta} (s/n): `)
+const SI = ['s', 'si', 'sí', 'y', 'yes'];
+
+const confirmar = async (pregunta, porDefecto = true) => {
+  const rta = (
+    await preguntar(
+      `${pregunta}? (s/n, Enter = ${porDefecto ? 's' : 'n'}): `
     )
-      .trim()
-      .toLowerCase()
-  );
+  )
+    .trim()
+    .toLowerCase();
+
+  if (!rta) return porDefecto;
+  return SI.includes(rta);
+};
+
+// Convierte una respuesta del usuario en una lista de índices (0-based) sobre
+// una lista de `max` elementos. Acepta números sueltos, rangos y comas:
+//   "1-5, 8, 10-12"   →  [0,1,2,3,4,7,9,10,11]
+//   "all"             →  todos los índices
+// Entrada vacía o sin valores válidos → [].
+function parseSeleccion(respuesta, max) {
+  const rta = (respuesta || '').trim().toLowerCase();
+  if (!rta) return [];
+  if (rta === 'all') return Array.from({ length: max }, (_, i) => i);
+
+  const indices = new Set();
+  for (const parte of rta.split(',')) {
+    const trozo = parte.trim();
+    if (!trozo) continue;
+
+    const rango = trozo.split('-');
+    if (rango.length === 2) {
+      const ini = Number.parseInt(rango[0], 10);
+      const fin = Number.parseInt(rango[1], 10);
+      if (
+        !Number.isNaN(ini) &&
+        !Number.isNaN(fin) &&
+        ini >= 1 &&
+        fin <= max &&
+        ini <= fin
+      ) {
+        for (let i = ini; i <= fin; i++) indices.add(i - 1);
+      }
+      continue;
+    }
+
+    const num = Number.parseInt(trozo, 10);
+    if (!Number.isNaN(num) && num >= 1 && num <= max) {
+      indices.add(num - 1);
+    }
+  }
+
+  return [...indices].sort((a, b) => a - b);
+}
 
 
 // ============================================================
@@ -199,12 +254,13 @@ function inventarioLocal() {
 
 async function seleccionarExistentes(
   existentes,
-  pregunta = '👉 ¿Cuáles quieres sobrescribir? '
+  pregunta = '¿Cuáles quieres seleccionar?'
 ) {
   if (!existentes.length) {
     return [];
   }
 
+  console.log('');
   existentes.forEach((archivo, index) => {
     console.log(
       `${String(index + 1).padStart(4)}. ${archivo.rutaRelativa}`
@@ -212,28 +268,14 @@ async function seleccionarExistentes(
   });
 
   console.log(
-    '\nEscribe números separados por coma o "all" para seleccionar todas.\n'
+    '\nSoporta rangos y comas: "1-5, 8, 10-12" o "all" para todas. Enter = ninguna.\n'
   );
 
-  const respuesta = (await preguntar(pregunta)).trim().toLowerCase();
+  const respuesta = await preguntar(`👉 ${pregunta} `);
 
-  if (respuesta === 'all') {
-    return existentes;
-  }
-
-  const indices = [
-    ...new Set(
-      respuesta
-        .split(',')
-        .map((valor) => Number.parseInt(valor.trim(), 10))
-        .filter(
-          (numero) =>
-            Number.isInteger(numero) && numero >= 1 && numero <= existentes.length
-        )
-    ),
-  ];
-
-  return indices.map((numero) => existentes[numero - 1]);
+  return parseSeleccion(respuesta, existentes.length).map(
+    (numero) => existentes[numero]
+  );
 }
 
 
@@ -243,6 +285,13 @@ async function seleccionarExistentes(
 
 async function gestionarSobrantes(sobrantes) {
   if (!sobrantes.length) {
+    return [];
+  }
+
+  if (!process.stdin.isTTY) {
+    console.log(
+      `\n⚠️ ${sobrantes.length} sobrantes detectadas. Sin terminal interactiva: se conservan TODAS (nada se elimina).\n`
+    );
     return [];
   }
 
@@ -270,7 +319,8 @@ async function gestionarSobrantes(sobrantes) {
 
   if (opcion === '2') {
     const confirmarEliminacion = await confirmar(
-      `¿Confirmas eliminar las ${sobrantes.length} imágenes`
+      `¿Confirmas eliminar las ${sobrantes.length} imágenes`,
+      false
     );
     return confirmarEliminacion ? sobrantes : [];
   }
@@ -278,11 +328,12 @@ async function gestionarSobrantes(sobrantes) {
   if (opcion === '3') {
     const seleccionadas = await seleccionarExistentes(
       sobrantes.map((rutaRelativa) => ({ rutaRelativa })),
-      '👉 ¿Cuáles quieres eliminar? '
+      '¿Cuáles quieres eliminar? '
     );
     const rutas = seleccionadas.map((archivo) => archivo.rutaRelativa);
     const confirmarEliminacion = await confirmar(
-      `¿Confirmas eliminar las ${rutas.length} imágenes seleccionadas`
+      `¿Confirmas eliminar las ${rutas.length} imágenes seleccionadas`,
+      false
     );
     return confirmarEliminacion ? rutas : [];
   }
@@ -296,24 +347,17 @@ async function gestionarSobrantes(sobrantes) {
 // ELEGIR QUÉ SUBIR
 // ============================================================
 
-async function elegirSubida(nuevos, existentes) {
+async function decidirSubida(nuevos, existentes) {
   console.log('\n¿Qué quieres subir?\n');
-  console.log('1. 🔄 Todo nuevamente');
-  console.log('2. 🆕 Solo lo nuevo');
-  console.log('3. 🆕♻️ Lo nuevo + elegir existentes para sobrescribir');
+  console.log('1. 🔄 Reemplazar todo (predeterminado): subir nuevas y sobrescribir existentes');
+  console.log('2. 🆕 Solo lo nuevo (no tocar existentes)');
+  console.log('3. 🖼️ Nuevas + elegir existentes a sobrescribir');
   console.log('4. ❌ No subir imágenes\n');
 
-  const opcion = (await preguntar('👉 Opción [1-4]: ')).trim();
+  let opcion = (await preguntar('👉 Opción [1-4, Enter = 1]: ')).trim();
+  if (!opcion) opcion = '1';
 
   if (opcion === '4') return [];
-
-  if (opcion === '1') {
-    const total = nuevos.length + existentes.length;
-    const confirmarTodo = await confirmar(
-      `¿Confirmas volver a procesar y subir ${total} imágenes`
-    );
-    return confirmarTodo ? [...nuevos, ...existentes] : [];
-  }
 
   if (opcion === '2') {
     if (!nuevos.length) {
@@ -327,7 +371,10 @@ async function elegirSubida(nuevos, existentes) {
   }
 
   if (opcion === '3') {
-    const seleccionadas = await seleccionarExistentes(existentes);
+    const seleccionadas = await seleccionarExistentes(
+      existentes,
+      '¿Cuáles existentes quieres sobrescribir (además de las nuevas)?'
+    );
     const total = [...nuevos, ...seleccionadas];
     if (!total.length) return [];
     const confirmarSeleccion = await confirmar(
@@ -336,8 +383,15 @@ async function elegirSubida(nuevos, existentes) {
     return confirmarSeleccion ? total : [];
   }
 
-  console.log('❌ Opción inválida.');
-  return [];
+  const total = nuevos.length + existentes.length;
+  if (!total) {
+    console.log('✅ No hay nada que subir.');
+    return [];
+  }
+  const confirmarTodo = await confirmar(
+    `¿Confirmas subir ${nuevos.length} nuevas y sobrescribir ${existentes.length} existentes`
+  );
+  return confirmarTodo ? [...nuevos, ...existentes] : [];
 }
 
 
@@ -472,64 +526,51 @@ async function ejecutarDescarga() {
 }
 
 // ============================================================
-// NUEVO: FILTRAR LOCALES (CARPETAS E IMÁGENES)
-// ============================================================
-// ============================================================
-// NUEVO: FILTRAR LOCALES (SOPORTA RANGOS EJ: 1-5, 8, 10-12)
+// FILTRAR LOCALES (CARPETAS E IMÁGENES) — opcional
 // ============================================================
 async function filtrarLocales(locales) {
-  console.log('\n¿Deseas procesar todo o filtrar tu subida?');
+  console.log('\n¿Quieres procesar todo o filtrar tu subida?');
   console.log('1. 🌐 Procesar todo (Predeterminado)');
   console.log('2. 📁 Elegir carpetas (Soporta rangos como 1-5)');
   console.log('3. 🖼️ Elegir imágenes específicas');
 
-  const opcion = (await preguntar('\n👉 Opción [1-3]: ')).trim(); //[cite: 1]
+  const opcion = (await preguntar('\n👉 Opción [1-3, Enter = 1]: ')).trim();
 
   if (opcion === '2') {
-    // Agrupa todas las rutas únicas (mostrará imagenes/articulos, imagenes/tienda, etc.)
-    const carpetas = [...new Set(locales.map(a => path.dirname(a.rutaRelativa)))].sort();
-    
+    const carpetas = [
+      ...new Set(locales.map((a) => path.dirname(a.rutaRelativa))),
+    ].sort();
+
     console.log('\nCarpetas disponibles:');
-    carpetas.forEach((c, index) => console.log(`${String(index + 1).padStart(3)}. ${c || '(Raíz)'}`));
-    
-    const respuesta = (await preguntar('\n👉 Escribe los números (Ej: 1-8, 10, 12-15): ')).trim(); //[cite: 1]
-    
-    // Lógica inteligente para procesar rangos y comas
-    const indices = new Set();
-    respuesta.split(',').forEach(parte => {
-      const rango = parte.trim().split('-');
-      
-      if (rango.length === 2) {
-        // Es un rango (ej: 1-8)
-        const inicio = parseInt(rango[0], 10);
-        const fin = parseInt(rango[1], 10);
-        
-        if (!isNaN(inicio) && !isNaN(fin) && inicio <= fin) {
-          for (let i = inicio; i <= fin; i++) {
-            if (i >= 1 && i <= carpetas.length) indices.add(i - 1);
-          }
-        }
-      } else {
-        // Es un número individual (ej: 9)
-        const num = parseInt(parte, 10);
-        if (!isNaN(num) && num >= 1 && num <= carpetas.length) indices.add(num - 1);
-      }
-    });
-    
-    if (indices.size === 0) return locales; // Si no hay selección válida, procesa todo
-    
-    const elegidas = Array.from(indices).map(i => carpetas[i]);
-    console.log(`\nFiltro aplicado: Seleccionaste ${elegidas.length} carpetas.`);
-    
-    return locales.filter(a => elegidas.includes(path.dirname(a.rutaRelativa)));
+    carpetas.forEach((c, index) =>
+      console.log(`${String(index + 1).padStart(3)}. ${c || '(Raíz)'}`)
+    );
+
+    const respuesta = await preguntar(
+      '\n👉 Escribe los números (Ej: 1-8, 10, 12-15): '
+    );
+
+    const indices = parseSeleccion(respuesta, carpetas.length);
+    if (!indices.length) return locales;
+
+    const elegidas = indices.map((i) => carpetas[i]);
+    console.log(
+      `\nFiltro aplicado: ${elegidas.length} carpeta(s) seleccionada(s).`
+    );
+
+    return locales.filter((a) =>
+      elegidas.includes(path.dirname(a.rutaRelativa))
+    );
   }
 
   if (opcion === '3') {
-    // Aquí reutilizamos tu función existente para listar imágenes individuales
-    return await seleccionarExistentes(locales, '👉 Escribe los números de las imágenes: '); //[cite: 1]
+    return await seleccionarExistentes(
+      locales,
+      'Escribe los números de las imágenes: '
+    );
   }
 
-  return locales; // Opción 1 o cualquier entrada vacía
+  return locales; // Opción 1 o entrada vacía
 }
 
 // ------------------------------------------------------------
@@ -554,13 +595,6 @@ async function ejecutarSubida() {
   let locales = inventarioLocal();
   console.log(`📁 ${locales.length} imágenes locales válidas.`);
 
-  // --- NUEVO BLOQUE DE FILTRADO ---
-  if (!FORCE && locales.length > 0) {
-    locales = await filtrarLocales(locales);
-    console.log(`\n✅ Continuamos con ${locales.length} imágenes tras el filtrado.`);
-  }
-  // --------------------------------
-
   // ESCANEAR SUPABASE
   console.log('☁️ Consultando Supabase...');
   const remotasRaw = await inventarioBucket(supabase, RUTA_SUPABASE);
@@ -569,27 +603,41 @@ async function ejecutarSubida() {
   );
   console.log(`☁️ ${remotas.size} imágenes existentes en Supabase.`);
 
-  // COMPARAR
-  const mapaLocal = new Map(
-    locales.map((archivo) => [
-      rutaRelativaStorage(archivo.rutaDestino),
-      archivo,
-    ])
-  );
+  const calcular = (completos) => {
+    const mapaLocal = new Map(
+      completos.map((archivo) => [
+        rutaRelativaStorage(archivo.rutaDestino),
+        archivo,
+      ])
+    );
 
-  const nuevos = locales.filter(
-    (archivo) =>
-      !remotas.has(rutaRelativaStorage(archivo.rutaDestino))
-  );
+    const nuevos = completos.filter(
+      (archivo) =>
+        !remotas.has(rutaRelativaStorage(archivo.rutaDestino))
+    );
 
-  const existentes = locales.filter(
-    (archivo) =>
-      remotas.has(rutaRelativaStorage(archivo.rutaDestino))
-  );
+    const existentes = completos.filter(
+      (archivo) =>
+        remotas.has(rutaRelativaStorage(archivo.rutaDestino))
+    );
 
-  const sobrantes = [...remotas]
-    .filter((ruta) => !mapaLocal.has(ruta))
-    .sort();
+    const sobrantes = [...remotas]
+      .filter((ruta) => !mapaLocal.has(ruta))
+      .sort();
+
+    return { nuevos, existentes, sobrantes };
+  };
+
+  let { nuevos, existentes, sobrantes } = calcular(locales);
+
+  // FILTRAR (solo interactivo, respecto a todo el set local)
+  if (!FORCE && !DRY_RUN && !SOLO_NUEVO && locales.length > 0) {
+    const filtrados = await filtrarLocales(locales);
+    if (filtrados.length > 0 && filtrados.length !== locales.length) {
+      locales = filtrados;
+      ({ nuevos, existentes, sobrantes } = calcular(locales));
+    }
+  }
 
   // RESUMEN
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -597,7 +645,7 @@ async function ejecutarSubida() {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log(`📁 Locales      : ${locales.length}`);
   console.log(`🆕 Nuevas       : ${nuevos.length}`);
-  console.log(`♻️ Existentes   : ${existentes.length}`);
+  console.log(`♻️ A reemplazar  : ${existentes.length}`);
   console.log(`⚠️ Sobrantes    : ${sobrantes.length}`);
 
   // GESTIONAR SOBRANTES + ELEGIR SUBIDA
@@ -605,27 +653,18 @@ async function ejecutarSubida() {
   let paraSubir = [];
 
   if (DRY_RUN) {
-    paraSubir = [...nuevos, ...existentes];
+    paraSubir = SOLO_NUEVO ? [...nuevos] : [...nuevos, ...existentes];
     console.log(`\n🧪 DRY RUN: se procesarán ${paraSubir.length} imágenes para vista previa.\n`);
   } else if (FORCE) {
-    paraSubir = [...nuevos, ...existentes];
+    paraSubir = SOLO_NUEVO ? [...nuevos] : [...nuevos, ...existentes];
     paraEliminar = await gestionarSobrantes(sobrantes);
     console.log(`\n⚡ FORCE: re-procesando ${paraSubir.length} imágenes.\n`);
-  } else if (PRESERVAR_ORIGINAL) {
-    // --original: re-subir también las existentes (upsert reemplaza el archivo)
-    const totalReemplazo = [...nuevos, ...existentes];
-    const confirmarReemplazo = await confirmar(
-      `¿Confirmas re-subir las ${totalReemplazo.length} imágenes (--original reemplaza las existentes`
-    );
-    if (confirmarReemplazo) {
-      paraSubir = totalReemplazo;
-      paraEliminar = await gestionarSobrantes(sobrantes);
-    } else {
-      console.log('❌ Proceso cancelado. No se subió ni eliminó nada.');
-    }
+  } else if (SOLO_NUEVO) {
+    paraSubir = [...nuevos];
+    console.log(`\n🔒 --solo-nuevo: solo se subirán ${nuevos.length} imagen(es) nueva(s). No se sobrescribe ni elimina nada.\n`);
   } else {
     paraEliminar = await gestionarSobrantes(sobrantes);
-    paraSubir = await elegirSubida(nuevos, existentes);
+    paraSubir = await decidirSubida(nuevos, existentes);
   }
 
   // ELIMINAR

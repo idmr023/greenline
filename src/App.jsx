@@ -32,6 +32,14 @@ const NotFoundPage = lazy(() => import('../frontend/pages/NotFoundPage'));
 const MiCuenta = lazy(() => import('../frontend/pages/MiCuenta'));
 const Checkout = lazy(() => import('../frontend/pages/Checkout'));
 const AdminPanel = lazy(() => import('../frontend/components/admin/AdminPanel'));
+const AdminDashboardPage = lazy(() => import('../frontend/pages/admin/DashboardPage'));
+const AdminProductosPage = lazy(() => import('../frontend/pages/admin/ProductosPage'));
+const AdminColoresPage = lazy(() => import('../frontend/pages/admin/ColoresPage'));
+const AdminBlogPage = lazy(() => import('../frontend/pages/admin/BlogPage'));
+const AdminDistribuidoresPage = lazy(() => import('../frontend/pages/admin/DistribuidoresPage'));
+const AdminTestimoniosPage = lazy(() => import('../frontend/pages/admin/TestimoniosPage'));
+const AdminPedidosPage = lazy(() => import('../frontend/pages/admin/PedidosPage'));
+const AdminMetricsPage = lazy(() => import('../frontend/pages/admin/MetricsPage'));
 const NuevoArticuloPage = lazy(() => import('../frontend/pages/admin/NuevoArticuloPage'));
 const NovedadesPage = lazy(() => import('../frontend/pages/NovedadesPage'));
 const NovedadDetalle = lazy(() => import('../frontend/pages/NovedadDetalle'));
@@ -111,7 +119,7 @@ export default function App() {
             } />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
-          <Route path="/admin" element={
+          <Route path="/admin/*" element={
             <ProtectedRoute requiredRoles={ADMIN_ROLES}>
               <Suspense fallback={<PageLoader />}>
                 <AdminPanel />

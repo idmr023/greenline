@@ -95,6 +95,33 @@ async function main() {
   console.log(`   ✅ Admin creado: ${admin.email}`);
 
   // ============================================================
+  // Crear usuario de distribución
+  // ============================================================
+  const distribucionHash = await argon2.hash('Distribucion@2026', {
+    type: argon2.argon2id,
+    memoryCost: 65536,
+    timeCost: 4,
+    parallelism: 4,
+  });
+
+  const distribucion = await prisma.user.upsert({
+    where: { email: 'distribucion@greenline.com' },
+    update: {},
+    create: {
+      email: 'distribucion@greenline.com',
+      passwordHash: distribucionHash,
+      nombre: 'Distribución',
+      apellido: 'GreenLine',
+      rol: 'DISTRIBUCION',
+      nivelAcceso: 'CONTENIDO',
+      emailVerificado: true,
+      activo: true,
+    },
+  });
+
+  console.log(`   ✅ Distribución creado: ${distribucion.email}`);
+
+  // ============================================================
   // Crear usuario de prueba (gerente de tienda)
   // ============================================================
   const gerenteHash = await argon2.hash('Gerente@2026', {
@@ -224,6 +251,7 @@ async function main() {
   console.log('\n🎉 Seed completado exitosamente!');
   console.log('\n📋 Usuarios creados:');
   console.log('   admin@greenline.com        / GreenLine@2026  (ADMIN)');
+  console.log('   distribucion@greenline.com / Distribucion@2026 (DISTRIBUCION)');
   console.log('   gerente.lince@greenline.com / Gerente@2026   (GERENTE_TIENDA)');
   console.log('   colaborador.lince@greenline.com / Colab@2026 (COLABORADOR_TIENDA)');
   console.log('   cliente@test.com           / Cliente@2026    (CLIENTE)');

@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
-import Link from '@tiptap/extension-link';
-import Underline from '@tiptap/extension-underline';
 import Placeholder from '@tiptap/extension-placeholder';
 import { TableKit } from '@tiptap/extension-table';
 import {
@@ -23,7 +21,7 @@ import {
   Upload,
   Trash2,
 } from 'lucide-react';
-import { ColumnLayout } from './ColumnExtensions';
+import { ColumnLayout, Column } from './ColumnExtensions';
 
 function ToolButton({ onClick, active, title, children }) {
   return (
@@ -69,14 +67,16 @@ export default function RichTextEditor({ value, onChange, onUpload, placeholder 
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({ heading: { levels: [2, 3] } }),
-      Underline,
-      Link.configure({ openOnClick: false }),
+      StarterKit.configure({
+        heading: { levels: [2, 3] },
+        link: { openOnClick: false },
+      }),
       Image.configure({ inline: false }),
       Placeholder.configure({
         placeholder: placeholder || 'Escribe el contenido del artículo aquí…',
       }),
       TableKit.configure({ table: { resizable: true } }),
+      Column,
       ColumnLayout,
     ],
     content: value || '',

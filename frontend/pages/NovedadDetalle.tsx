@@ -18,6 +18,7 @@ import { supabase } from "../lib/supabase";
 import NovedadImagen from "../components/NovedadImagen";
 import SEOHead, { articleSchema, breadcrumbSchema } from "../components/SEOHead";
 import TextToVoice from "../components/TextToVoice";
+import { versionarImagen, versionarHtml } from "../lib/imagenVersionada";
 
 type Post = {
   id: string;
@@ -291,7 +292,7 @@ export default function NovedadDetalle() {
     );
   }
 
-  const imageUrl = post.image_url;
+  const imageUrl = versionarImagen(post.image_url);
   const imageAlt = cleanAlt(post.image_alt) ?? post.title;
   const hasContent = !!(post.content_html || post.content_text);
   const excerptClean =
@@ -500,7 +501,7 @@ export default function NovedadDetalle() {
             [&_strong]:font-semibold [&_strong]:text-neutral-900
             [&_hr]:my-12 [&_hr]:border-neutral-200
           "
-          dangerouslySetInnerHTML={{ __html: post.content_html ?? "" }}
+          dangerouslySetInnerHTML={{ __html: versionarHtml(post.content_html ?? "") }}
         />
       ) : (
         <div className="my-8 rounded-2xl border border-neutral-200 bg-neutral-50 p-10 text-center">
@@ -552,7 +553,7 @@ export default function NovedadDetalle() {
               ].join(" ")}
             >
               <img
-                src={img.image_url}
+                src={versionarImagen(img.image_url)}
                 alt={cleanAlt(img.image_alt) ?? post.title}
                 className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                 loading="lazy"
@@ -763,7 +764,7 @@ export default function NovedadDetalle() {
       onClick={(e) => e.stopPropagation()}
     >
       <img
-        src={post.gallery_images[lightboxIndex].image_url}
+        src={versionarImagen(post.gallery_images[lightboxIndex].image_url)}
         alt={
           cleanAlt(post.gallery_images[lightboxIndex].image_alt) ??
           post.title

@@ -50,12 +50,8 @@ export default function VideoSection() {
             Véanos en acción
           </span>
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
-            Reseñas y demostraciones reales
+            Conoce nuestros vehículos en acción
           </h2>
-          <p className="text-gray-600 mx-auto">
-            Mira a clientes probando nuestras M-CAR en Instagram y TikTok. Sin filtros,
-            el vehículo tal cual… y en movimiento.
-          </p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">

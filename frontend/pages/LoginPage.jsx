@@ -9,7 +9,7 @@ import OTPVerify from '../components/auth/OTPVerify';
 import TwoFactorVerify from '../components/auth/TwoFactorVerify';
 
 const STAFF_ROLES = [
-  'ADMIN', 'LOGISTICA', 'EDITORA_BLOG', 'DISTRIBUCION', 'GERENTE_TIENDA',
+  'ADMIN', 'EDITORA_BLOG', 'DISTRIBUCION', 'GERENTE_TIENDA',
   'COLABORADOR_TIENDA', 'GERENTE_ALMACEN', 'COLABORADOR_ALMACEN', 'DESARROLLADOR_WEB',
 ];
 
