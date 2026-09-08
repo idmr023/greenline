@@ -17,6 +17,7 @@ dist/
 .env
 .env.local
 .env.*.local
+.env.build
 
 # Editor
 .vscode/*
@@ -37,4 +38,3 @@ Thumbs.db
 .agents/*
 
 # Migrated images (served from Supabase Storage CDN)
-public/assets/

@@ -5,12 +5,15 @@ import SEOHead, { organizationSchema, breadcrumbSchema } from '../components/SEO
 import HeroCarousel from '../components/HeroCarousel';
 import Pillars from '../components/Pillars';
 import ProductCard from '../components/ProductCard';
+import CountdownBanner from '../components/ui/aniversario/CountdownBanner';
 import Benefits from '../components/Benefits';
 import Testimonials from '../components/Testimonials';
 import Objecciones from '../components/Objeciones';
 import VideoSection from '../components/VideoSection';
+import GreenTipsSection from '../components/ui/greenTips/GreenTipsSection';
 import { CATEGORIAS, sortProducts } from '../lib/utils';
 import { fetchProductos } from '../lib/productos';
+import AnniversaryPromo from '../components/ui/aniversario/AniversaryPromo';
 
 const inclusiveVehicles = [
   {
@@ -36,6 +39,7 @@ const inclusiveVehicles = [
 export default function Home() {
   const [filterCategory, setFilterCategory] = useState('Todas');
   const [productos, setProductos] = useState([]);
+  const [fechaActual, setFechaActual] = useState(new Date());
 
   useEffect(() => {
     fetchProductos().then(setProductos).catch(console.error);
@@ -73,6 +77,12 @@ export default function Home() {
       />
       <h1 className="sr-only">Green Line - Vehículos de Movilidad Eléctrica en Perú</h1>
       <HeroCarousel />
+      {/* <CountdownBanner /> */}
+
+      {
+          fechaActual.getMonth() === 8 && fechaActual.getDate() >= 1 && fechaActual.getDate() <= 24 ? <AnniversaryPromo /> : <CountdownBanner />
+      }
+
       <Pillars /> 
 
       {/* Organic Grid - Destacados */}
@@ -311,6 +321,8 @@ export default function Home() {
         
       <Benefits />
       <Objecciones />
+
+      <GreenTipsSection />
 
       <Testimonials />
     </>

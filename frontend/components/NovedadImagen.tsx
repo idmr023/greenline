@@ -1,4 +1,5 @@
 import { Newspaper } from "lucide-react";
+import { versionarImagen } from "../lib/imagenVersionada";
 
 type Props = {
   src?: string | null;
@@ -22,5 +23,5 @@ export default function NovedadImagen({ src, alt = "", className = "" }: Props) 
     );
   }
 
-  return <img src={src} alt={alt} className={className} loading="lazy" />;
+  return <img src={versionarImagen(src)} alt={alt} className={className} loading="lazy" />;
 }

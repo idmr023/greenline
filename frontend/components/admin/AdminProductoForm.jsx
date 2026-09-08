@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { clearCache } from '../../lib/productos';
+import { versionarImagen } from '../../lib/imagenVersionada';
 import { ArrowLeft, Save, Upload, X, GripVertical } from 'lucide-react';
 
 const EMPTY_PRODUCT = {
@@ -23,6 +25,7 @@ const EMPTY_FICHA = {
   capacidad_bateria: '',
   vida_util_bateria: '',
   bateria_extraible: false,
+  requiere_placa_soat: null,
   tipo_toma_corriente: '',
   torque_maximo: '',
   potencia_bateria: '',
@@ -104,6 +107,7 @@ export default function AdminProductoForm({ productoId, onBack, onSaved }) {
             capacidad_bateria: ft.capacidad_bateria || '',
             vida_util_bateria: ft.vida_util_bateria || '',
             bateria_extraible: ft.bateria_extraible || false,
+            requiere_placa_soat: ft.requiere_placa_soat ?? null,
             tipo_toma_corriente: ft.tipo_toma_corriente || '',
             torque_maximo: ft.torque_maximo || '',
 potencia_bateria: ft.potencia_bateria || '',
@@ -324,6 +328,7 @@ potencia_bateria: ft.potencia_bateria || '',
       capacidad_bateria: ficha.capacidad_bateria || null,
       vida_util_bateria: ficha.vida_util_bateria || null,
       bateria_extraible: ficha.bateria_extraible,
+      requiere_placa_soat: ficha.requiere_placa_soat ?? null,
       tipo_toma_corriente: ficha.tipo_toma_corriente || null,
       torque_maximo: ficha.torque_maximo || null,
       potencia_bateria: ficha.potencia_bateria || null,
@@ -405,6 +410,7 @@ potencia_bateria: ft.potencia_bateria || '',
     }
 
     setSaving(false);
+    clearCache();
     onSaved();
   };
 
@@ -536,6 +542,16 @@ potencia_bateria: ft.potencia_bateria || '',
             />
             <label htmlFor="bateria_extraible" className="text-sm text-gray-700">Batería extraíble</label>
           </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="requiere_placa_soat"
+              checked={ficha.requiere_placa_soat === true}
+              onChange={(e) => setFicha({ ...ficha, requiere_placa_soat: e.target.checked })}
+              className="w-4 h-4 rounded border-gray-300 text-brand focus:ring-brand"
+            />
+            <label htmlFor="requiere_placa_soat" className="text-sm text-gray-700">Requiere placa / SOAT</label>
+          </div>
         </div>
       </Section>
 
@@ -640,7 +656,7 @@ potencia_bateria: ft.potencia_bateria || '',
                 </label>
               </div>
               {img.url && (
-                <img src={img.url} alt="" className="w-16 h-16 object-cover rounded-lg border border-gray-200" />
+                <img src={versionarImagen(img.url)} alt="" className="w-16 h-16 object-cover rounded-lg border border-gray-200" />
               )}
               <button onClick={() => removeImage(i)} className="p-1.5 text-gray-400 hover:text-red-500 transition-colors mt-1">
                 <X className="w-4 h-4" />

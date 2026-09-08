@@ -405,10 +405,14 @@ export default function KilometerMaps({ abierto = true, onKmChange, view = 'full
         {coords.length >= 2 && (
           <span className="text-xs font-bold text-white bg-brand rounded-full px-3 py-1">
             Tu ruta{kmEsAproximado ? ' (aprox)' : ''}:{' '}
-            {kmRuta.toFixed(1)} km/día
+            {kmRuta.toFixed(1)} km/día*
           </span>
         )}
       </div>
+      <p className="text-[11px] text-gray-400 pt-1">
+        * La distancia es referencial y puede variar según la persona que la
+        use, la inclinación del terreno y otros factores externos.
+      </p>
     </div>
   );
 

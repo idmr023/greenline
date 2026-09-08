@@ -22,8 +22,6 @@ import {
 } from '../lib/utils';
 import { fetchProductos } from '../lib/productos';
 
-export const revalidate = 60; // Revalida los datos en el servidor cada 60 segundos
-
 export default function Shop() {
   const [searchParams] = useSearchParams();
   const initialCat = searchParams.get('categoria');

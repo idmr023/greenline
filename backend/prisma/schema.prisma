@@ -15,7 +15,6 @@ datasource db {
 
 enum Rol {
   ADMIN
-  LOGISTICA
   EDITORA_BLOG
   DISTRIBUCION
   GERENTE_TIENDA
@@ -31,7 +30,6 @@ enum NivelAcceso {
   ALMACEN
   TIENDA
   CONTENIDO
-  LOGISTICA_N
   CLIENTE_N
 }
 
@@ -332,12 +330,14 @@ model FichaTecnica {
   potenciaBateria     String? @map("potencia_bateria")
   tipoBateria         String? @map("tipo_bateria")
   bateriaExtraible    Boolean? @map("bateria_extraible")
+  requierePlacaSoat   Boolean? @map("requiere_placa_soat")
   capacidadBateria    String? @map("capacidad_bateria")
   vidaUtilBateria     String? @map("vida_util_bateria")
   tipoTomaCorriente   String? @map("tipo_toma_corriente")
   tiempoCargaMin      Int?    @map("tiempo_carga_min")
   velocidadMaxKmh     Int?    @map("velocidad_max_kmh")
   autonomiaKm         Int?    @map("autonomia_km")
+  cargaMinimaKg       Int?    @map("carga_minima_kg")
   cargaMaximaKg       Int?    @map("carga_maxima_kg")
   largoCm             Int?    @map("largo_cm")
   anchoCm             Int?    @map("ancho_cm")

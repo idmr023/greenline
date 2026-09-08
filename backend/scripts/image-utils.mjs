@@ -143,7 +143,7 @@ export async function inventarioBucket(supabase, carpeta, opts = {}) {
  * @param {object} opts
  */
 export async function subirStorage(supabase, destino, buffer, opts = {}) {
-  const { upsert = true, cacheControl = '3600' } = opts;
+  const { upsert = true, cacheControl = '0' } = opts;
   const { error } = await supabase.storage
     .from(BUCKET)
     .upload(destino, buffer, {

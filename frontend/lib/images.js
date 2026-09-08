@@ -12,9 +12,11 @@
 
 export const CDN_BASE = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/Greenline_database/assets/imagenes/imagenes`;
 
-/** Construye una URL pública a partir de una ruta relativa dentro del bucket. */
+import { versionarImagen } from './imagenVersionada';
+
+/** Construye una URL pública a partir de una ruta relativa dentro del bucket (con cache-busting). */
 export function img(path) {
-  return `${CDN_BASE}/${path}`;
+  return versionarImagen(`${CDN_BASE}/${path}`);
 }
 
 // ----------------------------------------------------------------------------
@@ -26,11 +28,11 @@ export const LOGO = img('logos/logo_final.webp');
 // Carrusel del home
 // ----------------------------------------------------------------------------
 export const CARRUSEL = [
-  { ...{ img: img('caroussel/1.webp') } },
-  { ...{ img: img('caroussel/2.webp') } },
-  { ...{ img: img('caroussel/portada_setiembre_aniversario.webp') } },
-  { ...{ img: img('caroussel/4.webp') } },
-];
+  './assets/imagenes/caroussel/1.webp' ,
+  './assets/imagenes/caroussel/2.jpg',
+  './assets/imagenes/caroussel/portada_setiembre_aniversario.png' ,
+  './assets/imagenes/caroussel/4.jpg' ,
+].map(versionarImagen);
 
 // ----------------------------------------------------------------------------
 // Banners de categoría (Shop)
@@ -79,16 +81,19 @@ export const BANNER_DEFAULT = img('banner_categoria_producto/encabezaado-web-fij
 export const TIENDAS = {
   Lince: img('tiendas/tienda_lince.webp'),
   Surco: img('tiendas/tienda_surco.webp'),
+  'San Miguel': img('tiendas/tienda_san_miguel.webp'),
+  Miraflores: img('tiendas/tienda_miraflores.webp'),
   'La Molina': img('tiendas/tienda_molina.webp'),
   Comas: img('tiendas/tienda_comas.webp'),
   Ate: img('tiendas/tienda_ate.webp'),
   Huancayo: img('tiendas/tienda_huancayo.webp'),
+  Santiago: img('tiendas/tienda_santiago.webp'),
 };
 
 // ----------------------------------------------------------------------------
 // Nosotros
 // ----------------------------------------------------------------------------
-export const NOSOTROS_HEADER = img('paginas/nosotros/nosotros_header.webp');
+export const NOSOTROS_HEADER = versionarImagen('./assets/imagenes/paginas/nosotros/nosotros_header.webp');
 export const NOSOTROS_CARRUSEL = (n) => img(`paginas/nosotros/nosotros_carrousel_${n}.webp`);
 
 // ----------------------------------------------------------------------------

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   ArrowLeft,
+  ArrowRight,
   Calendar,
   Clock,
   Copy,
@@ -9,11 +10,15 @@ import {
   Share2,
   Tag,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  X,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import NovedadImagen from "../components/NovedadImagen";
 import SEOHead, { articleSchema, breadcrumbSchema } from "../components/SEOHead";
 import TextToVoice from "../components/TextToVoice";
+import { versionarImagen, versionarHtml } from "../lib/imagenVersionada";
 
 type Post = {
   id: string;
@@ -211,8 +216,15 @@ export default function NovedadDetalle() {
     if (!lightboxOpen) return;
     function handleKey(e: KeyboardEvent) {
       if (e.key === "Escape") setLightboxOpen(false);
-      if (e.key === "ArrowLeft" && post?.gallery_images) setLightboxIndex((lightboxIndex - 1 + post.gallery_images.length) % post.gallery_images.length);
-      if (e.key === "ArrowRight" && post?.gallery_images) setLightboxIndex((lightboxIndex + 1) % post.gallery_images.length);
+      if (e.key === "ArrowLeft" && post?.gallery_images) {
+        setLightboxIndex(
+          (lightboxIndex - 1 + post.gallery_images.length) %
+            post.gallery_images.length,
+        );
+      }
+      if (e.key === "ArrowRight" && post?.gallery_images) {
+        setLightboxIndex((lightboxIndex + 1) % post.gallery_images.length);
+      }
     }
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
@@ -226,22 +238,30 @@ export default function NovedadDetalle() {
   }, [currentUrl]);
 
   const readingTime = useMemo(
-    () => estimateReadingTime(post?.content_html ?? null, post?.content_text ?? null),
-    [post]
+    () =>
+      estimateReadingTime(
+        post?.content_html ?? null,
+        post?.content_text ?? null,
+      ),
+    [post],
   );
 
   if (loading) {
     return (
       <main className="min-h-screen bg-white">
-        <div className="mx-auto max-w-3xl px-6 py-20">
+        <div className="mx-auto max-w-5xl px-5 py-16 sm:px-8">
           <div className="animate-pulse space-y-6">
+            <div className="aspect-[16/9] max-h-[420px] w-full rounded-3xl bg-neutral-100" />
             <div className="h-4 w-32 rounded bg-neutral-100" />
             <div className="h-10 w-4/5 rounded bg-neutral-100" />
             <div className="h-5 w-48 rounded bg-neutral-100" />
-            <div className="aspect-[16/9] rounded-3xl bg-neutral-100" />
             <div className="space-y-3">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="h-4 w-full rounded bg-neutral-100" style={{ width: `${85 + Math.random() * 15}%` }} />
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  className="h-4 w-full rounded bg-neutral-100"
+                  style={{ width: `${[92, 100, 88, 97, 85, 95][i] ?? 90}%` }}
+                />
               ))}
             </div>
           </div>
@@ -254,10 +274,10 @@ export default function NovedadDetalle() {
     return (
       <main className="min-h-screen bg-white">
         <div className="mx-auto max-w-3xl px-6 py-20 text-center">
-          <h1 className="text-2xl font-bold text-neutral-900 mb-3">
+          <h1 className="mb-3 text-2xl font-bold text-neutral-900">
             Artículo no encontrado
           </h1>
-          <p className="text-neutral-500 mb-6">
+          <p className="mb-6 text-neutral-500">
             {error || "El artículo que buscas no existe o fue removido."}
           </p>
           <Link
@@ -272,13 +292,14 @@ export default function NovedadDetalle() {
     );
   }
 
-  const imageUrl = post.image_url;
+  const imageUrl = versionarImagen(post.image_url);
   const imageAlt = cleanAlt(post.image_alt) ?? post.title;
-  const hasContent = post.content_html || post.content_text;
-  const excerptClean = cleanText(post.excerpt) || cleanText(post.content_text) || post.title;
+  const hasContent = !!(post.content_html || post.content_text);
+  const excerptClean =
+    cleanText(post.excerpt) || cleanText(post.content_text) || post.title;
 
   return (
-    <main className="min-h-screen bg-white">
+    <>
       <SEOHead
         title={post.title}
         description={
@@ -289,7 +310,7 @@ export default function NovedadDetalle() {
         image={imageUrl || undefined}
         url={`/novedades/${post.slug}`}
         type="article"
-        keywords={[post.category, 'movilidad eléctrica', 'Green Line']}
+        keywords={[post.category, "movilidad eléctrica", "Green Line"]}
         jsonLd={[
           articleSchema(
             {
@@ -301,350 +322,472 @@ export default function NovedadDetalle() {
             `/novedades/${post.slug}`,
           ),
           breadcrumbSchema([
-            { name: 'Inicio', url: '/' },
-            { name: 'Blog', url: '/blog' },
+            { name: "Inicio", url: "/" },
+            { name: "Blog", url: "/blog" },
             { name: post.title, url: `/novedades/${post.slug}` },
           ]),
         ]}
       />
 
-      {/* Reading progress bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-neutral-100">
-        <div
-          className="h-full bg-brand transition-[width] duration-150"
-          style={{ width: `${readProgress}%` }}
-        />
-      </div>
+{/* Reading progress */}
+<div className="fixed inset-x-0 top-0 z-50 h-1 bg-neutral-100">
+  <div
+    className="h-full bg-brand transition-[width] duration-150"
+    style={{ width: `${readProgress}%` }}
+  />
+</div>
 
-      {/* Hero image */}
-      {imageUrl && (
-        <div className="relative h-[45vh] min-h-[300px] max-h-[540px] overflow-hidden bg-neutral-100">
-          <img
-            src={imageUrl}
-            alt={imageAlt}
-            className="w-full h-full object-contain"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        </div>
+{/* Hero */}
+{imageUrl && (
+  <section className="relative h-[48vh] min-h-[340px] max-h-[620px] overflow-hidden bg-neutral-100">
+    <img
+      src={imageUrl}
+      alt={imageAlt}
+      className="absolute inset-0 h-full w-full object-cover blur-2xl scale-110 opacity-40"
+    />
+
+    <div className="absolute inset-0 bg-neutral-900/20" />
+
+    <img
+      src={imageUrl}
+      alt={imageAlt}
+      className="relative z-10 mx-auto h-full w-full object-contain bg-brand"
+    />
+
+    <Link
+      to="/blog"
+      className="absolute left-5 top-6 z-30 inline-flex items-center gap-2 rounded-full bg-black/20 px-4 py-2 text-sm font-medium text-white backdrop-blur-md transition hover:bg-black/40 sm:left-8"
+    >
+      <ArrowLeft className="h-4 w-4" />
+      Volver a Novedades
+    </Link>
+  </section>
+)}
+
+{/* Article */}
+<article className="relative z-10 mx-auto max-w-5xl px-5 pb-16 sm:px-8">
+
+  {/* Header */}
+  <header
+    className={[
+      "rounded-b-[2rem] bg-white",
+      imageUrl ? "mt-20 px-6 pt-8 sm:px-10 sm:pt-10" : "pt-10",
+    ].join(" ")}
+  >
+    {!imageUrl && (
+      <Link
+        to="/blog"
+        className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-neutral-500 transition hover:text-neutral-950"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Volver a Novedades
+      </Link>
+    )}
+
+    <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-wider">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-3 py-1.5 text-brand-dark">
+        <Tag className="h-3.5 w-3.5" />
+        {post.category}
+      </span>
+
+      {post.published_at && (
+        <span className="inline-flex items-center gap-1.5 text-neutral-400">
+          <Calendar className="h-3.5 w-3.5" />
+          {formatDate(post.published_at)}
+        </span>
       )}
 
-      {/* Article wrapper */}
-      <article className="mx-auto max-w-3xl px-6 -mt-20 relative z-10 pb-8">
-        {/* Back link */}
-        <Link
-          to="/blog"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-white/80 hover:text-white transition mb-6 backdrop-blur-sm"
+      <span className="inline-flex items-center gap-1.5 text-neutral-400">
+        <Clock className="h-3.5 w-3.5" />
+        {readingTime} min de lectura
+      </span>
+    </div>
+
+    <h1 className="mt-6 max-w-4xl text-4xl font-bold leading-[1.05] tracking-[-0.035em] text-neutral-950 sm:text-5xl lg:text-6xl">
+      {post.title}
+    </h1>
+
+    {excerptClean && (
+      <p className="mt-6 max-w-3xl border-l-4 border-brand pl-5 text-lg leading-8 text-neutral-500 sm:text-xl">
+        {excerptClean}
+      </p>
+    )}
+
+    {/* Reading tools */}
+    <div className="mt-8 flex flex-wrap items-center gap-2 border-t border-neutral-100 pt-5">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        <Clock className="h-4 w-4 text-neutral-400" />
+        <span className="text-sm text-neutral-500">
+          Lectura de {readingTime} minutos
+        </span>
+      </div>
+
+      <div className="relative" ref={shareRef}>
+        <button
+          type="button"
+          onClick={() => setShareOpen(!shareOpen)}
+          className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Volver a Novedades
-        </Link>
+          <Share2 className="h-4 w-4" />
+          Compartir
+        </button>
 
-        {/* Meta row */}
-        <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-wider mb-4">
-          <span className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-3 py-1 text-brand-dark">
-            <Tag className="h-3 w-3" />
-            {post.category}
-          </span>
-          {post.published_at && (
-            <span className="inline-flex items-center gap-1 text-white/70">
-              <Calendar className="h-3 w-3" />
-              {formatDate(post.published_at)}
-            </span>
-          )}
-          <span className="inline-flex items-center gap-1 text-white/70">
-            <Clock className="h-3 w-3" />
-            {readingTime} min de lectura
-          </span>
-        </div>
-
-        {/* Title */}
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight text-neutral-950 mb-6">
-          {post.title}
-        </h1>
-
-        {/* Excerpt */}
-        {excerptClean && (
-          <p className="text-lg text-neutral-500 leading-relaxed mb-8 border-l-4 border-brand pl-5">
-            {excerptClean}
-          </p>
-        )}
-
-        <TextToVoice texto={post.content_text} />
-
-        {/* Share bar */}
-        <div className="flex items-center gap-3 mb-10 pb-6 border-b border-neutral-200">
-          <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-            Compartir
-          </span>
-
-          <div className="relative" ref={shareRef}>
-            <button
-              type="button"
-              onClick={() => setShareOpen(!shareOpen)}
-              className="inline-flex items-center gap-2 rounded-full bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-700 transition hover:bg-neutral-200"
-            >
-              <Share2 className="h-4 w-4" />
-              Compartir
-            </button>
-
-            {shareOpen && (
-              <div className="absolute left-0 top-full mt-2 w-56 rounded-2xl bg-white shadow-xl border border-neutral-100 p-2 z-20 animate-in fade-in slide-in-from-top-2 duration-200">
-                {SHARE_BUTTONS.map((btn) => (
-                  <a
-                    key={btn.name}
-                    href={btn.getUrl(currentUrl, post.title)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
-                  >
-                    <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-white ${btn.color}`}>
-                      {btn.icon}
-                    </span>
-                    {btn.name}
-                  </a>
-                ))}
-
-                <button
-                  type="button"
-                  onClick={handleCopyLink}
-                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
-                >
-                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-200 text-neutral-600">
-                    {copied ? <Check className="h-4 w-4 text-brand-dark" /> : <Copy className="h-4 w-4" />}
-                  </span>
-                  {copied ? "¡Copiado!" : "Copiar enlace"}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Content */}
-        <div ref={contentRef}>
-          {hasContent ? (
-            <div
-              className="prose prose-neutral max-w-none
-                [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:mt-12 [&_h2]:mb-4 [&_h2]:text-neutral-950
-                [&_h3]:text-xl [&_h3]:font-bold [&_h3]:mt-8 [&_h3]:mb-3 [&_h3]:text-neutral-900
-                [&_p]:text-base [&_p]:leading-[1.8] [&_p]:text-neutral-700 [&_p]:mb-5
-                [&_img]:rounded-2xl [&_img]:w-full [&_img]:my-8 [&_img]:shadow-sm
-                [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-5
-                [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-5
-                [&_li]:text-neutral-700 [&_li]:mb-1.5 [&_li]:leading-relaxed
-[&_a]:text-brand-dark [&_a]:underline [&_a]:decoration-brand-light [&_a]:hover:text-brand-dark [&_a]:decoration-2
-        [&_blockquote]:border-l-4 [&_blockquote]:border-brand [&_blockquote]:pl-5 [&_blockquote]:italic [&_blockquote]:text-neutral-600 [&_blockquote]:my-6
-                [&_strong]:text-neutral-900 [&_strong]:font-semibold"
-              dangerouslySetInnerHTML={{ __html: post.content_html ?? "" }}
-            />
-          ) : (
-            <div className="rounded-2xl bg-gradient-to-br from-neutral-50 to-neutral-100 border border-neutral-200 p-10 text-center my-8">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-neutral-200">
-                <Tag className="h-6 w-6 text-neutral-500" />
-              </div>
-              <h3 className="text-lg font-bold text-neutral-900 mb-2">
-                Artículo en preparación
-              </h3>
-              <p className="text-sm text-neutral-500 mb-5 max-w-sm mx-auto">
-                El contenido completo de este artículo está próximamente disponible.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Gallery */}
-        {post.gallery_images && post.gallery_images.length > 0 && (
-          <div className="mt-10 pt-6 border-t border-neutral-200">
-            <h3 className="text-xl font-bold text-neutral-950 mb-5">Galería de imágenes</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {post.gallery_images.map((img, idx) => (
-                <button
-                  key={img.sort_order}
-                  type="button"
-                  onClick={() => { setLightboxIndex(idx); setLightboxOpen(true); }}
-                  className="group relative aspect-square overflow-hidden rounded-xl bg-neutral-100"
-                >
-                  <img
-                    src={img.image_url}
-                    alt={cleanAlt(img.image_alt) ?? post.title}
-                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition duration-300" />
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Author + Share CTA card */}
-        <div className="mt-12 rounded-2xl bg-neutral-950 p-8 flex flex-col sm:flex-row items-center gap-6">
-          <div className="flex-1 text-center sm:text-left">
-            <p className="text-sm text-neutral-400 mb-1">Publicado por</p>
-            <p className="text-lg font-bold text-white">Green Line Perú</p>
-            <p className="text-sm text-neutral-500 mt-1">
-              {post.published_at ? formatDate(post.published_at) : ""}
-            </p>
-          </div>
-
-          <div className="flex gap-2">
+        {shareOpen && (
+          <div className="absolute right-0 top-full z-30 mt-2 w-60 rounded-2xl border border-neutral-200 bg-white p-2 shadow-xl">
             {SHARE_BUTTONS.map((btn) => (
               <a
                 key={btn.name}
                 href={btn.getUrl(currentUrl, post.title)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`flex h-10 w-10 items-center justify-center rounded-full text-white transition ${btn.color}`}
-                title={`Compartir en ${btn.name}`}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
               >
-                {btn.icon}
+                <span
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg text-white ${btn.color}`}
+                >
+                  {btn.icon}
+                </span>
+                {btn.name}
               </a>
             ))}
+
             <button
               type="button"
               onClick={handleCopyLink}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-800 text-neutral-300 transition hover:bg-neutral-700"
-              title="Copiar enlace"
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
             >
-              {copied ? <Check className="h-4 w-4 text-brand-light" /> : <Copy className="h-4 w-4" />}
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-100">
+                {copied ? (
+                  <Check className="h-4 w-4 text-brand-dark" />
+                ) : (
+                  <Copy className="h-4 w-4 text-neutral-500" />
+                )}
+              </span>
+              {copied ? "¡Copiado!" : "Copiar enlace"}
             </button>
           </div>
-        </div>
-      </article>
+        )}
+      </div>
+    </div>
+  </header>
 
-      {/* Suggested articles */}
-      {relatedPosts.length > 0 && (
-        <section className="mx-auto max-w-7xl px-6 py-16 lg:px-8 border-t border-neutral-100 mt-12">
-          <div className="flex items-center justify-between mb-10">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-brand mb-2">
-                Sigue leyendo
-              </p>
-              <h2 className="text-2xl sm:text-3xl font-bold text-neutral-950">
-                Artículos relacionados
-              </h2>
-            </div>
-            <Link
-              to="/blog"
-              className="hidden sm:inline-flex items-center gap-2 rounded-full bg-neutral-950 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800"
-            >
-              Ver todos
-              <span>→</span>
-            </Link>
-          </div>
+  {/* Content layout */}
+  <div className="mx-auto mt-10">
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {relatedPosts.map((rp) => (
-              <article key={rp.id} className="group">
-                <Link
-                  to={`/novedades/${rp.slug}`}
-                  className="relative block aspect-[4/3] overflow-hidden rounded-2xl bg-neutral-100"
-                >
-                  <NovedadImagen
-                    src={rp.image_url ?? null}
-                    alt={cleanAlt(rp.image_alt) ?? rp.title}
-                    className="h-full w-full object-contain"
-                  />
-                  <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-800 backdrop-blur">
-                    {rp.category}
-                  </span>
-                </Link>
+    {/* Voice */}
+    <div className="mb-10 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:p-5 w-xl">
+      <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-neutral-400">
+        Escucha este artículo
+      </div>
 
-                <div className="pt-4">
-                  {rp.published_at && (
-                    <p className="text-xs font-medium uppercase tracking-wider text-neutral-400 mb-1">
-                      {formatDate(rp.published_at)}
-                    </p>
-                  )}
-                  <Link to={`/novedades/${rp.slug}`}>
-                    <h3 className="text-lg font-bold leading-snug text-neutral-950 transition group-hover:text-brand-dark line-clamp-2">
-                      {rp.title}
-                    </h3>
-                  </Link>
-                  {cleanText(rp.excerpt) && (
-                    <p className="mt-2 text-sm leading-6 text-neutral-500 line-clamp-2">
-                      {cleanText(rp.excerpt)}
-                    </p>
-                  )}
-                </div>
-              </article>
-            ))}
-          </div>
+      <TextToVoice texto={post.content_text} />
+    </div>
 
-          <div className="mt-10 text-center sm:hidden">
-            <Link
-              to="/blog"
-              className="inline-flex items-center gap-2 rounded-full bg-neutral-950 px-6 py-3 text-sm font-medium text-white"
-            >
-              Ver todos los artículos
-              <span>→</span>
-            </Link>
-          </div>
-        </section>
-      )}
-
-      {/* Scroll to top */}
-      {showScrollTop && (
-        <button
-          type="button"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed bottom-6 right-6 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-neutral-950 text-white shadow-lg transition hover:bg-neutral-800 hover:scale-105"
-        >
-          <ChevronUp className="h-5 w-5" />
-        </button>
-      )}
-
-      {/* Lightbox */}
-      {lightboxOpen && post.gallery_images && post.gallery_images.length > 0 && (
+    {/* Article content */}
+    <div ref={contentRef}>
+      {hasContent ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
-          onClick={() => setLightboxOpen(false)}
-        >
+          className="
+            prose prose-neutral max-w-none
+            [&_h2]:mb-4 [&_h2]:mt-14 [&_h2]:scroll-mt-24 [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:leading-tight [&_h2]:tracking-tight [&_h2]:text-neutral-950
+            [&_h3]:mb-3 [&_h3]:mt-10 [&_h3]:scroll-mt-24 [&_h3]:text-xl [&_h3]:font-bold [&_h3]:text-neutral-900
+            [&_p]:mb-6 [&_p]:text-[17px] [&_p]:leading-[1.9] [&_p]:text-neutral-700
+            [&_img]:my-10 [&_img]:w-full [&_img]:rounded-2xl [&_img]:shadow-sm
+            [&_ul]:mb-6 [&_ul]:list-disc [&_ul]:pl-6
+            [&_ol]:mb-6 [&_ol]:list-decimal [&_ol]:pl-6
+            [&_li]:mb-2 [&_li]:leading-7 [&_li]:text-neutral-700
+            [&_a]:text-brand-dark [&_a]:underline [&_a]:decoration-2 [&_a]:underline-offset-4
+            [&_blockquote]:my-10 [&_blockquote]:border-l-4 [&_blockquote]:border-brand [&_blockquote]:bg-neutral-50 [&_blockquote]:px-6 [&_blockquote]:py-5 [&_blockquote]:text-lg [&_blockquote]:leading-8 [&_blockquote]:text-neutral-600
+            [&_strong]:font-semibold [&_strong]:text-neutral-900
+            [&_hr]:my-12 [&_hr]:border-neutral-200
+          "
+          dangerouslySetInnerHTML={{ __html: versionarHtml(post.content_html ?? "") }}
+        />
+      ) : (
+        <div className="my-8 rounded-2xl border border-neutral-200 bg-neutral-50 p-10 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-neutral-200">
+            <Tag className="h-6 w-6 text-neutral-500" />
+          </div>
+
+          <h3 className="mb-2 text-lg font-bold text-neutral-900">
+            Artículo en preparación
+          </h3>
+
+          <p className="mx-auto max-w-sm text-sm leading-6 text-neutral-500">
+            El contenido completo de este artículo estará próximamente disponible.
+          </p>
+        </div>
+      )}
+    </div>
+
+    {/* Gallery */}
+    {post.gallery_images?.length > 0 && (
+      <section className="mt-14 border-t border-neutral-200 pt-10">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-brand">
+              Galería
+            </p>
+            <h2 className="text-2xl font-bold tracking-tight text-neutral-950 sm:text-3xl">
+              Imágenes del artículo
+            </h2>
+          </div>
+
+          <span className="text-sm text-neutral-400">
+            {post.gallery_images.length} imágenes
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          {post.gallery_images.map((img, idx) => (
+            <button
+              key={img.sort_order}
+              type="button"
+              onClick={() => {
+                setLightboxIndex(idx);
+                setLightboxOpen(true);
+              }}
+              className={[
+                "group relative aspect-square overflow-hidden rounded-2xl bg-neutral-100",
+                idx === 0 ? "col-span-2 row-span-2" : "",
+              ].join(" ")}
+            >
+              <img
+                src={versionarImagen(img.image_url)}
+                alt={cleanAlt(img.image_alt) ?? post.title}
+                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                loading="lazy"
+              />
+
+              <div className="absolute inset-0 bg-black/0 transition group-hover:bg-black/10" />
+
+              <div className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-neutral-900 opacity-0 shadow-lg transition group-hover:opacity-100">
+                <span className="text-lg">+</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {/* Article footer */}
+    <footer className="mt-14 overflow-hidden rounded-3xl bg-neutral-950 p-7 sm:p-9">
+      <div className="flex flex-col gap-7 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-neutral-500">
+            Publicado por
+          </p>
+
+          <p className="text-xl font-bold text-white">
+            Green Line Perú
+          </p>
+
+          {post.published_at && (
+            <p className="mt-1 text-sm text-neutral-500">
+              {formatDate(post.published_at)}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          {SHARE_BUTTONS.map((btn) => (
+            <a
+              key={btn.name}
+              href={btn.getUrl(currentUrl, post.title)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex h-10 w-10 items-center justify-center rounded-full text-white transition hover:-translate-y-0.5 ${btn.color}`}
+              title={`Compartir en ${btn.name}`}
+            >
+              {btn.icon}
+            </a>
+          ))}
+
           <button
             type="button"
-            onClick={() => setLightboxOpen(false)}
-            className="absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 z-10"
+            onClick={handleCopyLink}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-800 text-neutral-300 transition hover:bg-neutral-700"
+            title="Copiar enlace"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
-
-          {post.gallery_images.length > 1 && (
-            <>
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex - 1 + post.gallery_images.length) % post.gallery_images.length); }}
-                className="absolute left-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 z-10"
-              >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-              </button>
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex + 1) % post.gallery_images.length); }}
-                className="absolute right-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 z-10"
-              >
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-              </button>
-            </>
-          )}
-
-          <div className="max-w-4xl max-h-[85vh] mx-4" onClick={(e) => e.stopPropagation()}>
-            <img
-              src={post.gallery_images[lightboxIndex].image_url}
-              alt={cleanAlt(post.gallery_images[lightboxIndex].image_alt) ?? post.title}
-              className="max-h-[80vh] w-auto mx-auto rounded-lg object-contain"
-            />
-            {(post.gallery_images[lightboxIndex].caption || post.gallery_images.length > 1) && (
-              <div className="mt-3 text-center text-white/80 text-sm">
-                {post.gallery_images[lightboxIndex].caption && (
-                  <p className="mb-1">{post.gallery_images[lightboxIndex].caption}</p>
-                )}
-                {post.gallery_images.length > 1 && (
-                  <p className="text-white/50">{lightboxIndex + 1} / {post.gallery_images.length}</p>
-                )}
-              </div>
+            {copied ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <Copy className="h-4 w-4" />
             )}
-          </div>
+          </button>
         </div>
-      )}
-    </main>
+      </div>
+    </footer>
+  </div>
+</article>
+
+{/* Related articles */}
+{relatedPosts.length > 0 && (
+  <section className="border-t border-neutral-100 bg-neutral-50 px-5 py-16 sm:px-8 sm:py-20">
+    <div className="mx-auto max-w-7xl">
+      <div className="mb-9 flex items-end justify-between gap-4">
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-brand">
+            Sigue leyendo
+          </p>
+
+          <h2 className="text-3xl font-bold tracking-tight text-neutral-950">
+            Artículos relacionados
+          </h2>
+        </div>
+
+        <Link
+          to="/blog"
+          className="hidden items-center gap-2 text-sm font-semibold text-neutral-700 transition hover:text-brand-dark sm:inline-flex"
+        >
+          Ver todos
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {relatedPosts.map((rp) => (
+          <article key={rp.id} className="group">
+            <Link
+              to={`/novedades/${rp.slug}`}
+              className="relative block aspect-[4/3] overflow-hidden rounded-2xl bg-white"
+            >
+              <NovedadImagen
+                src={rp.image_url ?? null}
+                alt={cleanAlt(rp.image_alt) ?? rp.title}
+                className="h-full w-full object-contain transition duration-500 group-hover:scale-105"
+              />
+
+              <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-800 shadow-sm">
+                {rp.category}
+              </span>
+            </Link>
+
+            <div className="pt-4">
+              {rp.published_at && (
+                <p className="mb-1 text-xs font-medium uppercase tracking-wider text-neutral-400">
+                  {formatDate(rp.published_at)}
+                </p>
+              )}
+
+              <Link to={`/novedades/${rp.slug}`}>
+                <h3 className="line-clamp-2 text-xl font-bold leading-snug text-neutral-950 transition group-hover:text-brand-dark">
+                  {rp.title}
+                </h3>
+              </Link>
+
+              {cleanText(rp.excerpt) && (
+                <p className="mt-2 line-clamp-2 text-sm leading-6 text-neutral-500">
+                  {cleanText(rp.excerpt)}
+                </p>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div className="mt-9 text-center sm:hidden">
+        <Link
+          to="/blog"
+          className="inline-flex items-center gap-2 rounded-full bg-neutral-950 px-6 py-3 text-sm font-medium text-white"
+        >
+          Ver todos los artículos
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
+    </div>
+  </section>
+)}
+
+{/* Scroll to top */}
+{showScrollTop && (
+  <button
+    type="button"
+    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+    className="fixed bottom-6 right-6 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-neutral-950 text-white shadow-lg transition hover:scale-105 hover:bg-neutral-800"
+    aria-label="Volver arriba"
+  >
+    <ChevronUp className="h-5 w-5" />
+  </button>
+)}
+
+{/* Lightbox */}
+{lightboxOpen && post.gallery_images?.length > 0 && (
+  <div
+    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm"
+    onClick={() => setLightboxOpen(false)}
+  >
+    <button
+      type="button"
+      onClick={() => setLightboxOpen(false)}
+      className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+      aria-label="Cerrar"
+    >
+      <X className="h-5 w-5" />
+    </button>
+
+    {post.gallery_images.length > 1 && (
+      <>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setLightboxIndex(
+              (lightboxIndex - 1 + post.gallery_images.length) %
+                post.gallery_images.length
+            );
+          }}
+          className="absolute left-3 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 sm:left-6"
+          aria-label="Imagen anterior"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setLightboxIndex(
+              (lightboxIndex + 1) % post.gallery_images.length
+            );
+          }}
+          className="absolute right-3 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 sm:right-6"
+          aria-label="Imagen siguiente"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      </>
+    )}
+
+    <div
+      className="flex max-h-[90vh] max-w-6xl flex-col items-center"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <img
+        src={versionarImagen(post.gallery_images[lightboxIndex].image_url)}
+        alt={
+          cleanAlt(post.gallery_images[lightboxIndex].image_alt) ??
+          post.title
+        }
+        className="max-h-[78vh] max-w-full rounded-xl object-contain"
+      />
+
+      <div className="mt-4 text-center text-sm text-white/70">
+        {post.gallery_images[lightboxIndex].caption && (
+          <p className="mb-1">
+            {post.gallery_images[lightboxIndex].caption}
+          </p>
+        )}
+
+        {post.gallery_images.length > 1 && (
+          <p className="text-white/40">
+{lightboxIndex + 1} / {post.gallery_images.length}
+          </p>
+        )}
+      </div>
+    </div>
+  </div>
+)}
+    </>
   );
 }

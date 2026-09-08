@@ -16,7 +16,6 @@ export default function MiCuenta() {
     COLABORADOR_TIENDA: 'Colaborador de Tienda',
     GERENTE_ALMACEN: 'Gerente de Almacén',
     COLABORADOR_ALMACEN: 'Colaborador de Almacén',
-    LOGISTICA: 'Logística',
     EDITORA_BLOG: 'Editora de Blog',
     DISTRIBUCION: 'Distribución',
     CLIENTE: 'Cliente',

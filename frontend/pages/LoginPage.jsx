@@ -9,9 +9,13 @@ import OTPVerify from '../components/auth/OTPVerify';
 import TwoFactorVerify from '../components/auth/TwoFactorVerify';
 
 const STAFF_ROLES = [
-  'ADMIN', 'LOGISTICA', 'EDITORA_BLOG', 'DISTRIBUCION', 'GERENTE_TIENDA',
+  'ADMIN', 'EDITORA_BLOG', 'DISTRIBUCION', 'GERENTE_TIENDA',
   'COLABORADOR_TIENDA', 'GERENTE_ALMACEN', 'COLABORADOR_ALMACEN', 'DESARROLLADOR_WEB',
 ];
+
+// TEMPORAL: contraseña de verificación simple a nivel front para el staff.
+// Se removerá/mejorará en el futuro (verificación solo en el navegador).
+const TEMP_STAFF_PASSWORD = '020403';
 
 // Vincula la sesión de Supabase Auth del staff usando la misma credencial del backend.
 async function linkSupabase(email, password, accessToken) {
@@ -35,6 +39,7 @@ export default function LoginPage() {
   const [step, setStep] = useState('credentials');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [tempPassword, setTempPassword] = useState('');
   const [loginResult, setLoginResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -49,6 +54,14 @@ export default function LoginPage() {
 
       if (!res.success) {
         setError(res.error || 'Credenciales inválidas');
+        setLoading(false);
+        return;
+      }
+
+      // TEMPORAL: el staff debe pasar una verificación simple de contraseña.
+      if (res.user && res.user.rol !== 'CLIENTE') {
+        setLoginResult(res);
+        setStep('temp');
         setLoading(false);
         return;
       }
@@ -77,6 +90,33 @@ export default function LoginPage() {
     }
   };
 
+  const handleTempVerified = async (e) => {
+    e.preventDefault();
+    if (tempPassword !== TEMP_STAFF_PASSWORD) {
+      setError('Contraseña temporal incorrecta');
+      return;
+    }
+
+    const res = loginResult;
+
+    if (res.requires2FA) {
+      setError('');
+      setStep('2fa');
+      return;
+    }
+
+    saveSession({ accessToken: res.accessToken, refreshToken: res.refreshToken }, res.user);
+    if (res.user.rol !== 'CLIENTE') {
+      try {
+        await linkSupabase(email, password, res.accessToken);
+      } catch {
+        // El panel pedirá la vinculación si hace falta
+      }
+    }
+    setError('');
+    navigate('/admin');
+  };
+
   const handleOTPVerified = (tokens, user) => {
     saveSession(tokens, user);
     navigate('/');
@@ -91,6 +131,65 @@ export default function LoginPage() {
     }
     navigate('/admin');
   };
+
+  if (step === 'temp') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="w-full max-w-sm">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+            <div className="text-center mb-8">
+              <div className="w-12 h-12 bg-brand rounded-xl flex items-center justify-center mx-auto mb-3">
+                <Lock className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-xl font-bold text-gray-900">Verificación temporal</h1>
+              <p className="text-sm text-gray-500 mt-1">Ingresa la contraseña de acceso temporal</p>
+            </div>
+
+            {error && (
+              <div className="flex items-center gap-2 bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg mb-4">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleTempVerified} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña temporal</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="password"
+                    required
+                    autoFocus
+                    value={tempPassword}
+                    onChange={(e) => setTempPassword(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-brand text-white font-semibold rounded-lg hover:bg-brand-dark transition-colors"
+              >
+                Continuar
+              </button>
+            </form>
+
+            <button
+              type="button"
+              onClick={() => { setStep('credentials'); setLoginResult(null); setTempPassword(''); setError(''); }}
+              className="mt-4 flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Volver al inicio de sesión
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (step === 'otp') {
     return (

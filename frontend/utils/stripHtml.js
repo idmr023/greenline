@@ -5,6 +5,8 @@
 export default function stripHtml(html) {
   if (!html) return '';
   return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|li|h[1-6])>/gi, '\n')
     .replace(/<[^>]*>/g, '')
     .replace(/&nbsp;/g, ' ')
     .replace(/&amp;/g, '&')
@@ -12,7 +14,8 @@ export default function stripHtml(html) {
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
-    .replace(/\s+/g, ' ')
+    .replace(/[^\S\r\n]+/g, ' ')
+    .replace(/\n\s*\n/g, '\n\n')
     .trim();
 }
 

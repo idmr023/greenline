@@ -1,3 +1,5 @@
+import { versionarImagen } from '../lib/imagenVersionada';
+
 export default function ProductImage({
   src,
   nombre,
@@ -10,7 +12,7 @@ export default function ProductImage({
   return (
     <picture className={`block ${className}`}>
       <img
-        src={src}
+        src={versionarImagen(src)}
         alt={nombre}
         width={width}
         height={height}
