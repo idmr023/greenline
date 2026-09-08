@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { versionarImagen, versionarHtml } from '../../lib/imagenVersionada';
 import {
   ArrowLeft, Bold, Italic, Heading2, Heading3, Image as ImageIcon,
   Table as TableIcon, LayoutGrid, Eye, Save, X, AlertTriangle, Upload,
@@ -349,11 +350,11 @@ export default function NuevoArticuloPage() {
             <h1 className="text-3xl font-extrabold text-gray-900 mt-4 mb-2">{titulo || 'Artículo sin título'}</h1>
             <p className="text-sm text-gray-500 mb-6">Por {autor} • Publicado recientemente</p>
             {imagenPortada && (
-              <img src={imagenPortada} alt="Portada" className="w-full h-64 object-cover rounded-xl mb-6 shadow-md" />
+              <img src={versionarImagen(imagenPortada)} alt="Portada" className="w-full h-64 object-cover rounded-xl mb-6 shadow-md" />
             )}
             <div
               className="prose prose-sm sm:prose max-w-none text-gray-700 leading-relaxed space-y-4"
-              dangerouslySetInnerHTML={{ __html: contenido }}
+              dangerouslySetInnerHTML={{ __html: versionarHtml(contenido) }}
             />
           </div>
         </div>

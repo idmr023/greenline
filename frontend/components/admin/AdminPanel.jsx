@@ -49,7 +49,7 @@ const BLOG_ROLES = ['EDITORA_BLOG'];
 const DISTRIBUCION_ROLES = ['DISTRIBUCION'];
 
 const STAFF_ROLES = [
-  'ADMIN', 'DESARROLLADOR_WEB', 'LOGISTICA', 'EDITORA_BLOG', 'DISTRIBUCION',
+  'ADMIN', 'DESARROLLADOR_WEB', 'EDITORA_BLOG', 'DISTRIBUCION',
   'GERENTE_TIENDA', 'COLABORADOR_TIENDA', 'GERENTE_ALMACEN', 'COLABORADOR_ALMACEN',
 ];
 
@@ -167,7 +167,26 @@ function AdminSupabaseLogin({ accessToken, userEmail, onLinked }) {
 
 export default function AdminPanel() {
   const { user, logout, accessToken } = useAuth();
-  const [view, setView] = useState(VIEWS.DASHBOARD);
+
+  const getInitialView = () => {
+    const path = window.location.pathname;
+    if (path.includes('/admin/distribuidores')) return VIEWS.DISTRIBUIDORES;
+    if (path.includes('/admin/blog')) return VIEWS.BLOG;
+    if (path.includes('/admin/productos')) return VIEWS.PRODUCTOS;
+    if (path.includes('/admin/colores')) return VIEWS.COLORES;
+    if (path.includes('/admin/testimonios')) return VIEWS.TESTIMONIOS;
+    if (path.includes('/admin/pedidos')) return VIEWS.PEDIDOS;
+    if (path.includes('/admin/metricas')) return VIEWS.METRICAS;
+    if (path.includes('/admin/dashboard')) return VIEWS.DASHBOARD;
+
+    if (user) {
+      if (BLOG_ROLES.includes(user.rol)) return VIEWS.BLOG;
+      if (DISTRIBUCION_ROLES.includes(user.rol)) return VIEWS.DISTRIBUIDORES;
+    }
+    return VIEWS.DASHBOARD;
+  };
+
+  const [view, setView] = useState(getInitialView);
   const [editingId, setEditingId] = useState(null);
   const [supabaseReady, setSupabaseReady] = useState(false);
   const [hasSupabaseSession, setHasSupabaseSession] = useState(false);
@@ -180,12 +199,14 @@ export default function AdminPanel() {
   const [anivOn, setAnivOn] = useState(() => temaAniversarioActivo());
   const handleAnivToggle = () => setAnivOn(toggleTemaAniversario());
 
-  // Los roles de blog solo ven Dashboard + Blog.
+  // Los roles de blog solo ven la gestión de blog (sin Dashboard ni catálogo).
+  // DISTRIBUCION solo ve la sección de distribuidores.
+  // El resto (ADMIN/DESARROLLADOR_WEB) ve el panel completo.
   let visibleNav = NAV_ITEMS;
   if (user && BLOG_ROLES.includes(user.rol)) {
-    visibleNav = NAV_ITEMS.filter((i) => i.key === VIEWS.DASHBOARD || i.key === VIEWS.BLOG);
+    visibleNav = NAV_ITEMS.filter((i) => i.key === VIEWS.BLOG);
   } else if (user && DISTRIBUCION_ROLES.includes(user.rol)) {
-    visibleNav = NAV_ITEMS.filter((i) => i.key === VIEWS.DASHBOARD || i.key === VIEWS.DISTRIBUIDORES);
+    visibleNav = NAV_ITEMS.filter((i) => i.key === VIEWS.DISTRIBUIDORES);
   }
 
   const refreshGrants = useCallback(async () => {
@@ -223,6 +244,8 @@ export default function AdminPanel() {
   const navigateTo = (target, id = null) => {
     setEditingId(id);
     setView(target);
+    const newPath = target === VIEWS.DASHBOARD ? '/admin' : `/admin/${target}`;
+    window.history.pushState({}, '', newPath);
   };
 
   if (!supabaseReady) {

@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 const AuthContext = createContext(null);
 
 const STAFF_ROLES = [
-  'ADMIN', 'LOGISTICA', 'EDITORA_BLOG', 'DISTRIBUCION', 'GERENTE_TIENDA',
+  'ADMIN', 'EDITORA_BLOG', 'DISTRIBUCION', 'GERENTE_TIENDA',
   'COLABORADOR_TIENDA', 'GERENTE_ALMACEN', 'COLABORADOR_ALMACEN', 'DESARROLLADOR_WEB',
 ];
 

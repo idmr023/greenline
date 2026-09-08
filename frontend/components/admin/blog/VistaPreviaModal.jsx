@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { X, Eye } from 'lucide-react';
+import { versionarImagen, versionarHtml } from '../../../lib/imagenVersionada';
 
 const CONTENT_CLASS = `
   prose prose-neutral max-w-none
@@ -56,7 +57,7 @@ export default function VistaPreviaModal({ open, onClose, dato }) {
           <div className="mx-auto max-w-4xl px-6 py-8">
             {dato?.image_url && (
               <img
-                src={dato.image_url}
+                src={versionarImagen(dato.image_url)}
                 alt={dato.image_alt || ''}
                 className="mb-8 aspect-[16/8] w-full rounded-2xl object-cover"
               />
@@ -81,7 +82,7 @@ export default function VistaPreviaModal({ open, onClose, dato }) {
             {hasContent ? (
               <div
                 className={CONTENT_CLASS}
-                dangerouslySetInnerHTML={{ __html: dato.content_html }}
+                dangerouslySetInnerHTML={{ __html: versionarHtml(dato.content_html) }}
               />
             ) : (
               <div className="my-8 rounded-2xl border border-neutral-200 bg-neutral-50 p-10 text-center text-sm text-neutral-500">

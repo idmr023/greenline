@@ -32,7 +32,7 @@ export const CARRUSEL = [
   './assets/imagenes/caroussel/2.jpg',
   './assets/imagenes/caroussel/portada_setiembre_aniversario.png' ,
   './assets/imagenes/caroussel/4.jpg' ,
-];
+].map(versionarImagen);
 
 // ----------------------------------------------------------------------------
 // Banners de categoría (Shop)
@@ -93,7 +93,7 @@ export const TIENDAS = {
 // ----------------------------------------------------------------------------
 // Nosotros
 // ----------------------------------------------------------------------------
-export const NOSOTROS_HEADER = './assets/imagenes/paginas/nosotros/nosotros_header.webp';
+export const NOSOTROS_HEADER = versionarImagen('./assets/imagenes/paginas/nosotros/nosotros_header.webp');
 export const NOSOTROS_CARRUSEL = (n) => img(`paginas/nosotros/nosotros_carrousel_${n}.webp`);
 
 // ----------------------------------------------------------------------------

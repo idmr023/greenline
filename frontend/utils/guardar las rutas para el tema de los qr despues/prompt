@@ -1,0 +1,14 @@
+Hola! Nada de re-imprimir, eso efectivamente es un dolor de cabeza logístico y un gasto innecesario.
+
+Dado que el dominio se mantiene exactamente igual y el único problema es que las rutas cambian (por ejemplo, de [midominio.com/producto-viejo](https://midominio.com/producto-viejo) a [midominio.com/nuevo/producto](https://midominio.com/nuevo/producto)), la solución definitiva y estándar en la industria es configurar Redirecciones HTTP 301 (Permanentes) a nivel de servidor o aplicación.
+
+Cuando un cliente escanee el código QR, su teléfono intentará entrar a la ruta antigua. Tu servidor interceptará esa petición, notará que es una ruta obsoleta y le dirá al navegador: "Esta página se movió, ve a esta nueva ruta". El cambio ocurre en milisegundos y el usuario ni lo nota.
+
+¿Cómo implementarlo de forma práctica?
+La configuración exacta depende de la tecnología con la que estés levantando la nueva web. Aquí tienes los enfoques más comunes:
+
+En Next.js:
+Puedes manejar esto nativamente en tu archivo de configuración next.config.js (o .mjs). Solo necesitas retornar un arreglo en la función redirects() con el origen (source) y el destino (destination), marcando permanent: true.
+
+En Node.js con Express:
+Puedes crear un pequeño middleware o bloque de rutas antes de tus rutas principales que intercepte las URLs antiguas usando res.redirect(301, '/nueva-ruta').

@@ -3,7 +3,7 @@ import { Rol } from '@prisma/client';
 // Mapa de permisos: qué roles pueden acceder a qué recursos con qué métodos
 const PERMISSIONS = {
   // Productos
-  'productos:read': [Rol.ADMIN, Rol.LOGISTICA, Rol.GERENTE_TIENDA, Rol.GERENTE_ALMACEN,
+  'productos:read': [Rol.ADMIN, Rol.GERENTE_TIENDA, Rol.GERENTE_ALMACEN,
     Rol.COLABORADOR_TIENDA, Rol.COLABORADOR_ALMACEN, Rol.DESARROLLADOR_WEB],
   'productos:create': [Rol.ADMIN, Rol.DESARROLLADOR_WEB],
   'productos:update': [Rol.ADMIN, Rol.DESARROLLADOR_WEB],
@@ -16,19 +16,19 @@ const PERMISSIONS = {
   'blog:delete': [Rol.ADMIN, Rol.EDITORA_BLOG, Rol.DESARROLLADOR_WEB],
 
   // Stock (almacén)
-  'stock:almacen:read': [Rol.ADMIN, Rol.LOGISTICA, Rol.GERENTE_ALMACEN,
+  'stock:almacen:read': [Rol.ADMIN, Rol.GERENTE_ALMACEN,
     Rol.COLABORADOR_ALMACEN, Rol.DESARROLLADOR_WEB],
-  'stock:almacen:write': [Rol.ADMIN, Rol.LOGISTICA, Rol.GERENTE_ALMACEN, Rol.DESARROLLADOR_WEB],
+  'stock:almacen:write': [Rol.ADMIN, Rol.GERENTE_ALMACEN, Rol.DESARROLLADOR_WEB],
   'stock:almacen:approve': [Rol.ADMIN, Rol.GERENTE_ALMACEN, Rol.DESARROLLADOR_WEB],
 
   // Stock (tienda)
-  'stock:tienda:read': [Rol.ADMIN, Rol.LOGISTICA, Rol.GERENTE_TIENDA,
+  'stock:tienda:read': [Rol.ADMIN, Rol.GERENTE_TIENDA,
     Rol.COLABORADOR_TIENDA, Rol.DESARROLLADOR_WEB],
-  'stock:tienda:write': [Rol.ADMIN, Rol.LOGISTICA, Rol.GERENTE_TIENDA, Rol.DESARROLLADOR_WEB],
+  'stock:tienda:write': [Rol.ADMIN, Rol.GERENTE_TIENDA, Rol.DESARROLLADOR_WEB],
   'stock:tienda:approve': [Rol.ADMIN, Rol.GERENTE_TIENDA, Rol.DESARROLLADOR_WEB],
 
   // Usuarios
-  'usuarios:read': [Rol.ADMIN, Rol.DESARROLLADOR_WEB],
+  'usuarios:read': [Rol.ADMIN, Rol.DESARROLLADOR_WEB, Rol.DISTRIBUCION],
   'usuarios:create': [Rol.ADMIN, Rol.DESARROLLADOR_WEB],
   'usuarios:update': [Rol.ADMIN, Rol.DESARROLLADOR_WEB],
   'usuarios:delete': [Rol.ADMIN, Rol.DESARROLLADOR_WEB],
@@ -45,7 +45,7 @@ const PERMISSIONS = {
   'config:update': [Rol.ADMIN, Rol.DESARROLLADOR_WEB],
 
   // Tiendas
-  'tiendas:read': [Rol.ADMIN, Rol.LOGISTICA, Rol.GERENTE_TIENDA,
+  'tiendas:read': [Rol.ADMIN, Rol.GERENTE_TIENDA,
     Rol.GERENTE_ALMACEN, Rol.DESARROLLADOR_WEB, Rol.CLIENTE],
   'tiendas:write': [Rol.ADMIN, Rol.DESARROLLADOR_WEB],
 
@@ -89,11 +89,6 @@ export function requireOwnStore(req, res, next) {
     return next();
   }
 
-  // Logística ve todo de lectura
-  if (user.rol === 'LOGISTICA' && req.method === 'GET') {
-    return next();
-  }
-
   // Gerentes y colaboradores solo ven su tienda
   if (!user.tiendaId) {
     return res.status(403).json({ error: 'Sin tienda asignada' });
@@ -108,7 +103,7 @@ export function requireApproval(req, res, next) {
   const user = req.user;
 
   // Roles que aprueban directamente
-  if (['ADMIN', 'DESARROLLADOR_WEB', 'LOGISTICA',
+  if (['ADMIN', 'DESARROLLADOR_WEB',
     'GERENTE_TIENDA', 'GERENTE_ALMACEN'].includes(user.rol)) {
     return next();
   }

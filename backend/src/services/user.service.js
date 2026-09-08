@@ -6,7 +6,6 @@ import { Rol, NivelAcceso } from '@prisma/client';
 const ROL_TO_NIVEL = {
   ADMIN: NivelAcceso.SUPER,
   DESARROLLADOR_WEB: NivelAcceso.SUPER,
-  LOGISTICA: NivelAcceso.LOGISTICA_N,
   DISTRIBUCION: NivelAcceso.CONTENIDO,
   GERENTE_TIENDA: NivelAcceso.TIENDA,
   COLABORADOR_TIENDA: NivelAcceso.TIENDA,
