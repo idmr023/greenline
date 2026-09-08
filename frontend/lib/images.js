@@ -88,6 +88,7 @@ export const TIENDAS = {
   Ate: img('tiendas/tienda_ate.webp'),
   Huancayo: img('tiendas/tienda_huancayo.webp'),
   Santiago: img('tiendas/tienda_santiago.webp'),
+  Salamanca: img('tiendas/tienda_salamanca.webp'),
 };
 
 // ----------------------------------------------------------------------------
