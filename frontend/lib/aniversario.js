@@ -66,16 +66,16 @@ export function temaAniversarioActivo() {
   return isAniversarioActivo();
 }
 
-/** Elementos festivos (globos) con propiedades de animación deterministas.
- *  Solo tonalidades de verde (marca) y blanco.
- *
- *  Los delays están espaciados (~5s entre cada globo) y las duraciones son
- *  generosas para que los globos suban en una secuencia calmada y escalonada,
- *  sin agobiar con muchos a la vez. */
-export const BALLOONS = [
-  { color: '#ffd400', left: '4%', delay: 0, duration: 16 },    // blanco
-  { color: '#2eb82e', left: '38%', delay: 10, duration: 16 },   // verde claro
-  { color: '#006400', left: '55%', delay: 20, duration: 15 },   // verde oscuro
-  { color: '#4ade80', left: '70%', delay: 25, duration: 16 },   // verde suave
-  { color: '#ffd400', left: '86%', delay: 30, duration: 15 },   // blanco
+export const CONFETTI_COLORS = ['#009000', '#006400', '#2eb82e', '#ffffff', '#ffd400'];
+
+/** Serpentinas con animación determinista (caen en espiral).
+ *  Verde de marca, blanco y amarillo eléctrico. */
+export const SERPENTINAS = [
+  { color: '#ffffff', left: '6%', delay: 0, duration: 11 },
+  { color: '#2eb82e', left: '22%', delay: 4, duration: 13 },
+  { color: '#ffd400', left: '38%', delay: 8, duration: 12 },
+  { color: '#006400', left: '54%', delay: 12, duration: 14 },
+  { color: '#4ade80', left: '70%', delay: 16, duration: 11 },
+  { color: '#ffd400', left: '84%', delay: 20, duration: 13 },
+  { color: '#ffffff', left: '12%', delay: 24, duration: 12 },
 ];

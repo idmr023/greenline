@@ -92,8 +92,6 @@ export default function Navbar({ onCommunityOpen }) {
               <Scale className="w-5 h-5" />
             </Link>
 
-            <LiveIndicator />
-
             <button
               type="button"
               onClick={openCart}
@@ -166,7 +164,10 @@ export default function Navbar({ onCommunityOpen }) {
                 Iniciar sesión
               </Link>
             )}
-          </div>
+
+          <LiveIndicator />
+          
+          </div>      
 
           {/* Mobile toggle */}
           <div className="lg:hidden flex items-center gap-2">

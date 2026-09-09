@@ -22,17 +22,22 @@ dotenv.config({
   path: path.resolve(__dirname, '../.env'),
 });
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  console.error(
-    '❌ Faltan las variables VITE_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en .env'
-  );
-  process.exit(1);
+// Supabase se inicializa lazy — solo se necesita para modos remotos.
+let _supabase = null;
+function getSupabase() {
+  if (_supabase) return _supabase;
+  const url = process.env.VITE_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    console.error(
+      '❌ Faltan las variables VITE_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en .env'
+    );
+    process.exit(1);
+  }
+  _supabase = createClient(url, key);
+  return _supabase;
 }
-
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = new Proxy({}, { get: (_, prop) => getSupabase()[prop] });
 
 // ============================================================
 // CONFIGURACIÓN
@@ -57,6 +62,12 @@ const SOLO_NUEVO = ARGS.includes('--solo-nuevo') || ARGS.includes('--solo-nuevas
 // Modo descarga: trae imágenes de Supabase → local (inverso del sync).
 // El script se convierte en descargar-imagenes cuando está presente.
 const DESCARGAR = ARGS.includes('--descargar') || ARGS.includes('--download') || ARGS.includes('-d');
+
+// Modo local: re-procesa imágenes PNG/JPG a WebP in-place sin tocar Supabase.
+const LOCAL = ARGS.includes('--local') || ARGS.includes('--local-only');
+
+// Limpia originales PNG/JPG que ya fueron procesados a WebP.
+const CLEANUP = ARGS.includes('--cleanup');
 
 // Carpetas del bucket a descargar (solo en modo --descargar). Se mapean a public/assets.
 const RUTAS_ORIGEN_DESCARGAR = ['assets/imagenes', 'productos', 'articulos'];
@@ -94,6 +105,16 @@ Opciones (descarga Supabase → local, modo inverso):
   --original   Descarga sin redimensionar (solo conversión a WebP)
   --dry-run    Muestra qué se descargaría sin escribir
 
+Opciones (modo local — sin Supabase):
+  --local      Re-procesa PNG/JPG → WebP in-place en public/assets.
+               No toca Supabase Storage.
+  --cleanup    Elimina los originales PNG/JPG que ya tienen su par WebP.
+               Te permite elegir qué carpetas borrar (articulos, productos,
+               caroussel, etc.); Enter = tomar todas.
+               Requiere que se haya ejecutado --local primero.
+  --dry-run    Combinado con --local: muestra qué se procesaría sin escribir.
+  --force      Con --local: sobrescribe WebP existentes.
+
 Ejemplos:
   node scripts/sincronizar-imagenes-greenline.mjs --dry-run
   node scripts/sincronizar-imagenes-greenline.mjs
@@ -102,6 +123,9 @@ Ejemplos:
   node scripts/sincronizar-imagenes-greenline.mjs --original
   node scripts/sincronizar-imagenes-greenline.mjs --descargar
   node scripts/sincronizar-imagenes-greenline.mjs --descargar --force
+  node scripts/sincronizar-imagenes-greenline.mjs --local --dry-run
+  node scripts/sincronizar-imagenes-greenline.mjs --local
+  node scripts/sincronizar-imagenes-greenline.mjs --cleanup
 `);
   process.exit(0);
 }
@@ -779,10 +803,342 @@ async function ejecutarSubida() {
 
 
 // ============================================================
+// MODO LOCAL: re-procesar PNG/JPG → WebP in-place
+// ============================================================
+
+const MANIFEST_PATH = path.resolve(__dirname, '../tmp/processed-manifest.json');
+
+/** Extensiones que necesitan conversión (todo lo que NO es webp). */
+const EXTENSIONES_A_CONVERTIR = ['.jpg', '.jpeg', '.png'];
+
+function escaneaLocalNoWebP() {
+  const archivos = explorarArchivos(CARPETA_LOCAL);
+  return archivos
+    .filter((file) => {
+      const ext = path.extname(file).toLowerCase();
+      return EXTENSIONES_A_CONVERTIR.includes(ext);
+    })
+    .map((rutaCompleta) => {
+      const relativa = normalizarRuta(path.relative(CARPETA_LOCAL, rutaCompleta));
+      const rutaWebp = relativa.replace(/\.[^/.]+$/, '.webp');
+      const destinoAbs = path.join(CARPETA_LOCAL, rutaWebp.split('/').join(path.sep));
+      return {
+        rutaCompleta,
+        rutaRelativa: relativa,
+        rutaWebp,
+        destinoAbs,
+        yaExisteWebp: fs.existsSync(destinoAbs),
+      };
+    });
+}
+
+async function ejecutarLocal() {
+  const modeLabel = DRY_RUN
+    ? '🧪 DRY RUN (solo vista previa, sin escribir)'
+    : FORCE
+      ? '⚡ FORCE (sobrescribir WebP existentes)'
+      : '🔧 Modo local';
+
+  console.log(`\n${modeLabel}`);
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+  if (!fs.existsSync(CARPETA_LOCAL)) {
+    throw new Error(`No existe la carpeta local:\n${CARPETA_LOCAL}`);
+  }
+
+  console.log('🔍 Escaneando imágenes no-WebP...');
+  const candidatos = escaneaLocalNoWebP();
+  console.log(`📁 ${candidatos.length} imágenes PNG/JPG encontradas.\n`);
+
+  // Separar: Ya tienen WebP vs No tienen WebP
+  const conWebpExistente = candidatos.filter((c) => c.yaExisteWebp);
+  const sinWebp = candidatos.filter((c) => !c.yaExisteWebp);
+
+  console.log(`  ✅ Ya tienen WebP  : ${conWebpExistente.length}`);
+  console.log(`  🔄 Para procesar  : ${sinWebp.length}`);
+  console.log('');
+
+  if (!sinWebp.length && !FORCE) {
+    console.log('✅ No hay nada que procesar.');
+    if (conWebpExistente.length) {
+      console.log(`\n💡 Hay ${conWebpExistente.length} originales PNG/JPG cuyo WebP ya existe.`);
+      console.log('   Usa --cleanup para eliminarlos.');
+    }
+    return;
+  }
+
+  // En modo FORCE, también re-procesar las que ya tienen WebP
+  const paraProcesar = FORCE ? candidatos : sinWebp;
+
+  // RESUMEN
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log(`📊 RESUMEN: ${paraProcesar.length} imágenes a procesar`);
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+  if (PRESERVAR_ORIGINAL) {
+    console.log('📐 Tamaño original conservado (solo conversión a WebP)');
+  } else {
+    console.log(`📐 Productos: ${TARGET_SIZE}x${TARGET_SIZE}px WebP`);
+    console.log('📐 Banners: 1920px ancho WebP');
+  }
+  console.log('✂️ Márgenes blancos recortados');
+  console.log('🎨 Fondo blanco\n');
+
+  // PROCESAR
+  let procesadas = 0;
+  let errores = 0;
+  const manifest = [];
+
+  for (let i = 0; i < paraProcesar.length; i++) {
+    const archivo = paraProcesar[i];
+    const tamanoOriginal = fs.statSync(archivo.rutaCompleta).size;
+
+    console.log(`[${i + 1}/${paraProcesar.length}] ⚙️  ${archivo.rutaRelativa}`);
+
+    try {
+      const buffer = await procesarImagen(archivo.rutaCompleta, {
+        rutaRelativa: archivo.rutaRelativa,
+        original: PRESERVAR_ORIGINAL,
+      });
+
+      const tamanoProcesado = buffer.length;
+      const ratio = ((1 - tamanoProcesado / tamanoOriginal) * 100).toFixed(1);
+
+      if (DRY_RUN) {
+        console.log(
+          `    📐 ${formatearTamano(tamanoOriginal)} → ${formatearTamano(tamanoProcesado)} (${ratio > 0 ? '-' : '+'}${Math.abs(ratio)}%) → ${archivo.rutaWebp}`
+        );
+      } else {
+        fs.mkdirSync(path.dirname(archivo.destinoAbs), { recursive: true });
+        fs.writeFileSync(archivo.destinoAbs, buffer);
+        procesadas++;
+        manifest.push({
+          original: archivo.rutaRelativa,
+          webp: archivo.rutaWebp,
+          originalSize: tamanoOriginal,
+          webpSize: tamanoProcesado,
+        });
+        console.log(
+          `    ✅ ${formatearTamano(tamanoOriginal)} → ${formatearTamano(tamanoProcesado)} (${ratio > 0 ? '-' : '+'}${Math.abs(ratio)}%) → ${archivo.rutaWebp}`
+        );
+      }
+    } catch (error) {
+      errores++;
+      console.error(`    ❌ ${error.message}`);
+    }
+  }
+
+  // GUARDAR MANIFEST
+  if (!DRY_RUN && manifest.length) {
+    fs.mkdirSync(path.dirname(MANIFEST_PATH), { recursive: true });
+    fs.writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2));
+    console.log(`\n📝 Manifiesto guardado: ${MANIFEST_PATH}`);
+  }
+
+  // RESUMEN FINAL
+  console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log(DRY_RUN ? '🧪 VISTA PREVIA FINALIZADA' : '🎉 PROCESAMIENTO LOCAL FINALIZADO');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log(`⚙️  Procesadas  : ${DRY_RUN ? paraProcesar.length : procesadas}`);
+  console.log(`❌ Errores     : ${errores}`);
+  console.log(`📐 Resultado   : ${
+    PRESERVAR_ORIGINAL ? 'WebP a tamaño original' : `${TARGET_SIZE}x${TARGET_SIZE}px WebP`
+  }`);
+
+  if (!DRY_RUN && manifest.length) {
+    console.log(`\n📝 Manifiesto: ${MANIFEST_PATH}`);
+    console.log('\n👉 Siguiente paso: verifica que todo se vea bien en el navegador.');
+    console.log('   Cuando confirmes, ejecuta: node scripts/sincronizar-imagenes-greenline.mjs --cleanup');
+  }
+
+  if (DRY_RUN) {
+    console.log(
+      '\n💡 Para procesar ejecuta: node scripts/sincronizar-imagenes-greenline.mjs --local'
+    );
+  }
+}
+
+
+// ============================================================
+// CLEANUP: eliminar originales que ya tienen WebP
+// ============================================================
+
+function categoriaDeCandidato(rutaRelativa) {
+  const normalizada = normalizarRuta(rutaRelativa);
+  if (normalizada.startsWith('imagenes/')) {
+    const partes = normalizada.split('/');
+    return partes.length > 1 ? partes[1] : 'imagenes';
+  }
+  return normalizada.split('/')[0] || '(raíz)';
+}
+
+// En modo interactivo permite acotar el borrado a ciertas carpetas
+// (articulos, productos, caroussel, etc.). Enter = tomar todas.
+async function seleccionarCarpetas(candidatos) {
+  const carpetas = [
+    ...new Set(candidatos.map((c) => categoriaDeCandidato(c.rutaRelativa))),
+  ].sort();
+
+  if (carpetas.length <= 1) return candidatos;
+
+  const conteos = new Map();
+  for (const c of candidatos) {
+    const cat = categoriaDeCandidato(c.rutaRelativa);
+    conteos.set(cat, (conteos.get(cat) || 0) + 1);
+  }
+
+  console.log('\n📁 Candidatos por carpeta:\n');
+  carpetas.forEach((cat, i) =>
+    console.log(`  ${String(i + 1).padStart(3)}. ${cat}  (${conteos.get(cat)})`)
+  );
+
+  console.log(
+    '\n👉 Elige qué carpetas eliminar (rangos/comas/"all"). Enter = tomar todas.'
+  );
+  const respuesta = await preguntar('👉 Opción: ');
+
+  const indices = parseSeleccion(respuesta, carpetas.length);
+  if (!indices.length) {
+    console.log('\n🗑️ Se tomarán TODAS las carpetas.');
+    return candidatos;
+  }
+
+  const elegidas = new Set(indices.map((i) => carpetas[i]));
+  const filtrados = candidatos.filter((c) =>
+    elegidas.has(categoriaDeCandidato(c.rutaRelativa))
+  );
+
+  console.log(
+    `\n📁 Filtro aplicado: ${filtrados.length} de ${candidatos.length} candidato(s) en ${elegidas.size} carpeta(s).`
+  );
+  return filtrados;
+}
+
+async function ejecutarCleanup() {
+  console.log('\n🧹 CLEANUP — Eliminar originales PNG/JPG procesados');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+  // Intentar leer manifest; si no existe, buscar por duplicados en disco
+  let candidatos = [];
+
+  if (fs.existsSync(MANIFEST_PATH)) {
+    const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf-8'));
+    candidatos = manifest
+      .map((entry) => {
+        const originalAbs = path.join(CARPETA_LOCAL, entry.original.split('/').join(path.sep));
+        const webpAbs = path.join(CARPETA_LOCAL, entry.webp.split('/').join(path.sep));
+        if (fs.existsSync(originalAbs) && fs.existsSync(webpAbs)) {
+          return {
+            rutaRelativa: entry.original,
+            originalAbs,
+            webpAbs,
+            originalSize: entry.originalSize,
+          };
+        }
+        return null;
+      })
+      .filter(Boolean);
+    console.log(`📋 Manifiesto encontrado: ${candidatos.length} candidatos.\n`);
+  } else {
+    console.log('⚠️ No se encontró manifiesto. Buscando en disco...\n');
+    const todosNoWebP = escaneaLocalNoWebP();
+    candidatos = todosNoWebP
+      .filter((c) => c.yaExisteWebp)
+      .map((c) => ({
+        rutaRelativa: c.rutaRelativa,
+        originalAbs: c.rutaCompleta,
+        webpAbs: c.destinoAbs,
+        originalSize: fs.statSync(c.rutaCompleta).size,
+      }));
+    console.log(`🔍 ${candidatos.length} originales con WebP existente encontrados en disco.\n`);
+  }
+
+  if (!candidatos.length) {
+    console.log('✅ No hay originales para eliminar.');
+    return;
+  }
+
+  // Filtrar por carpeta (solo interactivo; también aplica en --dry-run)
+  if (process.stdin.isTTY && candidatos.length > 0) {
+    candidatos = await seleccionarCarpetas(candidatos);
+    if (!candidatos.length) {
+      console.log('✅ Ningún candidato tras el filtro. No se eliminará nada.');
+      return;
+    }
+  }
+
+  // Mostrar lista
+  console.log('Archivos que se eliminarían:\n');
+  let totalBytes = 0;
+  candidatos.forEach((c, i) => {
+    const kb = (c.originalSize / 1024).toFixed(1);
+    totalBytes += c.originalSize;
+    console.log(`  ${String(i + 1).padStart(4)}. ${c.rutaRelativa} (${kb} KB)`);
+  });
+  console.log(`\n  Total: ${candidatos.length} archivos, ${(totalBytes / 1024 / 1024).toFixed(1)} MB`);
+
+  if (DRY_RUN) {
+    console.log('\n🧪 DRY RUN: nada se elimina.');
+    console.log('\n💡 Para ejecutar: node scripts/sincronizar-imagenes-greenline.mjs --cleanup');
+    return;
+  }
+
+  // Confirmar
+  if (process.stdin.isTTY) {
+    const rta = (
+      await preguntar(
+        `\n¿Eliminar ${candidatos.length} archivos? (s/n): `
+      )
+    )
+      .trim()
+      .toLowerCase();
+
+    if (!SI.includes(rta)) {
+      console.log('❌ Cancelado. No se eliminó nada.');
+      return;
+    }
+  }
+
+  // Eliminar
+  let eliminados = 0;
+  let errores = 0;
+
+  for (const c of candidatos) {
+    try {
+      fs.unlinkSync(c.originalAbs);
+      eliminados++;
+      console.log(`  🗑️ ${c.rutaRelativa}`);
+    } catch (error) {
+      errores++;
+      console.error(`  ❌ ${c.rutaRelativa}: ${error.message}`);
+    }
+  }
+
+  // Limpiar manifiesto
+  if (fs.existsSync(MANIFEST_PATH)) {
+    fs.unlinkSync(MANIFEST_PATH);
+    console.log('\n📝 Manifiesto eliminado.');
+  }
+
+  console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('🧹 CLEANUP FINALIZADO');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log(`🗑️ Eliminados  : ${eliminados}`);
+  console.log(`❌ Errores     : ${errores}`);
+}
+
+
+// ============================================================
 // INICIAR
 // ============================================================
 
-const ejecutar = DESCARGAR ? ejecutarDescarga : ejecutarSubida;
+const ejecutar = CLEANUP
+  ? ejecutarCleanup
+  : LOCAL
+    ? ejecutarLocal
+    : DESCARGAR
+      ? ejecutarDescarga
+      : ejecutarSubida;
 
 ejecutar()
   .catch((error) =>

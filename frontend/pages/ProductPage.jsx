@@ -1,6 +1,11 @@
-import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Play, Tag, Minus, Plus, Download, FileText, ShieldCheck, Star, User, Battery, Check, Gauge, ShieldAlert, X, Weight, Truck } from 'lucide-react';
+import {
+  ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Play, Tag,
+  Minus, Plus, Download, FileText, ShieldCheck, Star, User,
+  Battery, Check, ShieldAlert, X, Weight, Truck, Unplug, Sparkles,
+  Gauge, Ruler, MoveHorizontal, ArrowUpDown, Zap, Route,
+} from 'lucide-react';
 import ProductImage from '../components/ProductImage';
 import SEOHead, { productSchema, breadcrumbSchema } from '../components/SEOHead';
 import { BBVACard } from '../components/BBVACard';
@@ -16,7 +21,9 @@ import { capacidadCargaTexto, equivalentesDeCarga } from '../lib/capacidadCarga'
 
 const LazyYouTube = lazy(() => import('../components/YouTubeEmbed'));
 
-const colorDotClass = {
+// ── Constantes ──────────────────────────────────────────────────
+
+const COLOR_DOT_CLASS = {
   Blanco: 'bg-white border-gray-300',
   Negro: 'bg-gray-900',
   Gris: 'bg-gray-500',
@@ -40,6 +47,78 @@ const colorDotClass = {
   Camaleon: 'bg-gradient-to-br from-green-400 via-blue-500 to-purple-500',
 };
 
+const TAB_LIST = [
+  { key: 'descripcion', label: 'Descripción' },
+  { key: 'ficha', label: 'Ficha Técnica' },
+  { key: 'info', label: 'Información Adicional' },
+  { key: 'manuales', label: 'Manuales' },
+  { key: 'legal', label: 'Legal' },
+];
+
+const FICHA_LABELS = {
+  tipo_motor: 'Tipo de motor',
+  potencia_motor: 'Potencia del motor',
+  torque_maximo: 'Torque máximo',
+  potencia_bateria: 'Potencia de batería',
+  tipo_bateria: 'Tipo de batería',
+  bateria_extraible: 'Batería extraíble',
+  capacidad_bateria: 'Capacidad de batería',
+  vida_util_bateria: 'Vida útil batería',
+  tipo_toma_corriente: 'Tipo de toma de corriente',
+  tiempo_carga_min: 'Tiempo de carga',
+  velocidad_max_kmh: 'Velocidad máxima',
+  autonomia_km: 'Autonomía',
+  carga_maxima_kg: 'Carga máxima',
+  largo_cm: 'Largo',
+  ancho_cm: 'Ancho',
+  alto_cm: 'Alto',
+};
+
+const MAX_DESC_LINES = 200;
+
+// ── Helpers ─────────────────────────────────────────────────────
+
+function normalizeText(text) {
+  return (text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+}
+
+function formatFichaValue(key, value) {
+  if (value == null || value === '' || (Array.isArray(value) && value.length === 0)) return null;
+  if (key === 'bateria_extraible') return value ? 'Sí' : 'No';
+  if (key === 'tiempo_carga_min') return `${value} horas`;
+  if (key === 'velocidad_max_kmh') return `${value} km/h`;
+  if (key === 'autonomia_km') {
+    const s = String(value).trim();
+    return /km/i.test(s) ? s : `${s} km`;
+  }
+  if (key.includes('_cm')) return `${value} cm`;
+  if (key === 'carga_maxima_kg') return `${value} kg`;
+  return String(value);
+}
+
+// ── Hook: expand/collapse de texto largo ────────────────────────
+
+function useExpandable(ref, deps = [], maxHeight = MAX_DESC_LINES) {
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const check = () => setOverflows(el.scrollHeight > maxHeight + 2);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+
+  const toggle = useCallback(() => setExpanded((v) => !v), []);
+
+  return { expanded, overflows, toggle };
+}
+
+// ── Iconos ──────────────────────────────────────────────────────
+
 function WhatsAppIcon({ className = 'w-5 h-5' }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
@@ -47,6 +126,8 @@ function WhatsAppIcon({ className = 'w-5 h-5' }) {
     </svg>
   );
 }
+
+// ── Star Rating ─────────────────────────────────────────────────
 
 function StarRating({ rating }) {
   return (
@@ -61,148 +142,30 @@ function StarRating({ rating }) {
   );
 }
 
-function FeatureCards({ ficha, onGoFicha }) {
-  const extraible = ficha?.bateria_extraible;
-  const autonomia = ficha?.autonomia_km;
-  const requierePlaca = ficha?.requiere_placa_soat;
+// ── Imagen Carousel ─────────────────────────────────────────────
 
-  const cards = [
-    extraible === null || extraible === undefined ? null : {
-      Icon: Battery,
-      label: 'Batería extraíble',
-      value: extraible ? 'Sí' : 'No',
-      ok: extraible,
-    },
-    autonomia ? {
-      Icon: Gauge,
-      label: 'Autonomía',
-      value: `${autonomia} km`,
-      ok: null,
-    } : null,
-    {
-      Icon: ShieldAlert,
-      label: 'Placa / SOAT',
-      value: requierePlaca === true ? 'Sí' : requierePlaca === false ? 'No' : 'Consultar',
-      ok: requierePlaca,
-    },
-  ].filter(Boolean);
-
-  if (!cards.length) return null;
-
-  return (
-    <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-4">
-      {cards.map(({ Icon, label, value, ok }) => (
-        <button
-          key={label}
-          type="button"
-          onClick={onGoFicha}
-          className="flex flex-col items-center gap-1 px-2 py-3 bg-white border border-gray-200 rounded-xl hover:border-brand hover:shadow-sm transition-colors"
-          title="Ver ficha técnica"
-        >
-          <span className="flex items-center justify-center w-8 h-8 rounded-full bg-brand/10">
-            <Icon className="w-4 h-4 text-brand" />
-          </span>
-          <span className="text-[10px] sm:text-[11px] font-medium text-gray-500 leading-tight text-center">{label}</span>
-          <span className="flex items-center gap-1 text-sm font-bold text-gray-900">
-            {ok === true && <Check className="w-4 h-4 text-green-600" />}
-            {ok === false && <X className="w-4 h-4 text-red-500" />}
-            {value}
-          </span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function normalizeText(text) {
-  return (text || '')
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim();
-}
-
-const TAB_LIST = [
-  { key: 'descripcion', label: 'Descripción' },
-  { key: 'ficha', label: 'Ficha Técnica' },
-  { key: 'info', label: 'Información Adicional' },
-  { key: 'manuales', label: 'Manuales' },
-  { key: 'legal', label: 'Legal' },
-];
-
-function ManualesTab({ producto }) {
-  const href = manualUrl(producto?.slug);
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 bg-white">
-        <FileText className="w-8 h-8 text-brand shrink-0" />
-        <div className="min-w-0 flex-1">
-          <p className="font-semibold text-sm text-gray-900">Manual de uso</p>
-          <p className="text-xs text-gray-500">Descarga el manual de tu {producto?.nombre}</p>
-        </div>
-        {href ? (
-          <a
-            href={href}
-            download
-            title="Descargar manual de uso"
-            className="inline-flex items-center gap-1.5 bg-brand text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-brand-dark transition-colors whitespace-nowrap"
-          >
-            <Download className="w-3.5 h-3.5" />
-            Descargar
-          </a>
-        ) : (
-          <span
-            title="Descargar garantía"
-            className="inline-flex items-center gap-1.5 bg-brand text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-brand-dark transition-colors whitespace-nowrap"
-          >
-            <Download className="w-3.5 h-3.5" />
-            Descargar
-          </span>
-        )}
-      </div>
-
-      <div className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 bg-white">
-        <ShieldCheck className="w-8 h-8 text-brand shrink-0" />
-        <div className="min-w-0 flex-1">
-          <p className="font-semibold text-sm text-gray-900">Garantía</p>
-          <p className="text-xs text-gray-500">Descargar certificado de garantía</p>
-        </div>
-        <a href="/assets/certificado_garantia_2026.pdf" blank="_blank" rel="noopener noreferrer" download>
-          <span
-          title="Descargar"
-          className="inline-flex items-center gap-1.5 bg-brand text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-brand-dark transition-colors whitespace-nowrap"
-        >
-          <ShieldCheck className="w-3.5 h-3.5" />
-          Descargar
-        </span>
-        </a>
-      </div>
-    </div>
-  );
-}
-
-// ── Carousel de imágenes (adaptado de ProductModal) ────────────
 function ImageCarousel({ images, nombre }) {
   const [idx, setIdx] = useState(0);
   const total = images.length;
 
-  const next = () => setIdx((i) => (i + 1) % total);
-  const prev = () => setIdx((i) => (i - 1 + total) % total);
+  const next = useCallback(() => setIdx((i) => (i + 1) % total), [total]);
+  const prev = useCallback(() => setIdx((i) => (i - 1 + total) % total), [total]);
 
   useEffect(() => {
+    if (total <= 1) return;
     const handler = (e) => {
       if (e.key === 'ArrowRight') next();
       if (e.key === 'ArrowLeft') prev();
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [total]);
+  }, [total, next, prev]);
 
   if (!total) return null;
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden group select-none">
+      <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-gray-50 group select-none">
         {images.map((img, i) => (
           <picture
             key={`${img.src}-${i}`}
@@ -225,6 +188,7 @@ function ImageCarousel({ images, nombre }) {
               type="button"
               onClick={prev}
               className="absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-white/80 hover:bg-white shadow opacity-0 group-hover:opacity-100 transition-opacity"
+              aria-label="Imagen anterior"
             >
               <ChevronLeft className="w-5 h-5 text-gray-800" />
             </button>
@@ -232,6 +196,7 @@ function ImageCarousel({ images, nombre }) {
               type="button"
               onClick={next}
               className="absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-white/80 hover:bg-white shadow opacity-0 group-hover:opacity-100 transition-opacity"
+              aria-label="Imagen siguiente"
             >
               <ChevronRight className="w-5 h-5 text-gray-800" />
             </button>
@@ -239,18 +204,17 @@ function ImageCarousel({ images, nombre }) {
         )}
 
         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
-          {images.map((_, i) =>
-            total > 1 && (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setIdx(i)}
-                className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                  i === idx ? 'bg-brand' : 'bg-white/60'
-                }`}
-              />
-            ),
-          )}
+          {images.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setIdx(i)}
+              className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                i === idx ? 'bg-brand' : 'bg-white/60'
+              }`}
+              aria-label={`Ir a imagen ${i + 1}`}
+            />
+          ))}
         </div>
       </div>
 
@@ -274,46 +238,66 @@ function ImageCarousel({ images, nombre }) {
   );
 }
 
-// ── Tab: Ficha Técnica ────────────────────────────────────────
-const FICHA_LABELS = {
-  tipo_motor: 'Tipo de motor',
-  potencia_motor: 'Potencia del motor',
-  torque_maximo: 'Torque máximo',
-  potencia_bateria: 'Potencia de batería',
-  tipo_bateria: 'Tipo de batería',
-  bateria_extraible: 'Batería extraíble',
-  capacidad_bateria: 'Capacidad de batería',
-  vida_util_bateria: 'Vida útil batería',
-  tipo_toma_corriente: 'Tipo de toma de corriente',
-  tiempo_carga_min: 'Tiempo de carga',
-  velocidad_max_kmh: 'Velocidad máxima',
-  autonomia_km: 'Autonomía',
-  carga_maxima_kg: 'Carga máxima',
-  largo_cm: 'Largo',
-  ancho_cm: 'Ancho',
-  alto_cm: 'Alto',
-};
+// ── Specs Card (Características destacadas) ─────────────────────
 
-function formatFichaValue(key, value) {
-  if (value == null || value === '' || (Array.isArray(value) && value.length === 0)) return null;
-  if (key === 'bateria_extraible') return value ? 'Sí' : 'No';
-  if (key === 'tiempo_carga_min') return `${value} horas`;
-  if (key === 'velocidad_max_kmh') return `${value} km/h`;
-  if (key === 'autonomia_km') return `${value} km`;
-  if (key.includes('_cm')) return `${value} cm`;
-  if (key === 'carga_maxima_kg') return `${value} kg`;
-  return String(value);
+function SpecsCard({ ficha }) {
+  const cards = useMemo(() => {
+    if (!ficha) return [];
+    const {
+      velocidad_max_kmh: vel, motor, autonomia_km: aut, largo_cm: lar,
+      ancho_cm: anc, alto_cm: alt, bateria_extraible: ext,
+      requiere_placa_soat: placa, bateria,
+    } = ficha;
+
+    return [
+      aut && { Icon: Route, label: 'Autonomía', value: /km/i.test(String(aut)) ? String(aut) : `${aut} km` },
+      vel && { Icon: Gauge, label: 'Velocidad Máx', value: /km\/h/i.test(String(vel)) ? String(vel) : `${vel} km/h` },
+      motor && { Icon: Zap, label: 'Motor', value: motor },
+      bateria && { Icon: Battery, label: 'Batería', value: cleanBateria(bateria) || bateria },
+      ext != null && { Icon: Unplug, label: 'Batería extraíble', value: ext ? 'Sí' : 'No' },
+      lar && { Icon: Ruler, label: 'Largo', value: `${lar} cm` },
+      anc && { Icon: MoveHorizontal, label: 'Ancho', value: `${anc} cm` },
+      alt && { Icon: ArrowUpDown, label: 'Alto', value: `${alt} cm` },
+      { Icon: ShieldAlert, label: 'Placa / SOAT', value: placa === true ? 'Sí' : placa === false ? 'No' : 'Consultar' },
+    ].filter(Boolean);
+  }, [ficha]);
+
+  if (!cards.length) return null;
+
+  return (
+    <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-emerald-900 via-brand to-emerald-800 text-white shadow-xl relative overflow-hidden">
+      <div className="flex items-center gap-2.5 mb-4">
+        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-yellow-electric text-black shadow-md">
+          <Sparkles className="w-4 h-4 fill-current" />
+        </span>
+        <h3 className="font-extrabold text-base sm:text-lg tracking-wide text-yellow-electric">
+          ¡Características Destacadas!
+        </h3>
+      </div>
+      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 text-center">
+        {cards.map((item, i) => (
+          <div
+            key={i}
+            className="flex flex-col items-center gap-1 px-1.5 py-3 bg-white rounded-xl hover:shadow-md transition-shadow"
+          >
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-brand/10 mb-1">
+              <item.Icon className="w-4 h-4 text-brand" />
+            </span>
+            <span className="text-[10px] sm:text-xs text-gray-500 font-medium leading-tight">{item.label}</span>
+            <span className="text-xs sm:text-sm font-bold text-gray-900">{item.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
+// ── Tab: Ficha Técnica ──────────────────────────────────────────
+
 function FichaTecnicaTab({ ficha }) {
-  const entries = Object.entries(ficha || {})
-    .filter(
-      ([k, v]) =>
-        formatFichaValue(k, v) != null &&
-        k !== 'id' &&
-        k !== 'producto_id' &&
-        k !== 'carga_minima_kg',
-    );
+  const entries = Object.entries(ficha || {}).filter(
+    ([k, v]) => formatFichaValue(k, v) != null && k !== 'id' && k !== 'producto_id' && k !== 'carga_minima_kg',
+  );
 
   if (!entries.length) {
     return <p className="text-gray-500">No hay información de ficha técnica disponible.</p>;
@@ -335,7 +319,8 @@ function FichaTecnicaTab({ ficha }) {
   );
 }
 
-// ── Tab: Capacidad de Carga (cargueros) ────────────────────────
+// ── Tab: Capacidad de Carga ─────────────────────────────────────
+
 function CapacidadCargaTab({ ficha }) {
   const texto = capacidadCargaTexto(ficha);
   const equivalencias = equivalentesDeCarga(ficha);
@@ -357,9 +342,7 @@ function CapacidadCargaTab({ ficha }) {
           <Weight className="w-6 h-6" />
         </span>
         <div>
-          <p className="text-white/80 text-xs font-semibold uppercase tracking-wide">
-            Capacidad de carga
-          </p>
+          <p className="text-white/80 text-xs font-semibold uppercase tracking-wide">Capacidad de carga</p>
           <p className="text-3xl sm:text-4xl font-extrabold leading-tight">
             {texto} <span className="text-xl font-bold text-white/90">kg</span>
           </p>
@@ -374,10 +357,7 @@ function CapacidadCargaTab({ ficha }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {equivalencias.map((e) => (
-          <div
-            key={e.nombre}
-            className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 bg-white"
-          >
+          <div key={e.nombre} className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 bg-white">
             <span className="flex items-center justify-center w-10 h-10 rounded-full bg-brand/10 shrink-0">
               <Truck className="w-5 h-5 text-brand" />
             </span>
@@ -398,14 +378,11 @@ function CapacidadCargaTab({ ficha }) {
   );
 }
 
-// ── Tab: Info Adicional ────────────────────────────────────────
+// ── Tab: Info Adicional ──────────────────────────────────────────
+
 function InfoAdicionalTab({ info }) {
   const entries = Object.entries(info || {}).filter(
-    ([key, v]) =>
-      key !== 'ideal_para' &&
-      v != null &&
-      v !== '' &&
-      !(Array.isArray(v) && v.length === 0),
+    ([key, v]) => key !== 'ideal_para' && v != null && v !== '' && !(Array.isArray(v) && v.length === 0),
   );
 
   if (!entries.length) {
@@ -416,9 +393,7 @@ function InfoAdicionalTab({ info }) {
     <div className="space-y-4">
       {entries.map(([key, value]) => (
         <div key={key}>
-          <h4 className="font-semibold text-gray-900 mb-1 capitalize">
-            {key.replace(/_/g, ' ')}
-          </h4>
+          <h4 className="font-semibold text-gray-900 mb-1 capitalize">{key.replace(/_/g, ' ')}</h4>
           {typeof value === 'string' ? (
             <p className="text-sm text-gray-600 whitespace-pre-line">{stripHtml(value)}</p>
           ) : Array.isArray(value) ? (
@@ -445,7 +420,52 @@ function InfoAdicionalTab({ info }) {
   );
 }
 
-// ── Página principal ───────────────────────────────────────────
+// ── Tab: Manuales ───────────────────────────────────────────────
+
+function ManualesTab({ producto }) {
+  const href = manualUrl(producto?.slug);
+  const btnClass = 'inline-flex items-center gap-1.5 bg-brand text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-brand-dark transition-colors whitespace-nowrap';
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 bg-white">
+        <FileText className="w-8 h-8 text-brand shrink-0" />
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-sm text-gray-900">Manual de uso</p>
+          <p className="text-xs text-gray-500">Descarga el manual de tu {producto?.nombre}</p>
+        </div>
+        {href ? (
+          <a href={href} download title="Descargar manual de uso" className={btnClass}>
+            <Download className="w-3.5 h-3.5" />
+            Descargar
+          </a>
+        ) : (
+          <span title="Descargar manual de uso" className={btnClass}>
+            <Download className="w-3.5 h-3.5" />
+            Descargar
+          </span>
+        )}
+      </div>
+
+      <div className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 bg-white">
+        <ShieldCheck className="w-8 h-8 text-brand shrink-0" />
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-sm text-gray-900">Garantía</p>
+          <p className="text-xs text-gray-500">Descargar certificado de garantía</p>
+        </div>
+        <a href="/assets/certificado_garantia_2026.pdf" target="_blank" rel="noopener noreferrer" download>
+          <span title="Descargar" className={btnClass}>
+            <ShieldCheck className="w-3.5 h-3.5" />
+            Descargar
+          </span>
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ── Página principal ────────────────────────────────────────────
+
 export default function ProductPage() {
   const { slug } = useParams();
   const [productos, setProductos] = useState([]);
@@ -456,29 +476,28 @@ export default function ProductPage() {
   const [cantidad, setCantidad] = useState(1);
   const [showVideo, setShowVideo] = useState(false);
   const { addItem, openCart } = useCart();
-  const descBreveRef = useRef(null);
-  const [descBreveExpandida, setDescBreveExpandida] = useState(false);
-  const [descBreveExcedida, setDescBreveExcedida] = useState(false);
-  const descRef = useRef(null);
-  const [descExpandida, setDescExpandida] = useState(false);
-  const [descExcedida, setDescExcedida] = useState(false);
-  const MAX_DESC_ALTURA = 200;
+
+  const descFullRef = useRef(null);
+
+  const {
+    expanded: descExpandida,
+    overflows: descExcedida,
+    toggle: toggleDesc,
+  } = useExpandable(descFullRef, [slug, activeTab], MAX_DESC_LINES);
+
+  // ── Data fetching ──
 
   useEffect(() => {
-    fetchProductos()
-      .then(setProductos)
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    fetchProductos().then(setProductos).catch(console.error).finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
     fetchTestimonios().then(setTestimonios).catch(console.error);
   }, []);
 
-  const product = useMemo(
-    () => productos.find((p) => p.slug === slug),
-    [productos, slug],
-  );
+  // ── Derived data ──
+
+  const product = useMemo(() => productos.find((p) => p.slug === slug), [productos, slug]);
 
   const cleanDescription = useMemo(
     () => (product?.descripcion ? stripHtml(product.descripcion) : ''),
@@ -494,38 +513,6 @@ export default function ProductPage() {
     return list;
   }, [product?.categoria]);
 
-  useEffect(() => {
-    setActiveColor(null);
-    setActiveTab('descripcion');
-    setCantidad(1);
-    setShowVideo(false);
-    setDescBreveExpandida(false);
-    setDescExpandida(false);
-    window.scrollTo(0, 0);
-  }, [slug]);
-
-  useEffect(() => {
-    const elBreve = descBreveRef.current;
-    if (elBreve) {
-      setDescBreveExcedida(
-        elBreve.scrollHeight > elBreve.clientHeight + 2 ||
-          cleanDescription.length > 200,
-      );
-    }
-  }, [cleanDescription, descBreveExpandida, slug]);
-
-  useEffect(() => {
-    const el = descRef.current;
-    const check = () => {
-      if (el) {
-        setDescExcedida(el.scrollHeight > MAX_DESC_ALTURA + 2);
-      }
-    };
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, [slug, cleanDescription, activeTab, descExpandida]);
-
   const availableColors = useMemo(() => {
     if (!product?.imagenes?.length) return [];
     const seen = new Set();
@@ -536,15 +523,7 @@ export default function ProductPage() {
 
   const currentColor = activeColor || availableColors[0] || null;
 
-  // COMENTADO (temporal — stock por color, por números):
-  // const colorStock = useMemo(() => {
-  //   if (!product?.colores_detalle?.length || !currentColor) return null;
-  //   const found = product.colores_detalle.find((c) => c.nombre === currentColor);
-  //   return typeof found?.stock === 'number' ? found.stock : null;
-  // }, [product, currentColor]);
-
-  const outOfStock =
-    product?.disponibilidad === 'Fuera de stock'; // COMENTADO: || colorStock === 0
+  const outOfStock = product?.disponibilidad === 'Fuera de stock';
 
   const displayedImages = useMemo(() => {
     if (!product?.imagenes?.length) return [];
@@ -569,6 +548,18 @@ export default function ProductPage() {
     return [];
   }, [product]);
 
+  // ── Reset on slug change ──
+
+  useEffect(() => {
+    setActiveColor(null);
+    setActiveTab('descripcion');
+    setCantidad(1);
+    setShowVideo(false);
+    window.scrollTo(0, 0);
+  }, [slug]);
+
+  // ── Loading / not found ──
+
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -581,10 +572,7 @@ export default function ProductPage() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
         <p className="text-xl text-gray-600">Producto no encontrado</p>
-        <Link
-          to="/tienda"
-          className="px-6 py-2 bg-brand text-white rounded-lg hover:bg-brand-dark transition-colors"
-        >
+        <Link to="/tienda" className="px-6 py-2 bg-brand text-white rounded-lg hover:bg-brand-dark transition-colors">
           Volver a la tienda
         </Link>
       </div>
@@ -594,16 +582,22 @@ export default function ProductPage() {
   const hasRealImages = displayedImages.length > 0;
 
   const whatsappCotizarHref = `https://wa.me/${CONTACT.whatsappNumber}?text=${encodeURIComponent(
-    `¡Hola! Vi la ${product.nombre}${
-      currentColor ? ` en color ${currentColor}` : ''
-    } en su web y me interesa. ¿Me pasan precio y disponibilidad?`,
+    `¡Hola! Vi la ${product.nombre}${currentColor ? ` en color ${currentColor}` : ''} en su web y me interesa. ¿Me pasan precio y disponibilidad?`,
   )}`;
+
+  // ── SEO ──
+
+  const seoDescription = cleanDescription
+    ? cleanDescription.slice(0, 155)
+    : `${product.nombre} - Vehículo de movilidad eléctrica GreenLine. ${product.ficha_tecnica?.autonomia_km ? `Autonomía ${/km/i.test(String(product.ficha_tecnica.autonomia_km)) ? product.ficha_tecnica.autonomia_km : `${product.ficha_tecnica.autonomia_km} km`}.` : ''} Compra online o visita nuestras tiendas en Lima.`;
+
+  // ── Render ──
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <SEOHead
         title={product.nombre}
-        description={cleanDescription ? cleanDescription.slice(0, 155) : `${product.nombre} - Vehículo de movilidad eléctrica GreenLine. ${product.ficha_tecnica?.autonomia_km ? `Autonomía ${product.ficha_tecnica.autonomia_km} km.` : ''} Compra online o visita nuestras tiendas en Lima.`}
+        description={seoDescription}
         url={`/producto/${product.slug}`}
         image={product.imagenes?.[0]?.src}
         type="product"
@@ -617,36 +611,208 @@ export default function ProductPage() {
           ]),
         ]}
       />
+
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
         <Link to="/" className="hover:text-brand transition-colors">Inicio</Link>
         <ChevronRight className="w-3 h-3" />
         <Link to="/tienda" className="hover:text-brand transition-colors">Tienda</Link>
         <ChevronRight className="w-3 h-3" />
-        <span className="text-gray-900 font-medium">{product.nombre}</span>
+        <span className="text-gray-900 font-medium truncate">{product.nombre}</span>
       </nav>
 
-      {/* Top: 2 columns */}
-      <div className="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-8 mb-10">
-        {/* Left: Carousel */}
-        <div>
+      {/* ════════════════════════════════════════════════════════════
+          HERO — 2 columnas en desktop, 1 columna en mobile
+          Mobile : título → precio → colores → descripción → imagen
+          Desktop: imagen (izq) | info esencial + CTA sticky (der)
+          ⚠ La "tablita" de specs va FUERA de la columna, full-width.
+         ════════════════════════════════════════════════════════════ */}
+
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_minmax(0,0.9fr)] gap-8 lg:gap-10 mb-8">
+        {/* ── RIGHT (DOM primero): info esencial — primera en mobile ── */}
+        <div className="order-1 md:order-2 flex flex-col gap-5">
+          {/* Título + Precio — SIEMPRE arriba, nunca debajo de la imagen */}
+          <div>
+            <div className="flex items-center gap-2 flex-wrap mb-1.5">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gray-100 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                {product.categoria}
+              </span>
+              {product.precio_original && product.precio_actual < product.precio_original && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-green-100 text-[11px] font-bold text-green-700">
+                  <Tag className="w-3 h-3" />
+                  -{Math.round((1 - product.precio_actual / product.precio_original) * 100)}%
+                </span>
+              )}
+              {outOfStock ? (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-red-100 text-[11px] font-bold text-red-600">
+                  Agotado
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-[11px] font-bold text-emerald-600">
+                  <Check className="w-3 h-3" />
+                  Disponible
+                </span>
+              )}
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{product.nombre}</h1>
+            <div className="flex items-baseline gap-3">
+              {product.precio_original && product.precio_actual < product.precio_original && (
+                <span className="text-gray-400 line-through text-lg">{formatPrice(product.precio_original)}</span>
+              )}
+              <span className="text-brand font-bold text-3xl">{formatPrice(product.precio_actual)}</span>
+            </div>
+          </div>
+
+          {/* Colores */}
+          {availableColors.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Colores disponibles</p>
+              <div className="flex flex-wrap gap-2">
+                {availableColors.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setActiveColor(c)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                      currentColor === c
+                        ? 'border-brand bg-brand/5 text-brand font-semibold'
+                        : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                    }`}
+                  >
+                    <span className={`w-3 h-3 rounded-full border border-gray-200 ${COLOR_DOT_CLASS[c] || 'bg-gray-300'}`} />
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Descripción breve */}
+          {cleanDescription && (
+            <div className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{cleanDescription}</div>
+          )}
+
+          {/* Ideal para */}
+          {idealParaList.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Ideal para</p>
+              <div className="flex flex-wrap gap-2">
+                {idealParaList.map((persona) => (
+                  <span
+                    key={persona}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full bg-brand/10 text-brand-dark"
+                  >
+                    <User className="w-3.5 h-3.5" />
+                    {persona}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* BBVA Card */}
+          <BBVACard />
+
+          {/* ── CTA sticky (solo desktop) ── */}
+          <div className="hidden md:block sticky top-4 z-30">
+            <div className="p-4 rounded-2xl bg-white border border-gray-200 shadow-lg space-y-3">
+              <div className="flex items-stretch gap-3">
+                <div className="flex items-center gap-1 border border-gray-200 rounded-lg px-1">
+                  <button
+                    type="button"
+                    onClick={() => setCantidad((c) => Math.max(1, c - 1))}
+                    className="p-2.5 text-gray-500 hover:text-brand transition-colors"
+                    aria-label="Disminuir cantidad"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="text-sm font-semibold w-8 text-center">{cantidad}</span>
+                  <button
+                    type="button"
+                    onClick={() => setCantidad((c) => c + 1)}
+                    className="p-2.5 text-gray-500 hover:text-brand transition-colors"
+                    aria-label="Aumentar cantidad"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  disabled={outOfStock}
+                  onClick={() => { addItem(product, { color: currentColor, cantidad }); openCart(); }}
+                  className={`flex-1 py-3.5 rounded-lg font-semibold text-base transition-colors ${
+                    outOfStock ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-brand text-white hover:bg-brand-dark'
+                  }`}
+                >
+                  {outOfStock ? 'Agotado' : 'Agregar al carrito'}
+                </button>
+              </div>
+              <a
+                href={whatsappCotizarHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-base bg-[#25D366] text-white hover:bg-[#1eb355] transition-colors"
+              >
+                <WhatsAppIcon />
+                ¿Tienes alguna otra pregunta?
+              </a>
+            </div>
+          </div>
+
+          {/* ── CTA normal (mobile) ── */}
+          <div className="md:hidden space-y-3">
+            <div className="flex items-stretch gap-3">
+              <div className="flex items-center gap-1 border border-gray-200 rounded-lg px-1">
+                <button
+                  type="button"
+                  onClick={() => setCantidad((c) => Math.max(1, c - 1))}
+                  className="p-2.5 text-gray-500 hover:text-brand transition-colors"
+                  aria-label="Disminuir cantidad"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+                <span className="text-sm font-semibold w-8 text-center">{cantidad}</span>
+                <button
+                  type="button"
+                  onClick={() => setCantidad((c) => c + 1)}
+                  className="p-2.5 text-gray-500 hover:text-brand transition-colors"
+                  aria-label="Aumentar cantidad"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+              <button
+                type="button"
+                disabled={outOfStock}
+                onClick={() => { addItem(product, { color: currentColor, cantidad }); openCart(); }}
+                className={`flex-1 py-3.5 rounded-lg font-semibold text-base transition-colors ${
+                  outOfStock ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-brand text-white hover:bg-brand-dark'
+                }`}
+              >
+                {outOfStock ? 'Agotado' : 'Agregar al carrito'}
+              </button>
+            </div>
+            <a
+              href={whatsappCotizarHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-base bg-[#25D366] text-white hover:bg-[#1eb355] transition-colors"
+            >
+              <WhatsAppIcon />
+              ¿Tienes alguna otra pregunta?
+            </a>
+          </div>
+        </div>
+
+        {/* ── LEFT (DOM segundo): imagen + video — primera en desktop ── */}
+        <div className="order-2 md:order-1 flex flex-col">
           {hasRealImages ? (
             <ImageCarousel images={displayedImages} nombre={product.nombre} />
           ) : (
             <div className="aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden">
-              <ProductImage
-                nombre={product.nombre}
-                width={600}
-                height={450}
-                className="w-full h-full"
-              />
+              <ProductImage nombre={product.nombre} width={600} height={450} className="w-full h-full" />
             </div>
           )}
-
-          <FeatureCards
-            ficha={product.ficha_tecnica}
-            onGoFicha={() => setActiveTab('ficha')}
-          />
 
           {/* Video */}
           {product.videoId && (
@@ -678,202 +844,17 @@ export default function ProductPage() {
             </div>
           )}
         </div>
-
-        {/* Right: Info */}
-        <div className="flex flex-col">
-          {/* Nombre */}
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
-            {product.nombre}
-          </h1>
-
-          {/* Precio */}
-          <div className="flex items-baseline gap-3 mb-4">
-            {product.precio_original && product.precio_actual < product.precio_original && (
-              <span className="text-gray-400 line-through text-lg">
-                {formatPrice(product.precio_original)}
-              </span>
-            )}
-            <span className="text-brand font-bold text-3xl">
-              {formatPrice(product.precio_actual)}
-            </span>
-          </div>
-
-          {/* Descripción breve */}
-          {cleanDescription && (
-            <div className="mb-5">
-              <div
-                ref={descBreveRef}
-                className={`text-gray-600 text-sm leading-relaxed whitespace-pre-line ${
-                  descBreveExpandida ? '' : 'line-clamp-4'
-                }`}
-              >
-                {cleanDescription}
-              </div>
-              {(descBreveExcedida || cleanDescription.length > 200) && (
-                <button
-                  type="button"
-                  onClick={() => setDescBreveExpandida((v) => !v)}
-                  className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-brand hover:text-brand-dark transition-colors"
-                >
-                  {descBreveExpandida ? (
-                    <>
-                      <ChevronUp className="w-3.5 h-3.5" /> Ver menos
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="w-3.5 h-3.5" /> Leer más
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Ideal para */}
-          {idealParaList.length > 0 && (
-            <div className="mb-5">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                Ideal para
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {idealParaList.map((persona) => (
-                  <span
-                    key={persona}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full bg-brand/10 text-brand-dark"
-                  >
-                    <User className="w-3.5 h-3.5" />
-                    {persona}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Colores */}
-          {availableColors.length > 0 && (
-            <div className="mb-5">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                Colores disponibles
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {availableColors.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => setActiveColor(c)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                      currentColor === c
-                        ? 'border-brand bg-brand/5 text-brand font-semibold'
-                        : 'border-gray-200 text-gray-600 hover:border-gray-400'
-                    }`}
-                  >
-                    <span
-                      className={`w-3 h-3 rounded-full border border-gray-200 ${
-                        colorDotClass[c] || 'bg-gray-300'
-                      }`}
-                    />
-                    {c}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Categoría + Etiquetas */}
-          <div className="flex flex-wrap items-center gap-2 mb-5">
-            {product.categoria && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-700">
-                {product.categoria}
-              </span>
-            )}
-            {product.etiquetas?.map((tag) => (
-              <span
-                key={tag}
-                className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-full text-white ${
-                  tag === 'Hot' ? 'bg-red-500' : 'bg-bbva'
-                }`}
-              >
-                <Tag className="w-3 h-3" />
-                {tag}
-              </span>
-            ))}
-          </div>
-
-          {/* Batería y motor rápidos */}
-          <div className="space-y-1.5 text-sm text-gray-600 mb-5">
-            {product.motor && (
-              <p><span className="font-semibold">Motor:</span> {product.motor}</p>
-            )}
-            {product.bateria && (
-              <p><span className="font-semibold">Batería:</span> {cleanBateria(product.bateria) || product.bateria}</p>
-            )}
-          </div>
-
-          <BBVACard />
-
-          {/* CTA */}
-          <div className="mt-auto pt-6 space-y-3">
-            <div className="flex items-stretch gap-3">
-              <div className="flex items-center gap-1 border border-gray-200 rounded-lg px-1">
-                <button
-                  type="button"
-                  onClick={() => setCantidad((c) => Math.max(1, c - 1))}
-                  className="p-2.5 text-gray-500 hover:text-brand transition-colors"
-                  aria-label="Disminuir cantidad"
-                >
-                  <Minus className="w-4 h-4" />
-                </button>
-                <span className="text-sm font-semibold w-8 text-center">{cantidad}</span>
-                <button
-                  type="button"
-                  onClick={() => setCantidad((c) => c + 1)}
-                  className="p-2.5 text-gray-500 hover:text-brand transition-colors"
-                  aria-label="Aumentar cantidad"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
-
-              <button
-                type="button"
-                disabled={outOfStock}
-                onClick={() => {
-                  addItem(product, { color: currentColor, cantidad });
-                  openCart();
-                }}
-                className={`flex-1 py-3.5 rounded-lg font-semibold text-base transition-colors ${
-                  outOfStock
-                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                    : 'bg-brand text-white hover:bg-brand-dark'
-                }`}
-              >
-                {outOfStock ? 'Agotado' : 'Agregar al carrito'}
-              </button>
-            </div>
-
-            <a
-              href={whatsappCotizarHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-base bg-[#25D366] text-white hover:bg-[#1eb355] transition-colors"
-            >
-              <WhatsAppIcon />
-              Cotizar por WhatsApp
-            </a>
-
-            <Link
-              to="/tiendas"
-              className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-lg font-semibold text-sm border-2 border-brand text-brand hover:bg-brand hover:text-white transition-colors"
-            >
-              Consultar disponibilidad en tiendas
-            </Link>
-          </div>
-        </div>
       </div>
 
-      {/* Bottom: Tabs — full width */}
+      {/* FULL-WIDTH: "Características Destacadas" (la tablita) */}
+      <div className="mb-10">
+        <SpecsCard ficha={product.ficha_tecnica} />
+      </div>
+
+      {/* ════════════════════════════════════════════════════════════
+          TABS — descripción, ficha técnica, info adicional, etc.
+         ════════════════════════════════════════════════════════════ */}
       <div className="border-t border-gray-200 pt-8">
-        {/* Tab headers */}
         <div className="flex gap-1 overflow-x-auto border-b border-gray-200 mb-6">
           {tabs.map((tab) => (
             <button
@@ -891,19 +872,14 @@ export default function ProductPage() {
           ))}
         </div>
 
-        {/* Tab content */}
         <div className="min-h-[200px]">
           {activeTab === 'descripcion' && (
             <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed">
               {cleanDescription ? (
                 <>
                   <div
-                    ref={descRef}
-                    className={
-                      !descExpandida && descExcedida
-                        ? 'relative max-h-[200px] overflow-hidden'
-                        : ''
-                    }
+                    ref={descFullRef}
+                    className={!descExpandida && descExcedida ? 'relative max-h-[200px] overflow-hidden' : ''}
                   >
                     <p className="whitespace-pre-line">{cleanDescription}</p>
                     {!descExpandida && descExcedida && (
@@ -913,17 +889,13 @@ export default function ProductPage() {
                   {descExcedida && (
                     <button
                       type="button"
-                      onClick={() => setDescExpandida((v) => !v)}
+                      onClick={toggleDesc}
                       className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-dark transition-colors"
                     >
                       {descExpandida ? (
-                        <>
-                          <ChevronUp className="w-4 h-4" /> Ver menos
-                        </>
+                        <><ChevronUp className="w-4 h-4" /> Ver menos</>
                       ) : (
-                        <>
-                          <ChevronDown className="w-4 h-4" /> Ver más
-                        </>
+                        <><ChevronDown className="w-4 h-4" /> Ver más</>
                       )}
                     </button>
                   )}
@@ -940,47 +912,27 @@ export default function ProductPage() {
             </div>
           )}
 
-          {activeTab === 'ficha' && (
-            <FichaTecnicaTab ficha={product.ficha_tecnica} />
-          )}
-
-          {activeTab === 'capacidad' && (
-            <CapacidadCargaTab ficha={product.ficha_tecnica} />
-          )}
-
-          {activeTab === 'info' && (
-            <InfoAdicionalTab info={product.info_adicional} />
-          )}
-
-          {activeTab === 'manuales' && (
-            <ManualesTab producto={product} />
-          )}
+          {activeTab === 'ficha' && <FichaTecnicaTab ficha={product.ficha_tecnica} />}
+          {activeTab === 'capacidad' && <CapacidadCargaTab ficha={product.ficha_tecnica} />}
+          {activeTab === 'info' && <InfoAdicionalTab info={product.info_adicional} />}
+          {activeTab === 'manuales' && <ManualesTab producto={product} />}
 
           {activeTab === 'legal' && (
             <div className="text-sm text-gray-500 space-y-3">
-              <p>
-                Los precios indicados incluyen IGV. La disponibilidad y especificaciones
-                están sujetas a cambios sin previo aviso.
-              </p>
-              <p>
-                Las imágenes son referenciales. El producto final puede variar ligeramente
-                en color y acabado.
-              </p>
-              <p>
-                Garantía según términos y condiciones de GreenLine. Consulte en tienda
-                para más detalles.
-              </p>
+              <p>Los precios indicados incluyen IGV. La disponibilidad y especificaciones están sujetas a cambios sin previo aviso.</p>
+              <p>Las imágenes son referenciales. El producto final puede variar ligeramente en color y acabado.</p>
+              <p>Garantía según términos y condiciones de GreenLine. Consulte en tienda para más detalles.</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Testimonios de clientes de este modelo */}
+      {/* ════════════════════════════════════════════════════════════
+          TESTIMONIOS
+         ════════════════════════════════════════════════════════════ */}
       {testimoniosRelacionados.length > 0 && (
         <section className="mt-12">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">
-            Lo que dicen nuestros clientes
-          </h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">Lo que dicen nuestros clientes</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {testimoniosRelacionados.map((t) => (
               <div
@@ -988,9 +940,7 @@ export default function ProductPage() {
                 className="bg-gray-50 rounded-xl p-6 border border-gray-100 hover:shadow-md transition-shadow"
               >
                 <StarRating rating={t.rating} />
-                <p className="text-gray-700 text-sm leading-relaxed mt-3 mb-4">
-                  &ldquo;{t.texto}&rdquo;
-                </p>
+                <p className="text-gray-700 text-sm leading-relaxed mt-3 mb-4">&ldquo;{t.texto}&rdquo;</p>
                 <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                   <div>
                     <p className="font-semibold text-gray-900 text-sm">{t.nombre}</p>

@@ -1,5 +1,5 @@
-import { lazy, Suspense, useState } from 'react';
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { lazy, Suspense, useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { AuthProvider } from '../frontend/contexts/AuthContext';
 import { CartProvider } from '../frontend/contexts/CartContext';
 import Navbar from '../frontend/components/Navbar';
@@ -13,6 +13,8 @@ import ProtectedRoute, { ADMIN_ROLES } from '../frontend/components/ProtectedRou
 import LegacyRedirect from '../frontend/components/LegacyRedirect';
 import CartDrawer from '../frontend/components/CartDrawer';
 import AnniversaryTheme from '../frontend/components/AnniversaryTheme';
+import confetti from 'canvas-confetti';
+import { CONFETTI_COLORS } from '../frontend/lib/aniversario';
 
 const Home = lazy(() => import('../frontend/pages/Home'));
 const Shop = lazy(() => import('../frontend/pages/Shop'));
@@ -58,6 +60,29 @@ function PageLoader() {
 
 function Layout() {
   const [communityOpen, setCommunityOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    const duration = 2500;
+    const end = Date.now() + duration;
+
+    (function frame() {
+      confetti({
+        particleCount: 6,
+        angle: 90,
+        spread: 70,
+        origin: { x: Math.random(), y: 0 },
+        colors: CONFETTI_COLORS,
+      });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    })();
+
+    const burst = window.setTimeout(() => {
+      confetti({ particleCount: 140, spread: 100, origin: { y: 0.6 }, colors: CONFETTI_COLORS });
+    }, 500);
+
+    return () => window.clearTimeout(burst);
+  }, [location.pathname]);
 
   return (
     <>

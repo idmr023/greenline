@@ -1,93 +1,52 @@
 import { Play } from 'lucide-react';
-import { SOCIAL } from '../lib/config';
-import { InstagramIcon, TiktokIcon } from './SocialIcons';
-import { SOCIAL_MEDIA_GRID } from '../lib/images';
-
-const VIDEOS = [
-  {
-    id: 'gl3_video',
-    image: SOCIAL_MEDIA_GRID.gl3_video,
-    network: 'Instagram',
-    title: 'GL3 en acción',
-    href: SOCIAL.instagram,
-  },
-  {
-    id: 'h3_pro_video',
-    image: SOCIAL_MEDIA_GRID.h3_pro_video,
-    network: 'TikTok',
-    title: 'H3 Pro',
-    href: SOCIAL.tiktok,
-  },
-  {
-    id: 'm_car_video',
-    image: SOCIAL_MEDIA_GRID.m_car_video,
-    network: 'Instagram',
-    title: 'M-CAR',
-    href: SOCIAL.instagram,
-  },
-  {
-    id: 'y5_video_tiktok',
-    image: SOCIAL_MEDIA_GRID.y5_video_tiktok,
-    network: 'TikTok',
-    title: 'Y5',
-    href: SOCIAL.tiktok,
-  },
-  {
-    id: 'h3_pro_titktok',
-    image: SOCIAL_MEDIA_GRID.h3_pro_titktok,
-    network: 'TikTok',
-    title: 'H3 Pro TikTok',
-    href: SOCIAL.tiktok,
-  },
-];
+import { useState } from 'react';
+import YouTubeEmbed from './YouTubeEmbed';
 
 export default function VideoSection() {
+  const [showVideo, setShowVideo] = useState(false);
+  const videoId = 'dQw4w9WgXcQ'; // Video institucional / demostrativo
+
   return (
-    <section className="py-14 bg-gray-50">
+    <section className="py-16 bg-gradient-to-b from-white to-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10">
-          <span className="inline-block px-3 py-1 bg-greenline text-white-legible ring-2 ring-yellow-electric rounded-full text-sm font-semibold mb-4">
-            Véanos en acción
+          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-greenline text-white-legible ring-2 ring-yellow-electric rounded-full text-sm font-bold mb-4 shadow-sm">
+            🎬 ¡MIRA EL PODER DE GREEN LINE EN ACCIÓN!
           </span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
-            Conoce nuestros vehículos en acción
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-3 tracking-tight">
+            La Revolución de la Movilidad Eléctrica en el Perú
           </h2>
+          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
+            Descubre por qué miles de peruanos ya ahorran tiempo, dinero y cuidan el planeta con nuestros vehículos eléctricos.
+          </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {VIDEOS.map((v) => (
-            <a
-              key={v.id}
-              href={v.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group relative block aspect-square overflow-hidden rounded-2xl bg-gray-900 shadow-sm"
-              aria-label={`Ver ${v.title} en ${v.network}`}
+        <div className="max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-2xl bg-black border-4 border-white">
+          {!showVideo ? (
+            <div 
+              onClick={() => setShowVideo(true)}
+              className="relative aspect-video w-full cursor-pointer group bg-gray-900 flex items-center justify-center overflow-hidden"
             >
               <img
-                src={v.image}
-                alt={v.title}
-                loading="lazy"
-                className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
+                src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=1200&q=80"
+                alt="Green Line en acción"
+                className="w-full h-full object-cover opacity-70 group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors duration-300" />
-              <span className="absolute inset-0 flex items-center justify-center">
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-black shadow-lg transition transform group-hover:scale-110">
-                  <Play className="w-5 h-5 fill-current ml-0.5" />
+              <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                <span className="flex h-20 w-20 items-center justify-center rounded-full bg-yellow-electric text-black-contrast shadow-2xl transition transform group-hover:scale-110 ring-4 ring-white/30">
+                  <Play className="w-8 h-8 fill-current ml-1" />
                 </span>
-              </span>
-              <span className={`absolute bottom-3 left-3 inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold uppercase tracking-wide rounded-full text-white-legible shadow ${
-                v.network === 'TikTok' ? 'bg-black-contrast/90' : 'bg-greenline'
-              }`}>
-                {v.network === 'TikTok' ? (
-                  <TiktokIcon className="w-3 h-3" />
-                ) : (
-                  <InstagramIcon className="w-3 h-3" />
-                )}
-                {v.network}
-              </span>
-            </a>
-          ))}
+                <span className="text-white font-extrabold text-lg sm:text-xl drop-shadow-md">
+                  Reproducir Video Oficial
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="aspect-video w-full">
+              <YouTubeEmbed videoId={videoId} />
+            </div>
+          )}
         </div>
       </div>
     </section>

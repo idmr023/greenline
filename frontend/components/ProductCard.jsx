@@ -132,7 +132,7 @@ export default function ProductCard({ producto, featured = false }) {
           )}
           {autonomia && (
             <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-full bg-brand text-white">
-              <Route className="w-3 h-3" /> {autonomia}km
+              <Route className="w-3 h-3" /> {/km/i.test(String(autonomia)) ? autonomia : `${autonomia} km`}
             </span>
           )}
           {bateria && (
