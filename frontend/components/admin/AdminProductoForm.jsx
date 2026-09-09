@@ -322,7 +322,7 @@ potencia_bateria: ft.potencia_bateria || '',
       producto_id: prodId,
       potencia_motor: ficha.potencia_motor || null,
       tipo_bateria: ficha.tipo_bateria || null,
-      autonomia_km: ficha.autonomia_km ? Number(ficha.autonomia_km) : null,
+      autonomia_km: ficha.autonomia_km?.toString().trim() || null,
       velocidad_max_kmh: ficha.velocidad_max_kmh ? Number(ficha.velocidad_max_kmh) : null,
       tiempo_carga_min: ficha.tiempo_carga_min ? Number(ficha.tiempo_carga_min) : null,
       capacidad_bateria: ficha.capacidad_bateria || null,
@@ -509,7 +509,14 @@ potencia_bateria: ft.potencia_bateria || '',
             <input value={ficha.capacidad_bateria} onChange={(e) => setFicha({ ...ficha, capacidad_bateria: e.target.value })} className="input" placeholder="60V 20Ah" />
           </Field>
           <Field label="Autonomía (km)">
-            <input type="number" value={ficha.autonomia_km} onChange={(e) => setFicha({ ...ficha, autonomia_km: e.target.value })} className="input" />
+            <input
+              type="text"
+              inputMode="text"
+              value={ficha.autonomia_km}
+              onChange={(e) => setFicha({ ...ficha, autonomia_km: e.target.value })}
+              className="input"
+              placeholder="40-50"
+            />
           </Field>
           <Field label="Velocidad Máx. (km/h)">
             <input type="number" value={ficha.velocidad_max_kmh} onChange={(e) => setFicha({ ...ficha, velocidad_max_kmh: e.target.value })} className="input" />

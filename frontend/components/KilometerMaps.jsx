@@ -410,8 +410,7 @@ export default function KilometerMaps({ abierto = true, onKmChange, view = 'full
         )}
       </div>
       <p className="text-[11px] text-gray-400 pt-1">
-        * La distancia es referencial y puede variar según la persona que la
-        use, la inclinación del terreno y otros factores externos.
+        * Mapa referencial: la autonomía puede variar según el peso, cantidad de personas, inclinación y otros factores. Se recomienda elegir un modelo con al menos 5 km más de autonomía que su recorrido diario.
       </p>
     </div>
   );
