@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Gift, TicketPercent, Truck, ShieldCheck } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -9,11 +9,58 @@ import { ANIVERSARIO_VIDEO } from '../lib/images';
 import { TiktokIcon } from '../components/SocialIcons';
 import DynamicForm from '../components/ui/Form';
 import PromoDivider from '../components/ui/aniversario/PromoDivider';
+import { supabase } from '../lib/supabase';
 
 const CONFETTI_COLORS = ['#009000', '#006400', '#2eb82e', '#ffffff', '#ffd400'];
 
 export default function Aniversario() {
   const numero = aniversarioNumero();
+  const [enviando, setEnviando] = useState(false);
+  const [exito, setExito] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const manejarEnvio = async (formData) => {
+    setEnviando(true);
+    setExito(false);
+    setErrorMsg('');
+    try {
+      const payload = {
+        nombre: `${formData.nombre || ''} ${formData.apellido || ''}`.trim(),
+        rol: `DNI: ${formData.dni || 'N/A'} - Tel: ${formData.telefono || 'N/A'} - Email: ${formData.email || 'N/A'}`,
+        texto: formData.testimonio,
+        vehiculo: 'Cliente Green Line',
+        rating: 5,
+        activo: false // pending review by admin
+      };
+
+      const { error } = await supabase.from('testimonios').insert([payload]);
+      if (error) throw error;
+
+      // Enviar notificación por correo a greenlinemoto@gmail.com vía backend
+      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+      await fetch(`${apiBase}/contact/testimonio`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: formData.nombre,
+          apellido: formData.apellido,
+          telefono: formData.telefono,
+          dni: formData.dni,
+          email: formData.email,
+          testimonio: formData.testimonio,
+        }),
+      }).catch((emailErr) => {
+        console.warn('No se pudo enviar el correo de notificación:', emailErr);
+      });
+
+      setExito(true);
+    } catch (err) {
+      console.error(err);
+      setErrorMsg('Hubo un error al enviar tu testimonio. Por favor intenta de nuevo.');
+    } finally {
+      setEnviando(false);
+    }
+  };
 
   useEffect(() => {
     const duration = 2500;
@@ -144,15 +191,32 @@ export default function Aniversario() {
           <PromoDivider/>
 
           <div
-            className="bg-gray-50 rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col items-center text-justify align-center justify-center mx-auto w-3xl" id="testimonios"
+            className="bg-gray-50 rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col items-center justify-center mx-auto max-w-3xl" id="testimonios"
           >
-            <h3 className="font-bold mb-8 text-center text-2xl">La opinión de nuestros clientes es la más importante</h3>
-            <p className="text-sm text-gray-600 mb-10">Te animamos a compartir tu experiencia a través del siguiente formulario, una vez nuestro equipo lo revise procederemos a ponernos en contacto contigo. Además, sube una foto con tu vehículo a tus redes sociales y etiquetanos <a href="https://www.instagram.com/greenline_peru/ " className="text-brand hover:underline" target="_blank" rel="noopener noreferrer">@greenline_peru</a> para participar de regalos que tenemos para nuestros clientes más fieles. </p>
-            <DynamicForm 
-              fields={datosForm} 
-              // onSubmit={manejarEnvio} 
-              buttonText="Dejar mi Testimonio"
-            />
+            <h3 className="font-bold mb-4 text-center text-2xl">La opinión de nuestros clientes es la más importante</h3>
+            <p className="text-sm text-gray-600 mb-8 text-center">
+              Te animamos a compartir tu experiencia a través del siguiente formulario. Una vez nuestro equipo lo revise, nos pondremos en contacto contigo. Además, sube una foto con tu vehículo a tus redes sociales y etiquetanos <a href="https://www.instagram.com/greenline_peru/" className="text-brand hover:underline" target="_blank" rel="noopener noreferrer">@greenline_peru</a> para participar de regalos que tenemos para nuestros clientes más fieles.
+            </p>
+
+            {exito ? (
+              <div className="w-full max-w-lg p-6 bg-emerald-50 border border-emerald-200 rounded-2xl text-center text-emerald-900 shadow-sm">
+                <h4 className="font-bold text-lg mb-2">🎉 ¡Gracias por tu testimonio!</h4>
+                <p className="text-sm">Tu experiencia ha sido registrada con éxito y será publicada próximamente tras la revisión de nuestro equipo.</p>
+              </div>
+            ) : (
+              <>
+                {errorMsg && (
+                  <div className="w-full max-w-lg mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm text-center">
+                    {errorMsg}
+                  </div>
+                )}
+                <DynamicForm 
+                  fields={datosForm} 
+                  onSubmit={manejarEnvio} 
+                  buttonText={enviando ? 'Enviando testimonio...' : 'Dejar mi Testimonio'}
+                />
+              </>
+            )}
           </div>
       </div>
     </main>

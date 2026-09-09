@@ -104,7 +104,7 @@ CREATE TABLE ficha_tecnica (
   tipo_toma_corriente TEXT,
   tiempo_carga_min INT,
   velocidad_max_kmh INT,
-  autonomia_km INT,
+  autonomia_km TEXT,
   carga_minima_kg INT,
   carga_maxima_kg INT,
   largo_cm INT,

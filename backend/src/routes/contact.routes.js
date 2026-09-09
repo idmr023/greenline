@@ -91,6 +91,87 @@ router.post('/', contactLimiter, validate(contactSchema), async (req, res) => {
   }
 });
 
+// ============================================================
+// POST /api/contact/testimonio — Envía notificación de testimonio a greenlinemoto@gmail.com
+// ============================================================
+
+const testimonioSchema = z.object({
+  body: z.object({
+    nombre: z.string().trim().min(2).max(120),
+    apellido: z.string().trim().min(2).max(120),
+    telefono: z.string().trim().min(6).max(30),
+    dni: z.string().trim().min(7).max(12),
+    email: z.string().email(),
+    testimonio: z.string().trim().min(10).max(5000),
+  }),
+});
+
+router.post('/testimonio', contactLimiter, validate(testimonioSchema), async (req, res) => {
+  try {
+    const { nombre, apellido, telefono, dni, email, testimonio } = req.validated.body;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+          .container { max-width: 600px; margin: 40px auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+          .header { background: #009000; padding: 24px 30px; }
+          .header h1 { color: white; margin: 0; font-size: 20px; }
+          .body { padding: 30px; }
+          .campo { margin-bottom: 16px; }
+          .campo .etiqueta { font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+          .campo .valor { margin-top: 4px; font-size: 14px; color: #111; background: #f9f9f9; padding: 10px 12px; border-radius: 8px; white-space: pre-wrap; }
+          .footer { padding: 16px 30px; text-align: center; color: #999; font-size: 12px; border-top: 1px solid #eee; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header"><h1>Nuevo Testimonio Recibido — GreenLine</h1></div>
+          <div class="body">
+            <div class="campo">
+              <div class="etiqueta">Cliente</div>
+              <div class="valor">${escapeHtml(nombre)} ${escapeHtml(apellido)}</div>
+            </div>
+            <div class="campo">
+              <div class="etiqueta">DNI</div>
+              <div class="valor">${escapeHtml(dni)}</div>
+            </div>
+            <div class="campo">
+              <div class="etiqueta">Teléfono</div>
+              <div class="valor">${escapeHtml(telefono)}</div>
+            </div>
+            <div class="campo">
+              <div class="etiqueta">Correo electrónico</div>
+              <div class="valor">${escapeHtml(email)}</div>
+            </div>
+            <div class="campo">
+              <div class="etiqueta">Testimonio</div>
+              <div class="valor">${escapeHtml(testimonio)}</div>
+            </div>
+          </div>
+          <div class="footer">GreenLine © ${new Date().getFullYear()} — Movilidad Eléctrica</div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    await enqueueEmail({
+      to: 'greenlinemoto@gmail.com',
+      subject: `Nuevo Testimonio de ${nombre} ${apellido} — GreenLine`,
+      html,
+      priority: 'high',
+    });
+
+    res.status(200).json({ ok: true });
+  } catch (error) {
+    console.error('Error enviando email de testimonio:', error);
+    res.status(500).json({ error: 'No se pudo enviar el testimonio. Intenta más tarde.' });
+  }
+});
+
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, '&amp;')

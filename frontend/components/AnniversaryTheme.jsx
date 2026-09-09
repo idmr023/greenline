@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Gift, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import {
   temaAniversarioActivo,
   toggleTemaAniversario,
-  BALLOONS,
+  SERPENTINAS,
 } from '../lib/aniversario';
 
 export default function AnniversaryTheme() {
@@ -33,28 +33,18 @@ export default function AnniversaryTheme() {
     <>
       {/* Capa de atmósfera aniversario */}
       <div className="gl-aniv-layer" aria-hidden="true">
-        {/* Globos — solo verde y blanco */}
-        {BALLOONS.map((b, i) => (
+        {/* {SERPENTINAS.map((s, i) => (
           <div
             key={i}
-            className="gl-aniv-balloon"
+            className="gl-aniv-serpentina"
             style={{
-              left: b.left,
-              color: b.color,
-              background: `radial-gradient(circle at 30% 30%, #fff8, transparent 45%), ${b.color}`,
-              animationDelay: `${b.delay}s`,
-              animationDuration: `${b.duration}s`,
+              left: s.left,
+              color: s.color,
+              animationDelay: `${s.delay}s`,
+              animationDuration: `${s.duration}s`,
             }}
-          >
-            <div
-              className="gl-aniv-gift"
-              style={{ background: b.color }}
-              title={i % 3 === 2 ? 'Descuentos de aniversario' : undefined}
-            >
-              {i % 3 === 2 ? <Gift className="w-3 h-3 text-white" /> : null}
-            </div>
-          </div>
-        ))}
+          />
+        ))} */}
 
         {/* N° 9 gigante de fondo, detrás del contenido (sombra) */}
         <span className="gl-aniv-num gl-aniv-num-bg">9</span>

@@ -61,8 +61,9 @@ function textoValor(key, valor) {
   if (valor == null || valor === '') return '—';
   if (typeof valor === 'boolean') return valor ? 'Sí' : 'No';
   const unidad = UNIDADES_FILA[key];
-  if (unidad && typeof valor !== 'string') return `${valor} ${unidad}`;
-  return String(valor);
+  if (!unidad) return String(valor);
+  const s = String(valor).trim();
+  return new RegExp(`\\b${unidad}\\b`, 'i').test(s) ? s : `${s} ${unidad}`;
 }
 
 function ganadorDe(key, valorA, valorB) {

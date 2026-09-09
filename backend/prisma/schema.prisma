@@ -336,7 +336,7 @@ model FichaTecnica {
   tipoTomaCorriente   String? @map("tipo_toma_corriente")
   tiempoCargaMin      Int?    @map("tiempo_carga_min")
   velocidadMaxKmh     Int?    @map("velocidad_max_kmh")
-  autonomiaKm         Int?    @map("autonomia_km")
+  autonomiaKm         String? @map("autonomia_km")
   cargaMinimaKg       Int?    @map("carga_minima_kg")
   cargaMaximaKg       Int?    @map("carga_maxima_kg")
   largoCm             Int?    @map("largo_cm")

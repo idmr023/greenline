@@ -1,17 +1,21 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { createClient } from '@supabase/supabase-js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import {
-  BUCKET,
   procesarImagen,
-  subirStorage,
   formatearTamano,
 } from '../../scripts/image-utils.mjs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PUBLIC_DIR = path.resolve(__dirname, '../../../public');
 
 const router = Router();
 
 // ============================================================
-// Supabase Admin client (service role)
+// Supabase Admin client (solo para auth)
 // ============================================================
 
 const SUPABASE_URL = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').replace(/\/+$/, '');
@@ -21,6 +25,7 @@ if (!SUPABASE_URL || !SERVICE_KEY) {
   console.warn('⚠️  blog.routes: SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY no configurados');
 }
 
+const { createClient } = await import('@supabase/supabase-js');
 const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_KEY);
 
 // ============================================================
@@ -105,21 +110,18 @@ router.post('/upload', requireAuth, (req, res, next) => {
     const processedSize = webpBuffer.length;
     const ratio = ((1 - processedSize / originalSize) * 100).toFixed(1);
 
-    // Generar ruta destino
+    // Guardar localmente en public/assets/imagenes/articulos/
     const filename = `${Date.now()}-${Math.round(Math.random() * 1e6)}.webp`;
-    const destino = `assets/imagenes/articulos/${filename}`;
+    const destino = `/assets/imagenes/articulos/${filename}`;
+    const absDestino = path.join(PUBLIC_DIR, destino);
 
-    // Subir a Supabase Storage
-    await subirStorage(supabaseAdmin, destino, webpBuffer);
-
-    // Obtener URL pública
-    const { data: urlData } = supabaseAdmin.storage
-      .from(BUCKET)
-      .getPublicUrl(destino);
+    const dir = path.dirname(absDestino);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(absDestino, webpBuffer);
 
     res.json({
       ok: true,
-      url: urlData.publicUrl,
+      url: destino,
       path: destino,
       original: formatearTamano(originalSize),
       processed: formatearTamano(processedSize),

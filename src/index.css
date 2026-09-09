@@ -139,40 +139,24 @@ p, span, a, li, button, input, textarea {
   overflow: hidden;
 }
 
-.gl-aniv-balloon {
+.gl-aniv-serpentina {
   position: absolute;
-  bottom: -120px;
-  width: 42px;
-  height: 54px;
+  top: -100px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  opacity: 0.85;
-  animation-name: gl-balloon-rise;
+  background: currentColor;
+  box-shadow:
+    7px 14px 0 0 currentColor,
+    -7px 28px 0 0 currentColor,
+    7px 42px 0 0 currentColor,
+    -7px 56px 0 0 currentColor,
+    7px 70px 0 0 currentColor,
+    -7px 84px 0 0 currentColor;
+  opacity: 0.9;
+  animation-name: gl-serpentina-fall;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
-}
-
-.gl-aniv-balloon::before {
-  content: "";
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-bottom: 10px solid currentColor;
-}
-
-.gl-aniv-gift {
-  position: absolute;
-  bottom: -14px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .gl-aniv-num {
@@ -239,19 +223,22 @@ p, span, a, li, button, input, textarea {
   animation: gl-close-bob 3.2s ease-in-out infinite;
 }
 
-@keyframes gl-balloon-rise {
+@keyframes gl-serpentina-fall {
   0% {
-    transform: translateY(0) translateX(0);
+    transform: translateY(0) rotate(0deg) translateX(0);
     opacity: 0;
   }
   8% {
-    opacity: 0.85;
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateY(55vh) rotate(180deg) translateX(22px);
   }
   92% {
-    opacity: 0.85;
+    opacity: 0.9;
   }
   100% {
-    transform: translateY(-120vh) translateX(30px);
+    transform: translateY(115vh) rotate(360deg) translateX(-16px);
     opacity: 0;
   }
 }
