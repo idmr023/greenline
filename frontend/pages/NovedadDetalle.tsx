@@ -18,7 +18,8 @@ import { supabase } from "../lib/supabase";
 import NovedadImagen from "../components/NovedadImagen";
 import SEOHead, { articleSchema, breadcrumbSchema } from "../components/SEOHead";
 import TextToVoice from "../components/TextToVoice";
-import { versionarImagen, versionarHtml } from "../lib/imagenVersionada";
+import { versionarImagen } from "../lib/imagenVersionada";
+import BlogContent from "../components/blog/BlogContent";
 
 type Post = {
   id: string;
@@ -486,7 +487,8 @@ export default function NovedadDetalle() {
     {/* Article content */}
     <div ref={contentRef}>
       {hasContent ? (
-        <div
+        <BlogContent
+          html={post.content_html ?? ""}
           className="
             prose prose-neutral max-w-none
             [&_h2]:mb-4 [&_h2]:mt-14 [&_h2]:scroll-mt-24 [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:leading-tight [&_h2]:tracking-tight [&_h2]:text-neutral-950
@@ -501,7 +503,6 @@ export default function NovedadDetalle() {
             [&_strong]:font-semibold [&_strong]:text-neutral-900
             [&_hr]:my-12 [&_hr]:border-neutral-200
           "
-          dangerouslySetInnerHTML={{ __html: versionarHtml(post.content_html ?? "") }}
         />
       ) : (
         <div className="my-8 rounded-2xl border border-neutral-200 bg-neutral-50 p-10 text-center">

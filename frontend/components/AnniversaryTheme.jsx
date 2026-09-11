@@ -57,27 +57,6 @@ export default function AnniversaryTheme() {
           MES DE LOCURA
         </span>
       </div>
-
-      {/* Botón S/ (descuentos) arriba del botón de subir — discret y con acento amarillo eléctrico */}
-      <Link
-        to="/aniversario"
-        className="gl-aniv-sol fixed bottom-36 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-electric text-black-contrast font-black text-xl shadow-xl ring-2 ring-yellow-electric hover:scale-110 transition-transform"
-        aria-label="Ver ofertas de aniversario"
-        title="Ofertas de aniversario"
-      >
-        S<span className="text-sm">/</span>
-      </Link>
-
-      {/* Toggle manual (cerrar el tema) */}
-      <button
-        type="button"
-        onClick={toggleOff}
-        className="gl-aniv-close fixed bottom-4 right-4 z-40 p-2 rounded-full bg-greenline/10 text-greenline shadow hover:bg-greenline/20 transition-colors"
-        aria-label="Quitar tema de aniversario"
-        title="Tema de aniversario activo — haz clic para quitarlo"
-      >
-        <X className="w-4 h-4" />
-      </button>
     </>
   );
 }

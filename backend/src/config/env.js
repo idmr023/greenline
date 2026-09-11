@@ -21,6 +21,8 @@ const envSchema = z.object({
   MAIL_TO: z.string().email().optional(),
   /** Bandeja destino de las notificaciones de pedidos */
   ORDERS_MAIL_TO: z.string().email().default('greenlinemoto@gmail.com'),
+  /** Bandeja destino (RRHH) de las notificaciones del Libro de Reclamaciones */
+  RRHH_MAIL_TO: z.string().email().default('pe_asistente@migreenline.com'),
 
   TOTP_ISSUER: z.string().default('GreenLine'),
 
@@ -32,6 +34,13 @@ const envSchema = z.object({
 
   /** Conexión Redis para la cola de emails (BullMQ). Si falta, se usa una cola en memoria. */
   REDIS_URL: z.string().optional(),
+
+  /**
+   * Credenciales de la service account de Google Sheets como JSON minificado
+   * en una sola línea. Solo para producción (Render). En desarrollo se usa el
+   * archivo backend/service-account.json como fallback.
+   */
+  SERVICE_ACCOUNT_JSON: z.string().optional(),
 
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(900000),
   RATE_LIMIT_MAX: z.coerce.number().default(100),
