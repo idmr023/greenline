@@ -19,11 +19,10 @@ export const LOGO = v('/assets/imagenes/logos/logo_final.webp');
 // Carrusel del home
 // ----------------------------------------------------------------------------
 export const CARRUSEL = [
-  v('/assets/imagenes/caroussel/1.webp'),
+  v('/assets/imagenes/caroussel/1.png'),
   v('/assets/imagenes/caroussel/2.jpg'),
   v('/assets/imagenes/caroussel/3.jpg'),
   v('/assets/imagenes/caroussel/portada_setiembre_aniversario.png'),
-  v('/assets/imagenes/caroussel/4.jpg'),
 ];
 
 // ----------------------------------------------------------------------------

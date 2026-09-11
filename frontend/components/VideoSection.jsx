@@ -4,7 +4,7 @@ import YouTubeEmbed from './YouTubeEmbed';
 
 export default function VideoSection() {
   const [showVideo, setShowVideo] = useState(false);
-  const videoId = 'dQw4w9WgXcQ'; // Video institucional / demostrativo
+  const videoId = '1FCT0rusksA?si=Nzjxuyz72ZfMO5Af'; // Video institucional / demostrativo
 
   return (
     <section className="py-16 bg-gradient-to-b from-white to-gray-50">
@@ -16,7 +16,7 @@ export default function VideoSection() {
           <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-3 tracking-tight">
             La Revolución de la Movilidad Eléctrica en el Perú
           </h2>
-          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-gray-600 mx-auto">
             Descubre por qué miles de peruanos ya ahorran tiempo, dinero y cuidan el planeta con nuestros vehículos eléctricos.
           </p>
         </div>
@@ -28,7 +28,7 @@ export default function VideoSection() {
               className="relative aspect-video w-full cursor-pointer group bg-gray-900 flex items-center justify-center overflow-hidden"
             >
               <img
-                src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=1200&q=80"
+                src="/assets/imagenes/otros/vistaprevia_videoseccion.png"
                 alt="Green Line en acción"
                 className="w-full h-full object-cover opacity-70 group-hover:scale-105 transition-transform duration-700"
               />

@@ -3,31 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Zap, Battery, Route } from 'lucide-react';
 import ProductImage from './ProductImage';
 import { formatPrice } from '../lib/utils';
+import { colorDotClassFor } from '../lib/colores';
 import { cleanWatts, cleanBateria } from '../utils/stripHtml';
-
-const colorMap = {
-  Blanco: 'bg-white border-gray-300',
-  Negro: 'bg-gray-900',
-  Gris: 'bg-gray-500',
-  'Gris Oscuro': 'bg-gray-700',
-  Rojo: 'bg-red-600',
-  Verde: 'bg-brand',
-  'Verde ligero': 'bg-green-400',
-  'Verde Esmeralda': 'bg-emerald-600',
-  'Verde Metálico': 'bg-emerald-700',
-  'Verde Metalico': 'bg-emerald-700',
-  Celeste: 'bg-sky-400',
-  Azul: 'bg-blue-600',
-  Crema: 'bg-orange-100',
-  Rosado: 'bg-pink-400',
-  Plateado: 'bg-gray-400',
-  Plata: 'bg-gray-400',
-  Marrón: 'bg-amber-800',
-  Morado: 'bg-purple-600',
-  Naranja: 'bg-orange-500',
-  Camaleón: 'bg-gradient-to-br from-green-400 via-blue-500 to-purple-500',
-  Camaleon: 'bg-gradient-to-br from-green-400 via-blue-500 to-purple-500',
-};
 
 // COMENTADO (temporal — "últimas unidades" por números. Se reactiva cuando
 // vuelva el stock numérico). Requiere re-importar AlertTriangle de lucide-react.
@@ -151,7 +128,7 @@ export default function ProductCard({ producto, featured = false }) {
                 title={c}
                 onClick={(e) => { e.stopPropagation(); setSelectedColor(c); }}
                 className={`w-6 h-6 rounded-full border-2 transition-all ${
-                  colorMap[c] || 'bg-gray-300'
+                  colorDotClassFor(c)
                 } ${
                   currentColor === c
                     ? 'border-brand ring-2 ring-brand/30 scale-110'

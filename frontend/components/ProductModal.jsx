@@ -1,186 +1,16 @@
-import { useState, useEffect, useCallback, useRef, lazy, Suspense, useMemo } from 'react';
-import { X, ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { X } from 'lucide-react';
 import ProductImage from './ProductImage';
+import ProductGallery from './ProductGallery';
+import Visor360 from './Vista306';
 import { BBVACard } from './BBVACard';
 import { formatPrice } from '../lib/utils';
-
-const LazyYouTube = lazy(() => import('./YouTubeEmbed'));
-
-const colorDotClass = {
-  Blanco: 'bg-white border-gray-300',
-  Negro: 'bg-gray-900',
-  Gris: 'bg-gray-500',
-  'Gris Oscuro': 'bg-gray-700',
-  Rojo: 'bg-red-600',
-  Verde: 'bg-brand',
-  'Verde ligero': 'bg-green-400',
-  'Verde Esmeralda': 'bg-emerald-600',
-  'Verde Metálico': 'bg-emerald-700',
-  'Verde Metalico': 'bg-emerald-700',
-  Celeste: 'bg-sky-400',
-  Azul: 'bg-blue-600',
-  Crema: 'bg-orange-100',
-  Plata: 'bg-gray-400',
-  Morado: 'bg-purple-600',
-  Naranja: 'bg-orange-500',
-  Plateado: 'bg-gray-400',
-  Camaleón: 'bg-gradient-to-br from-green-400 via-blue-500 to-purple-500',
-  Camaleon: 'bg-gradient-to-br from-green-400 via-blue-500 to-purple-500',
-};
-
-function ImageCarousel({ images, nombre, onClose }) {
-  const [idx, setIdx] = useState(0);
-  const total = images.length;
-  const [dragX, setDragX] = useState(0);
-  const [dragging, setDragging] = useState(false);
-  const startPos = useRef({ x: 0, y: 0, time: 0 });
-
-  const next = useCallback(() => setIdx((i) => (i + 1) % total), [total]);
-  const prev = useCallback(() => setIdx((i) => (i - 1 + total) % total), [total]);
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowRight') next();
-      if (e.key === 'ArrowLeft') prev();
-    };
-    document.addEventListener('keydown', handler);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', handler);
-      document.body.style.overflow = '';
-    };
-  }, [onClose, next, prev]);
-
-  if (!total) return null;
-
-  const THRESHOLD = 50;
-
-  function handleStart(clientX, clientY) {
-    startPos.current = { x: clientX, y: clientY, time: Date.now() };
-    setDragging(true);
-  }
-
-  function handleMove(clientX, clientY) {
-    if (!dragging) return;
-    const dx = clientX - startPos.current.x;
-    const dy = clientY - startPos.current.y;
-    if (Math.abs(dy) > Math.abs(dx)) return;
-    setDragX(dx);
-  }
-
-  function handleEnd() {
-    if (!dragging) return;
-    setDragging(false);
-    if (dragX > THRESHOLD) prev();
-    else if (dragX < -THRESHOLD) next();
-    setDragX(0);
-  }
-
-  const transition = dragging ? 'none' : 'transform 0.3s ease';
-
-  return (
-    <div className="flex flex-col gap-3">
-      <div
-        className="relative w-full aspect-[4/3] md:aspect-video rounded-xl group select-none"
-        onTouchStart={(e) => handleStart(e.touches[0].clientX, e.touches[0].clientY)}
-        onTouchMove={(e) => handleMove(e.touches[0].clientX, e.touches[0].clientY)}
-        onTouchEnd={handleEnd}
-        onMouseDown={(e) => { e.preventDefault(); handleStart(e.clientX, e.clientY); }}
-        onMouseMove={(e) => handleMove(e.clientX, e.clientY)}
-        onMouseUp={handleEnd}
-        onMouseLeave={() => { if (dragging) handleEnd(); }}
-      >
-        {images.map((img, i) => {
-          let translate = 0;
-          if (i === idx) translate = dragX;
-          else if (i === idx + 1 && dragX < 0) translate = dragX + 100;
-          else if (i === idx - 1 && dragX > 0) translate = dragX - 100;
-
-          return (
-            <picture
-              key={`${img.src}-${i}`}
-              className={`absolute inset-0 block w-full h-full ${
-                i === idx || (dragX < 0 && i === idx + 1) || (dragX > 0 && i === idx - 1)
-                  ? 'opacity-100 z-10'
-                  : 'opacity-0 z-0'
-              }`}
-              style={{
-                transform: `translateX(${translate}%)`,
-                transition,
-              }}
-            >
-              <img
-                src={img.src}
-                alt={`${nombre} ${img.color || ''} ${i + 1}`}
-                className="w-full h-full object-contain bg-gray-bg"
-                draggable={false}
-              />
-            </picture>
-          );
-        })}
-
-        {total > 1 && (
-          <>
-            <button
-              type="button"
-              onClick={prev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 p-1.5 rounded-full bg-white/80 hover:bg-white shadow opacity-0 group-hover:opacity-100 transition-opacity hidden md:block"
-            >
-              <ChevronLeft className="w-5 h-5 text-gray-800" />
-            </button>
-            <button
-              type="button"
-              onClick={next}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 p-1.5 rounded-full bg-white/80 hover:bg-white shadow opacity-0 group-hover:opacity-100 transition-opacity hidden md:block"
-            >
-              <ChevronRight className="w-5 h-5 text-gray-800" />
-            </button>
-          </>
-        )}
-
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
-          {images.map((_, i) => (
-            total > 1 && (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setIdx(i)}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    i === idx ? 'bg-brand' : 'bg-white/60'
-                  }`}
-                />
-              )
-          ))}
-        </div>
-      </div>
-
-      {total > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {images.map((img, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setIdx(i)}
-              className={`shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-colors ${
-                i === idx ? 'border-brand' : 'border-transparent hover:border-gray-300'
-              }`}
-            >
-              <img src={img.src} alt="" className="w-full h-full object-contain bg-gray-bg" />
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+import { colorDotClassFor } from '../lib/colores';
 
 export default function ProductModal({ producto, onClose }) {
-  const [showVideo, setShowVideo] = useState(false);
   const [activeColor, setActiveColor] = useState(null);
 
   const hasRealImages = producto.imagenes?.length > 0;
-  const hasVideo = !!producto.videoId;
 
   const availableColors = useMemo(() => {
     if (!hasRealImages) return [];
@@ -200,7 +30,6 @@ export default function ProductModal({ producto, onClose }) {
 
   useEffect(() => {
     setActiveColor(null);
-    setShowVideo(false);
   }, [producto.id]);
 
   useEffect(() => {
@@ -232,13 +61,11 @@ export default function ProductModal({ producto, onClose }) {
           <div className="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-6">
             <div>
               {hasRealImages ? (
-                <>
-                  <ImageCarousel
-                    images={displayedImages}
-                    nombre={producto.nombre}
-                    onClose={onClose}
-                  />
-                </>
+                <ProductGallery
+                  images={displayedImages}
+                  product={producto}
+                  nombre={producto.nombre}
+                />
               ) : (
                 <div className="aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden">
                   <ProductImage
@@ -250,34 +77,7 @@ export default function ProductModal({ producto, onClose }) {
                 </div>
               )}
 
-              {hasVideo && (
-                <div className="mt-4">
-                  {!showVideo ? (
-                    <button
-                      type="button"
-                      onClick={() => setShowVideo(true)}
-                      className="w-full aspect-video bg-gray-900 rounded-xl flex items-center justify-center gap-3 text-white hover:bg-gray-800 transition-colors group"
-                    >
-                      <div className="w-14 h-14 rounded-full bg-red-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <Play className="w-6 h-6 ml-0.5" fill="white" />
-                      </div>
-                      <span className="font-semibold">Ver video del producto</span>
-                    </button>
-                  ) : (
-                    <div className="aspect-video rounded-xl overflow-hidden">
-                      <Suspense
-                        fallback={
-                          <div className="w-full h-full bg-gray-900 flex items-center justify-center">
-                            <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          </div>
-                        }
-                      >
-                        <LazyYouTube videoId={producto.videoId} />
-                      </Suspense>
-                    </div>
-                  )}
-                </div>
-              )}
+              <Visor360/>
             </div>
 
             <div className="flex flex-col">
@@ -328,7 +128,7 @@ export default function ProductModal({ producto, onClose }) {
                     >
                       <span
                         className={`w-3 h-3 rounded-full border border-gray-200 ${
-                          colorDotClass[c] || 'bg-gray-300'
+                          colorDotClassFor(c)
                         }`}
                       />
                       {c}

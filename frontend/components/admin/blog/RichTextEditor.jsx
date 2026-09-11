@@ -20,8 +20,11 @@ import {
   Link as LinkIcon,
   Upload,
   Trash2,
+  Images as ImagesIcon,
 } from 'lucide-react';
 import { ColumnLayout, Column } from './ColumnExtensions';
+import Carrusel from './CarruselExtension';
+import CarruselModal from './CarruselModal';
 
 function ToolButton({ onClick, active, title, children }) {
   return (
@@ -61,6 +64,7 @@ function ColumnsButton({ columns, onClick, title }) {
 export default function RichTextEditor({ value, onChange, onUpload, placeholder }) {
   const [uploading, setUploading] = useState(false);
   const [menu, setMenu] = useState(null);
+  const [carruselOpen, setCarruselOpen] = useState(false);
   const fileInputRef = useRef(null);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
@@ -78,6 +82,7 @@ export default function RichTextEditor({ value, onChange, onUpload, placeholder 
       TableKit.configure({ table: { resizable: true } }),
       Column,
       ColumnLayout,
+      Carrusel,
     ],
     content: value || '',
     editorProps: {
@@ -287,6 +292,14 @@ export default function RichTextEditor({ value, onChange, onUpload, placeholder 
           title="Insertar 3 columnas"
         />
 
+        <ToolButton
+          onClick={() => setCarruselOpen(true)}
+          active={editor.isActive('blogCarrusel')}
+          title="Insertar carrusel de imágenes"
+        >
+          <ImagesIcon className="h-4 w-4" />
+        </ToolButton>
+
         <Divider />
 
         <ToolButton
@@ -383,6 +396,15 @@ export default function RichTextEditor({ value, onChange, onUpload, placeholder 
       <div className="rounded-xl border border-gray-200 bg-white">
         <EditorContent editor={editor} />
       </div>
+
+      <CarruselModal
+        open={carruselOpen}
+        onClose={() => setCarruselOpen(false)}
+        onUpload={onUpload}
+        onConfirm={(images) => {
+          editor.chain().focus().setBlogCarrusel(images).run();
+        }}
+      />
     </div>
   );
 }
