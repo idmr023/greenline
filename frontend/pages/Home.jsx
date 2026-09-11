@@ -14,6 +14,7 @@ import GreenTipsSection from '../components/ui/greenTips/GreenTipsSection';
 import { CATEGORIAS, sortProducts } from '../lib/utils';
 import { fetchProductos } from '../lib/productos';
 import AnniversaryPromo from '../components/ui/aniversario/AniversaryPromo';
+import EcommerceStrip from '../components/EcommerceStrip';
 
 const inclusiveVehicles = [
   {
@@ -76,14 +77,12 @@ export default function Home() {
         jsonLd={[organizationSchema(), breadcrumbSchema([{ name: 'Inicio', url: '/' }])]}
       />
       <h1 className="sr-only">Green Line - Vehículos de Movilidad Eléctrica en Perú</h1>
+      
       <HeroCarousel />
-      {/* <CountdownBanner /> */}
-
-      {
-          fechaActual.getMonth() === 8 && fechaActual.getDate() >= 1 && fechaActual.getDate() <= 24 ? <AnniversaryPromo /> : <CountdownBanner />
-      }
 
       <Pillars /> 
+
+      { fechaActual.getMonth() === 8 && fechaActual.getDate() >= 1 && fechaActual.getDate() <= 24 ? <AnniversaryPromo /> : <CountdownBanner /> }
 
       {/* Organic Grid - Destacados */}
       <section className="py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -171,107 +170,7 @@ export default function Home() {
         </section>
       )} */}
 
-    {/* E-commerce Marketplaces */}
-      <section className="py-14 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
-            También nos encuentras en
-          </h2>
-          <p className="text-gray-600 mb-10 mx-auto">
-            Encuentra nuestros productos en las plataformas de e-commerce que prefieras.
-          </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
-            <a
-              href="https://www.mercadolibre.com.pe/tienda/greenline"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex flex-col items-center gap-2 px-6 py-4 bg-white rounded-xl border border-gray-100 hover:border-brand/30 hover:shadow-md transition-all"
-            >
-              <img src="https://guiaimpresion.com/wp-content/uploads/2022/12/4-1.png" className="w-25 h-16" alt="" />
-              <span className="text-sm font-medium text-gray-700 group-hover:text-brand transition-colors">
-                MercadoLibre
-              </span>
-            </a>
-
-            <a
-              href="https://www.falabella.com.pe/falabella-pe/seller/GREENLINE%20PERU"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex flex-col items-center gap-2 px-6 py-4 bg-white rounded-xl border border-gray-100 hover:border-brand/30 hover:shadow-md transition-all"
-            >
-              <img src="https://images.falabella.com/v3/assets/bltf4ed0b9a176c126e/blt3729c261c3d95003/65d388aa849f3142f3e97dfb/android_chrome256.png" className="w-16 h-16" alt="" />
-              <span className="text-sm font-medium text-gray-700 group-hover:text-brand transition-colors">
-                Saga Falabella
-              </span>
-            </a>
-
-            <a
-              href="https://simple.ripley.com.pe/tienda/greenline-group-6049709?srsltid=AfmBOop4Rdy8grj_1z6DmIzOcvkd0qnZLJarTxLRo6JQRKSK1fo6d4Mm"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex flex-col items-center gap-2 px-6 py-4 bg-white rounded-xl border border-gray-100 hover:border-brand/30 hover:shadow-md transition-all"
-            >
-              <img src="https://s3.amazonaws.com/media.greatplacetowork.com/peru/best-workplaces-for-millennials-in-peru/2022/tiendas-ripley/logo-200.png" className="w-16 h-8" alt="" />
-              <span className="text-sm font-medium text-gray-700 group-hover:text-brand transition-colors">
-                Ripley
-              </span>
-            </a>
-
-            <a
-              href="https://shop.toquea.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex flex-col items-center gap-2 px-6 py-4 bg-white rounded-xl border border-gray-100 hover:border-brand/30 hover:shadow-md transition-all"
-            >
-              <img src="https://media.licdn.com/dms/image/v2/D4E0BAQHJv4QucESOeA/company-logo_200_200/B4EZ10E2qyGkAI-/0/1775768924397/toquea_logo?e=2147483647&v=beta&t=Ztb7zwvisG3I-FGLgTNvSSqSFW9zycqwTOjpKnKAgog" className='w-20 h-15' alt="" />
-              <span className="text-sm font-medium text-gray-700 group-hover:text-brand transition-colors">
-                Toquea
-              </span>
-            </a>
-
-            <a
-              href="https://app.agora.pe/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex flex-col items-center gap-2 px-6 py-4 bg-white rounded-xl border border-gray-100 hover:border-brand/30 hover:shadow-md transition-all"
-            >
-              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRSS7-N8mGJvHi4szzU_kAifloGpnbttfoXKhxNFhDvjhub0O6hUt95rwk&s=10" className='w-20 h-20' alt="" />
-              <span className="text-sm font-medium text-gray-700 group-hover:text-brand transition-colors">
-                Agora Shop
-              </span>
-            </a>
-
-            <a
-              href="https://www.coolbox.pe/greenline"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex flex-col items-center gap-2 px-6 py-4 bg-white rounded-xl border border-gray-100 hover:border-brand/30 hover:shadow-md transition-all"
-            >
-              <img src="https://coolboxpe.vtexassets.com/assets/vtex/assets-builder/coolboxpe.store-theme/0.0.84/logo___6539742abaf840cb31bc3e646607adf5.svg" className='w-20 h-20' alt="" />
-              <span className="text-sm font-medium text-gray-700 group-hover:text-brand transition-colors">
-                Coolbox
-              </span>
-            </a>
-            
-            <a
-              href="https://creditienda.com.pe/busqueda/greenline"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex flex-col items-center gap-2 px-6 py-4 bg-white rounded-xl border border-gray-100 hover:border-brand/30 hover:shadow-md transition-all"
-            >
-              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ6zpItPYwClUSids21CDdGcUhFD-Nu1pHbEKrSTlzkZSUltOeN9LWZ94lz&s=10" className='w-20 h-20' alt="" />
-              <span className="text-sm font-medium text-gray-700 group-hover:text-brand transition-colors">
-                Coolbox
-              </span>
-            </a>
-          </div>
-
-          <p className="text-xs text-gray-400 mt-8">
-            * Precios y disponibilidad pueden variar según la plataforma.
-          </p>
-        </div>
-      </section>  
+      <EcommerceStrip />  
 
       {/* M-CAR — Inclusive Line */}
       <section className="py-14 bg-[#F3F7F3] text-gray-900">

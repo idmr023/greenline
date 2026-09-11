@@ -1,12 +1,13 @@
-import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
-  ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Play, Tag,
+  ChevronRight, ChevronDown, ChevronUp, Tag,
   Minus, Plus, Download, FileText, ShieldCheck, Star, User,
   Battery, Check, ShieldAlert, X, Weight, Truck, Unplug, Sparkles,
   Gauge, Ruler, MoveHorizontal, ArrowUpDown, Zap, Route,
 } from 'lucide-react';
 import ProductImage from '../components/ProductImage';
+import ProductGallery from '../components/ProductGallery';
 import SEOHead, { productSchema, breadcrumbSchema } from '../components/SEOHead';
 import { BBVACard } from '../components/BBVACard';
 import { costoRecargaDeProducto } from '../utils/batteryCalculator';
@@ -17,35 +18,10 @@ import { useCart } from '../contexts/CartContext';
 import { manualUrl } from '../lib/manuales';
 import stripHtml, { cleanBateria } from '../utils/stripHtml';
 import { CONTACT } from '../lib/config';
+import { colorDotClassFor } from '../lib/colores';
 import { capacidadCargaTexto, equivalentesDeCarga } from '../lib/capacidadCarga';
 
-const LazyYouTube = lazy(() => import('../components/YouTubeEmbed'));
-
 // ── Constantes ──────────────────────────────────────────────────
-
-const COLOR_DOT_CLASS = {
-  Blanco: 'bg-white border-gray-300',
-  Negro: 'bg-gray-900',
-  Gris: 'bg-gray-500',
-  'Gris Oscuro': 'bg-gray-700',
-  Rojo: 'bg-red-600',
-  Verde: 'bg-brand',
-  'Verde ligero': 'bg-green-400',
-  'Verde Esmeralda': 'bg-emerald-600',
-  'Verde Metálico': 'bg-emerald-700',
-  'Verde Metalico': 'bg-emerald-700',
-  Celeste: 'bg-sky-400',
-  Azul: 'bg-blue-600',
-  Crema: 'bg-orange-100',
-  Plata: 'bg-gray-400',
-  Morado: 'bg-purple-600',
-  Naranja: 'bg-orange-500',
-  Plateado: 'bg-gray-400',
-  Rosado: 'bg-pink-400',
-  Marrón: 'bg-amber-800',
-  Camaleón: 'bg-gradient-to-br from-green-400 via-blue-500 to-purple-500',
-  Camaleon: 'bg-gradient-to-br from-green-400 via-blue-500 to-purple-500',
-};
 
 const TAB_LIST = [
   { key: 'descripcion', label: 'Descripción' },
@@ -142,101 +118,7 @@ function StarRating({ rating }) {
   );
 }
 
-// ── Imagen Carousel ─────────────────────────────────────────────
-
-function ImageCarousel({ images, nombre }) {
-  const [idx, setIdx] = useState(0);
-  const total = images.length;
-
-  const next = useCallback(() => setIdx((i) => (i + 1) % total), [total]);
-  const prev = useCallback(() => setIdx((i) => (i - 1 + total) % total), [total]);
-
-  useEffect(() => {
-    if (total <= 1) return;
-    const handler = (e) => {
-      if (e.key === 'ArrowRight') next();
-      if (e.key === 'ArrowLeft') prev();
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [total, next, prev]);
-
-  if (!total) return null;
-
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-gray-50 group select-none">
-        {images.map((img, i) => (
-          <picture
-            key={`${img.src}-${i}`}
-            className={`absolute inset-0 block w-full h-full transition-opacity duration-300 ${
-              i === idx ? 'opacity-100 z-10' : 'opacity-0 z-0'
-            }`}
-          >
-            <img
-              src={img.src}
-              alt={`${nombre} ${img.color || ''} ${i + 1}`}
-              className="w-full h-full object-contain"
-              draggable={false}
-            />
-          </picture>
-        ))}
-
-        {total > 1 && (
-          <>
-            <button
-              type="button"
-              onClick={prev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-white/80 hover:bg-white shadow opacity-0 group-hover:opacity-100 transition-opacity"
-              aria-label="Imagen anterior"
-            >
-              <ChevronLeft className="w-5 h-5 text-gray-800" />
-            </button>
-            <button
-              type="button"
-              onClick={next}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-white/80 hover:bg-white shadow opacity-0 group-hover:opacity-100 transition-opacity"
-              aria-label="Imagen siguiente"
-            >
-              <ChevronRight className="w-5 h-5 text-gray-800" />
-            </button>
-          </>
-        )}
-
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
-          {images.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setIdx(i)}
-              className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                i === idx ? 'bg-brand' : 'bg-white/60'
-              }`}
-              aria-label={`Ir a imagen ${i + 1}`}
-            />
-          ))}
-        </div>
-      </div>
-
-      {total > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {images.map((img, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setIdx(i)}
-              className={`shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-colors ${
-                i === idx ? 'border-brand' : 'border-transparent hover:border-gray-300'
-              }`}
-            >
-              <img src={img.src} alt="" className="w-full h-full object-contain" />
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+// Eliminado ImageCarousel local redundante (sustituido por ProductGallery unificado)
 
 // ── Specs Card (Características destacadas) ─────────────────────
 
@@ -474,8 +356,8 @@ export default function ProductPage() {
   const [activeTab, setActiveTab] = useState('descripcion');
   const [activeColor, setActiveColor] = useState(null);
   const [cantidad, setCantidad] = useState(1);
-  const [showVideo, setShowVideo] = useState(false);
   const { addItem, openCart } = useCart();
+  const [showVideo, setShowVideo] = useState();
 
   const descFullRef = useRef(null);
 
@@ -679,7 +561,7 @@ export default function ProductPage() {
                         : 'border-gray-200 text-gray-600 hover:border-gray-400'
                     }`}
                   >
-                    <span className={`w-3 h-3 rounded-full border border-gray-200 ${COLOR_DOT_CLASS[c] || 'bg-gray-300'}`} />
+                    <span className={`w-3 h-3 rounded-full border border-gray-200 ${colorDotClassFor(c)}`} />
                     {c}
                   </button>
                 ))}
@@ -807,40 +689,10 @@ export default function ProductPage() {
         {/* ── LEFT (DOM segundo): imagen + video — primera en desktop ── */}
         <div className="order-2 md:order-1 flex flex-col">
           {hasRealImages ? (
-            <ImageCarousel images={displayedImages} nombre={product.nombre} />
+            <ProductGallery images={displayedImages} product={product} nombre={product.nombre} />
           ) : (
             <div className="aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden">
               <ProductImage nombre={product.nombre} width={600} height={450} className="w-full h-full" />
-            </div>
-          )}
-
-          {/* Video */}
-          {product.videoId && (
-            <div className="mt-4">
-              {!showVideo ? (
-                <button
-                  type="button"
-                  onClick={() => setShowVideo(true)}
-                  className="w-full aspect-video bg-gray-900 rounded-xl flex items-center justify-center gap-3 text-white hover:bg-gray-800 transition-colors group"
-                >
-                  <div className="w-14 h-14 rounded-full bg-red-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Play className="w-6 h-6 ml-0.5" fill="white" />
-                  </div>
-                  <span className="font-semibold">Ver video del producto</span>
-                </button>
-              ) : (
-                <div className="aspect-video rounded-xl overflow-hidden">
-                  <Suspense
-                    fallback={
-                      <div className="w-full h-full bg-gray-900 flex items-center justify-center">
-                        <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      </div>
-                    }
-                  >
-                    <LazyYouTube videoId={product.videoId} />
-                  </Suspense>
-                </div>
-              )}
             </div>
           )}
         </div>

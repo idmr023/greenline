@@ -14,11 +14,11 @@ export const CONTACT = {
   whatsappNumber: '51919445661',
   whatsappUrl: 'https://wa.me/51919445661',
   /** Correo principal. TODO: reemplazar por el correo oficial de la empresa */
-  email: 'contacto@greenlineperu.com',
-  emailSoporte: 'soporte@greenlineperu.com',
-  emailRRHH: 'rrhh@greenlineperu.com',
-  emailPrivacidad: 'privacidad@greenlineperu.com',
-  address: 'Av. La Marina 2890, San Martín de Porres, Lima',
+  email: 'greenlinemoto@gmail.com',
+  // emailSoporte: 'soporte@greenlineperu.com',
+  emailRRHH: 'pe_asistente@migreenline.com',
+  // emailPrivacidad: 'privacidad@greenlineperu.com',
+  address: 'Av. Gral. Juan Antonio Álvarez de Arenales 1912, Lima 15073',
   city: 'Lima, Perú',
 };
 

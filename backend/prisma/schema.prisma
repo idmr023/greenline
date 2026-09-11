@@ -469,3 +469,59 @@ model GreenlineDistributor {
 
   @@map("greenline_distributors")
 }
+
+model LibroReclamacion {
+  id                  String    @id @default(uuid()) @db.Uuid
+  token               String    @unique
+  correlativoAnio     Int       @map("correlativo_anio")
+  correlativoNumero   Int       @map("correlativo_numero")
+  correlativo         String
+  estado              String    @default("PENDIENTE")
+  respuesta           String?
+  respondidoEn        DateTime? @map("respondido_en")
+
+  // Identificación del consumidor reclamante
+  nombre              String
+  apellidos           String
+  email               String
+  telefono            String?
+  tipoDoc             String    @map("tipo_doc")
+  numDoc              String    @map("num_doc")
+  direccion           String
+  distrito            String
+  ciudad              String
+  departamento        String
+
+  // Identificación del bien contratado
+  producto            String
+  descripcionServicio String    @map("descripcion_servicio")
+  monto               String
+  lugarCompra         String    @map("lugar_compra")
+  fechaCompra         String    @map("fecha_compra")
+  modelo              String
+  color               String
+  vin                 String
+  numeroMotor         String    @map("numero_motor")
+  placa               String
+
+  // Detalle de la reclamación
+  tipo                String
+  detalle             String
+  pedido              String
+  observaciones       String
+
+  // Área de origen del reclamo
+  area                String
+  areaDepartamento    String    @map("area_departamento")
+  areaDistrito        String    @map("area_distrito")
+  areaEntidadId       String?   @map("area_entidad_id")
+  areaEntidadNombre   String    @map("area_entidad_nombre")
+  areaEntidadRuc      String?   @map("area_entidad_ruc")
+
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  @@index([correlativoAnio])
+  @@index([estado])
+  @@map("libro_reclamaciones")
+}

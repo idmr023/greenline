@@ -464,8 +464,9 @@ potencia_bateria: ft.potencia_bateria || '',
           <Field label="Precio Actual (S/) *">
             <input type="number" step="0.01" value={form.precio_actual} onChange={(e) => setForm({ ...form, precio_actual: e.target.value })} className="input" />
           </Field>
-          <Field label="Video ID (YouTube)">
-            <input value={form.video_id} onChange={(e) => setForm({ ...form, video_id: e.target.value })} className="input" placeholder="dQw4w9WgXcQ" />
+          <Field label="Video (YouTube)">
+            <input value={form.video_id} onChange={(e) => setForm({ ...form, video_id: e.target.value })} className="input" placeholder="Pega el enlace: https://youtu.be/Zxkomo2Ccs0" />
+            <p className="text-xs text-gray-400 mt-1">Acepta enlace completo o solo el ID. La miniatura aparece automáticamente.</p>
           </Field>
           <Field label="Descripción" full>
             <textarea rows={3} value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} className="input" placeholder="Descripción del producto..." />

@@ -10,7 +10,7 @@ const slides = [
     // subtitle: 'Ahorra tiempo y dinero con nuestros vehículos eléctricos.',
     // cta: 'Simular ahorro',
     to: '/tienda',
-  img: CARRUSEL[1],
+    img: CARRUSEL[1],
   },
   {
     // title: 'Nueve años contigo',
@@ -25,6 +25,13 @@ const slides = [
     // cta: 'Ver tiendas',
     to: '/tiendas',
     img: CARRUSEL[3],
+  },
+  {
+    // title: 'Siempre hay una Greenline cerca de ti',
+    // subtitle: 'Visita nuestras tiendas en Perú y Chile, o encuentra un distribuidor.',
+    // cta: 'Ver tiendas',
+    to: '/tiendas',
+    img: CARRUSEL[0],
   },
   {
     title: 'Nueve años contigo',
@@ -74,8 +81,16 @@ export default function HeroCarousel() {
         <div className="absolute inset-0 bg-white/5 opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       </div>
 
-      {/* Carousel */}
-      <div className="relative aspect-[1920/800] overflow-hidden from-black to-black/70 bg-gradient-to-b">
+{/* Carousel */}
+      <div className="relative aspect-1920/600 overflow-hidden bg-gradient-to-b from-[#064e3b] to-black">
+        {/* Capa de profundidad verde: vignette radial verde sobre el fondo y sobre las imágenes */}
+        <div
+          className="pointer-events-none absolute inset-0 z-10"
+          style={{
+            background:
+              'radial-gradient(120% 80% at 50% -10%, rgba(6,162,87,0.55) 0%, rgba(6,162,87,0.25) 28%, rgba(6,162,87,0.08) 55%, transparent 78%), linear-gradient(180deg, rgba(6,162,87,0.35) 0%, rgba(6,162,87,0.05) 40%, rgba(0,0,0,0.55) 100%)',
+          }}
+        />
         {slides.map((slide, index) => (
           /* 1. UN SOLO PADRE: Aquí va el KEY y la animación de transición de la diapositiva */
           <div
@@ -98,7 +113,8 @@ export default function HeroCarousel() {
                 <img
                   src={slide.img}
                   alt={slide.title}
-                  className="w-full h-full object-cover opacity-80"
+                  className="w-full h-full object-cover opacity-70"
+                  style={{ filter: 'brightness(0.92) saturate(1.05) hue-rotate(-8deg)' }}
                 />
               </a>
             )}

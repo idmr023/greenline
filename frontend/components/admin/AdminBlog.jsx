@@ -400,15 +400,32 @@ export default function AdminBlog() {
     }
 
     const postId = editingId || savedPost?.[0]?.id;
-    if (postId && galleryImages.length > 0) {
-      await supabase.from('greenline_post_images').delete().eq('post_id', postId);
-      const inserts = galleryImages.map((img, i) => ({
-        post_id: postId,
-        image_url: img.image_url,
-        image_alt: img.image_alt || null,
-        sort_order: i,
-      }));
-      await supabase.from('greenline_post_images').insert(inserts);
+    if (postId) {
+      const { error: galleryDelErr } = await supabase
+        .from('greenline_post_images')
+        .delete()
+        .eq('post_id', postId);
+      if (galleryDelErr) {
+        setSaving(false);
+        alert('Error limpiando imágenes del artículo: ' + galleryDelErr.message);
+        return;
+      }
+      if (galleryImages.length > 0) {
+        const inserts = galleryImages.map((img, i) => ({
+          post_id: postId,
+          image_url: img.image_url,
+          image_alt: img.image_alt || null,
+          sort_order: i,
+        }));
+        const { error: galleryInsErr } = await supabase
+          .from('greenline_post_images')
+          .insert(inserts);
+        if (galleryInsErr) {
+          setSaving(false);
+          alert('Error guardando imágenes del artículo: ' + galleryInsErr.message);
+          return;
+        }
+      }
     }
 
     setSaving(false);
@@ -607,7 +624,6 @@ export default function AdminBlog() {
                 onClick={() => {
                   const name = prompt('Nombre de la nueva categoría:');
                   if (name && name.trim()) {
-                    setNewCategoryName(name.trim());
                     setTimeout(() => {
                       const slug = slugify(name.trim());
                       const sort = categories.length > 0 ? Math.max(...categories.map(c => c.sort_order || 0)) + 1 : 0;
@@ -673,7 +689,9 @@ export default function AdminBlog() {
           onUpload={uploadBlogImage}
         />
         <p className="mt-3 text-xs text-gray-400">
-          Tipos de letra, listas, tablas y columnas (2 o 3) directamente sobre el editor. Las imágenes se suben con el botón Subir.
+          Tipos de letra, listas, tablas y columnas (2 o 3) directamente sobre el editor. Las
+          imágenes se suben con el botón Subir y los carruseles de imágenes con el botón de la
+          barra de herramientas.
         </p>
       </div>
 

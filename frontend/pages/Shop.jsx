@@ -1,11 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import {
-  SlidersHorizontal,
-  Zap,
-  Book,
-  X,
-} from 'lucide-react';
+import { SlidersHorizontal, Zap, Book, X, } from 'lucide-react';
 import PageBanner from '../components/PageBanner';
 import SEOHead, { breadcrumbSchema } from '../components/SEOHead';
 import ProductCard from '../components/ProductCard';
@@ -13,14 +8,9 @@ import ProductViewer from '../components/ProductViewer';
 import EcommerceStrip from '../components/EcommerceStrip';
 import SocialGridCard from '../components/SocialGridCard';
 import { interleaveSocialGrid } from '../lib/socialGrid';
-import {
-  CATEGORIAS,
-  BATERIAS,
-  BANNERS,
-  sortProducts,
-  formatPrice,
-} from '../lib/utils';
+import { CATEGORIAS, BATERIAS, BANNERS, sortProducts, formatPrice, } from '../lib/utils';
 import { fetchProductos } from '../lib/productos';
+import Visor360 from '../components/Vista306';
 
 export default function Shop() {
   const [searchParams] = useSearchParams();
@@ -83,6 +73,8 @@ export default function Shop() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
       <ProductViewer productos={productos} />
+
+      {/* <Visor360/> */}
 
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar */}
@@ -201,7 +193,7 @@ export default function Shop() {
             </div>
           )}
 
-          <EcommerceStrip />
+          <EcommerceStrip variant="compact" />
         </div>
       </div>
       </div>

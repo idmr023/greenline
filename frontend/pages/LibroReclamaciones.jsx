@@ -1,27 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  BookOpenCheck,
-  MapPin,
-  Phone,
-  Mail,
-  CheckCircle2,
-  FileSignature,
-} from 'lucide-react';
+import { BookOpenCheck, MapPin, Phone, Mail, CheckCircle2, FileSignature } from 'lucide-react';
 import PageBanner from '../components/PageBanner';
 import SEOHead, { breadcrumbSchema } from '../components/SEOHead';
 import { CONTACT, BRAND } from '../lib/config';
+import { fetchStores } from '../lib/locations';
+import { fetchProductos } from '../lib/productos';
+import { API_URL } from '../lib/api';
+import COLOR_DOT_CLASS, { colorDotClassFor } from '../lib/colores';
 
 const DOC_TYPES = ['DNI', 'Carné de extranjería', 'Pasaporte', 'RUC'];
 const SERVICIO_OPCIONES = [
   '—Por favor, elige una opción—',
-  'VMP / Bicimoto eléctrica',
-  'Moto eléctrica',
-  'Trimoto eléctrica',
-  'Carguero eléctrico',
-  'Servicio técnico / repuestos',
-  'Otro',
+  'Atención al cliente',
+  'Servicio técnico',
+  'Distribución'
 ];
+
 const TIPO_OPCIONES = [
   '—Por favor, elige una opción—',
   'Queja',
@@ -39,7 +34,9 @@ const emptyForm = {
   distrito: '',
   ciudad: '',
   departamento: '',
+  servicio: '',
   producto: '',
+  modeloEspecifico: '',
   descripcionServicio: '',
   monto: '',
   lugarCompra: '',
@@ -53,28 +50,59 @@ const emptyForm = {
   detalle: '',
   pedido: '',
   observaciones: '',
+  tienda: '',
+  empresa: '',
 };
 
 export default function LibroReclamaciones() {
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
   const [sent, setSent] = useState(false);
+  const [claimNumber, setClaimNumber] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [stores, setStores] = useState([]);
+  const [techStores, setTechStores] = useState([]);
+  const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([fetchStores(), fetchProductos()])
+      .then(([storesData, prodsData]) => {
+        setStores(storesData);
+        setTechStores(storesData.filter((s) => s.technical_service));
+        setProductos(prodsData);
+      })
+      .catch((err) => {
+        console.error('Error al obtener datos:', err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
 
   const set = (key) => (e) => {
     setForm((f) => ({ ...f, [key]: e.target.value }));
     setErrors((er) => ({ ...er, [key]: undefined }));
   };
 
+  const selectColor = (color) => {
+    setForm((f) => ({ ...f, color }));
+    setErrors((er) => ({ ...er, color: undefined }));
+  };
+
   const required = [
     'nombre',
     'apellidos',
-    'telefono',
+    'email',
     'numDoc',
     'direccion',
     'distrito',
     'ciudad',
     'departamento',
+    'servicio',
     'producto',
+    ...(form.producto === 'Otros' ? ['modeloEspecifico'] : []),
     'descripcionServicio',
     'monto',
     'lugarCompra',
@@ -82,10 +110,12 @@ export default function LibroReclamaciones() {
     'numeroMotor',
     'tipo',
     'detalle',
+    'tienda',
   ];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError(null);
     const errs = {};
     required.forEach((k) => {
       if (!String(form[k] || '').trim()) errs[k] = 'Campo obligatorio';
@@ -95,7 +125,59 @@ export default function LibroReclamaciones() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    setSent(true);
+
+    const fechaHoy = new Intl.DateTimeFormat('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date());
+    const productoFinal = form.producto === 'Otros' ? form.modeloEspecifico : form.producto;
+
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${API_URL}/reclamaciones`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fecha: fechaHoy,
+          nombre: form.nombre,
+          apellidos: form.apellidos,
+          email: form.email,
+          telefono: form.telefono,
+          tipoDoc: form.tipoDoc,
+          numDoc: form.numDoc,
+          direccion: form.direccion,
+          distrito: form.distrito,
+          ciudad: form.ciudad,
+          departamento: form.departamento,
+          servicio: form.servicio,
+          producto: productoFinal,
+          descripcionServicio: form.descripcionServicio,
+          tienda: form.tienda,
+          monto: form.monto,
+          lugarCompra: form.lugarCompra,
+          fechaCompra: form.fechaCompra,
+          modelo: form.modelo,
+          color: form.color,
+          numeroMotor: form.numeroMotor,
+          placa: form.placa,
+          tipoQueja: form.tipo,
+          detalle: form.detalle,
+          pedido: form.pedido,
+          observaciones: form.observaciones,
+          empresa: form.empresa,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Error al guardar el reclamo');
+      }
+
+      const data = await res.json();
+      setClaimNumber(data.numeroReclamo);
+      setSent(true);
+    } catch (err) {
+      setSubmitError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const inputCls = (k) =>
@@ -130,7 +212,7 @@ export default function LibroReclamaciones() {
             <BookOpenCheck className="w-6 h-6 text-amber-600 mt-0.5 shrink-0" />
             <div className="text-sm text-amber-800">
               <p className="font-semibold mb-1">Libro de Reclamaciones del consumidor</p>
-              <p>
+              <p className="text-justify">
                 De conformidad con la Ley N° 29571, Código de Protección y Defensa del
                 Consumidor, y su Reglamento aprobado por Decreto Supremo N° 011-2011-PCM,
                 {BRAND.name} pone a disposición de sus clientes el presente Libro de
@@ -172,6 +254,17 @@ export default function LibroReclamaciones() {
 
         {!sent ? (
           <form onSubmit={handleSubmit} noValidate className="space-y-10">
+            {/* Honeypot: campo oculto que los bots rellenan automáticamente */}
+            <input
+              type="text"
+              name="empresa"
+              value={form.empresa}
+              onChange={set('empresa')}
+              className="hidden"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+            />
             {/* Sección 1 */}
             <section className="bg-white border border-gray-100 rounded-xl p-6">
               <h2 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
@@ -185,10 +278,10 @@ export default function LibroReclamaciones() {
                 <Field label="Tus Apellidos" required err={errors.apellidos}>
                   <input className={inputCls('apellidos')} placeholder="Tus apellidos" value={form.apellidos} onChange={set('apellidos')} />
                 </Field>
-                <Field label="Tu correo electrónico">
+                <Field label="Tu correo electrónico" required err={errors.email}>
                   <input type="email" className={inputCls('email')} placeholder="nombre@email.com" value={form.email} onChange={set('email')} />
                 </Field>
-                <Field label="Teléfono" required err={errors.telefono}>
+                <Field label="Teléfono"err={errors.telefono}>
                   <input className={inputCls('telefono')} placeholder="999 999 999" value={form.telefono} onChange={set('telefono')} />
                 </Field>
                 <Field label="Tipo documento">
@@ -221,37 +314,74 @@ export default function LibroReclamaciones() {
                 Identificación del bien contratado
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Field label="Producto / Servicio" required err={errors.producto}>
-                  <select className={inputCls('producto')} value={form.producto} onChange={set('producto')}>
-                    {SERVICIO_OPCIONES.map((o) => <option key={o} value={o}>{o}</option>)}
+                <Field label="Tipo de Servicio" required err={errors.servicio}>
+                  <select className={inputCls('servicio')} value={form.servicio} onChange={set('servicio')}>
+                    {SERVICIO_OPCIONES.map((o) => (
+                      <option key={o} value={o === SERVICIO_OPCIONES[0] ? '' : o}>
+                        {o}
+                      </option>
+                    ))}
                   </select>
                 </Field>
-                <Field label="Descripción del servicio" required err={errors.descripcionServicio}>
-                  <input className={inputCls('descripcionServicio')} placeholder="¿Qué Producto o servicio adquiriste?" value={form.descripcionServicio} onChange={set('descripcionServicio')} />
+
+                <Field label="Producto" required err={errors.producto}>
+                  <select className={inputCls('producto')} value={form.producto} onChange={set('producto')}>
+                    <option value="">—Selecciona un producto—</option>
+                    {productos.map((p) => (
+                      <option key={p.id} value={p.nombre}>{p.nombre}</option>
+                    ))}
+                    <option value="Otros">Otros</option>
+                  </select>
                 </Field>
-                <Field label="Monto del servicio" required err={errors.monto}>
+
+                {form.producto === 'Otros' && (
+                  <Field label="Especificar modelo exacto" required err={errors.modeloEspecifico}>
+                    <input className={inputCls('modeloEspecifico')} placeholder="Escribe el modelo exacto" value={form.modeloEspecifico} onChange={set('modeloEspecifico')} />
+                  </Field>
+                )}
+
+                <Field label="Tienda" required err={errors.tienda}>
+                  <select 
+                    className={inputCls('tienda')} 
+                    value={form.tienda} 
+                    onChange={set('tienda')}
+                  >
+                    <option value="">Selecciona una tienda...</option>
+                    {(form.servicio === 'Servicio técnico' ? techStores : stores).map((store) => (
+                      <option key={store.id} value={store.name}>
+                        {store.name} {store.district ? `(${store.district})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+
+                <Field label="Monto" required err={errors.monto}>
                   <input type="number" step="0.01" min="0" className={inputCls('monto')} placeholder="00.00" value={form.monto} onChange={set('monto')} />
-                </Field>
-                <Field label="Lugar de compra" required err={errors.lugarCompra}>
-                  <input className={inputCls('lugarCompra')} placeholder="Lugar de compra" value={form.lugarCompra} onChange={set('lugarCompra')} />
                 </Field>
                 <Field label="Fecha de compra" required err={errors.fechaCompra}>
                   <input type="date" className={inputCls('fechaCompra')} value={form.fechaCompra} onChange={set('fechaCompra')} />
                 </Field>
-                <Field label="Modelo">
-                  <input className={inputCls('modelo')} placeholder="Modelo" value={form.modelo} onChange={set('modelo')} />
-                </Field>
                 <Field label="Color">
-                  <input className={inputCls('color')} placeholder="Color" value={form.color} onChange={set('color')} />
-                </Field>
-                <Field label="Número de Vin">
-                  <input className={inputCls('vin')} placeholder="Número de Vin" value={form.vin} onChange={set('vin')} />
-                </Field>
-                <Field label="Número de Motor" required err={errors.numeroMotor}>
-                  <input className={inputCls('numeroMotor')} placeholder="Número de Motor" value={form.numeroMotor} onChange={set('numeroMotor')} />
-                </Field>
-                <Field label="Placa">
-                  <input className={inputCls('placa')} placeholder="Placa" value={form.placa} onChange={set('placa')} />
+                  <input className={inputCls('color')} placeholder="Color (o elige un punto)" value={form.color} onChange={set('color')} />
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {Object.entries(COLOR_DOT_CLASS).map(([nombre]) => {
+                      const selected = form.color === nombre;
+                      return (
+                        <button
+                          type="button"
+                          key={nombre}
+                          title={nombre}
+                          aria-label={`Color ${nombre}`}
+                          aria-pressed={selected}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => selectColor(nombre)}
+                          className={`w-5 h-5 rounded-full border border-gray-200 ${colorDotClassFor(nombre)} transition ${
+                            selected ? 'ring-2 ring-brand ring-offset-1' : 'hover:scale-110'
+                          }`}
+                        />
+                      );
+                    })}
+                  </div>
                 </Field>
               </div>
             </section>
@@ -291,35 +421,18 @@ export default function LibroReclamaciones() {
               </div>
             </section>
 
-            {/* Sección 4 */}
-            <section className="bg-white border border-gray-100 rounded-xl p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-brand/10 text-brand text-sm font-bold flex items-center justify-center">4</span>
-                Observaciones y acciones adoptadas por el proveedor
-              </h2>
-              <Field label="Detalles / Observaciones">
-                <textarea className={inputCls('observaciones')} rows={3} placeholder="Observaciones" value={form.observaciones} onChange={set('observaciones')} />
-              </Field>
-              <p className="text-xs text-gray-500 mt-2">(Los campos con * son necesarios)</p>
-            </section>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button
-                type="submit"
-                className="inline-flex items-center gap-2 px-8 py-3 bg-brand hover:bg-brand-dark text-white font-semibold rounded-lg transition-colors"
-              >
-                <FileSignature className="w-5 h-5" />
-                Enviar reclamación
-              </button>
-            </div>
           </form>
         ) : (
           <div className="bg-white border border-gray-100 rounded-2xl p-10 text-center">
             <CheckCircle2 className="w-14 h-14 text-brand mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Solicitud registrada</h2>
+            {claimNumber && (
+              <p className="text-lg font-bold text-brand mb-3">
+                N° de Reclamo: {claimNumber}
+              </p>
+            )}
             <p className="text-gray-600 max-w-md mx-auto mb-6">
-              Gracias por contactarnos. Recibirás la respuesta a tu reclamo en un plazo máximo de
-              30 días calendario, al medio de contacto que hayas indicado.
+              Gracias por contactarnos. Recibirás la respuesta a tu reclamo al medio de contacto que hayas indicado.
             </p>
             <Link
               to="/"

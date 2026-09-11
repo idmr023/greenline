@@ -61,3 +61,13 @@ export const pedidosLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: 'Demasiados pedidos desde esta IP, intenta más tarde' },
 });
+
+// Rate limiter para reclamaciones (10 / hora): formulario público sensible,
+// protege además contra el abuso del envío de correos (email-bombing).
+export const reclamacionesLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiados reclamos desde esta IP, intenta más tarde' },
+});

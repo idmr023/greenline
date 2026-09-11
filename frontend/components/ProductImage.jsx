@@ -3,8 +3,8 @@ import { versionarImagen } from '../lib/imagenVersionada';
 export default function ProductImage({
   src,
   nombre,
-  width = 600,
-  height = 400,
+  width = 800,
+  height = 600,
   className = '',
   imgClassName = '',
 }) {
