@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Calculator } from 'lucide-react';
+import { Calculator } from '../../lib/icons';
 
 interface FormulaBlockProps {
   formula: ReactNode;

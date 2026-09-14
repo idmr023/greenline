@@ -1,4 +1,4 @@
-import { versionarImagen } from './imagenVersionada';
+import { versionarImagen } from "./images";
 
 const v = versionarImagen;
 

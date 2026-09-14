@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { authAPI } from '../../lib/api';
-import { Mail, ArrowLeft, AlertCircle, Loader2 } from 'lucide-react';
+import { Mail, ArrowLeft, AlertCircle, Loader2 } from '../../lib/icons';
 
 export default function OTPVerify({ email, onVerified, onBack }) {
   const [code, setCode] = useState(['', '', '', '', '', '']);

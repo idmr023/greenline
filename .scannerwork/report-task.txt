@@ -1,0 +1,6 @@
+projectKey=Greenline
+serverUrl=http://localhost:9000
+serverVersion=26.9.0.129388
+dashboardUrl=http://localhost:9000/dashboard?id=Greenline
+ceTaskId=3ac92acc-9bf7-4321-87f1-a50a1e804bed
+ceTaskUrl=http://localhost:9000/api/ce/task?id=3ac92acc-9bf7-4321-87f1-a50a1e804bed

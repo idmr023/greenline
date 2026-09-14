@@ -1,49 +1,38 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Accessibility, ArrowLeftRight, ShieldCheck } from 'lucide-react';
 import SEOHead, { organizationSchema, breadcrumbSchema } from '../components/SEOHead';
-import HeroCarousel from '../components/HeroCarousel';
-import Pillars from '../components/Pillars';
-import ProductCard from '../components/ProductCard';
+import HeroCarousel from '../components/home/HeroCarousel.jsx';
+import Pillars from '../components/home/Pillars.jsx';
+import ProductCard from '../components/product/ProductCard.jsx';
 import CountdownBanner from '../components/ui/aniversario/CountdownBanner';
-import Benefits from '../components/Benefits';
 import Testimonials from '../components/Testimonials';
-import Objecciones from '../components/Objeciones';
+import Objecciones from '../components/home/Objeciones.jsx';
 import VideoSection from '../components/VideoSection';
-import GreenTipsSection from '../components/ui/greenTips/GreenTipsSection';
-import { CATEGORIAS, sortProducts } from '../lib/utils';
-import { fetchProductos } from '../lib/productos';
+import GreenTipsSection from '../components/home/GreenTipsSection.jsx';
+import { CATEGORIAS, sortProducts, fetchProductos } from '../lib/productos';
+import { isAniversarioActivo } from '../lib/aniversario'; // 1. Importación añadida para fechas
 import AnniversaryPromo from '../components/ui/aniversario/AniversaryPromo';
 import EcommerceStrip from '../components/EcommerceStrip';
+import FeatureCard from '../components/ui/general/FeaturedCard';
+import { inclusive_vehicles } from '../../src/data_json.jsx'; // 2. Ruta de importación estandarizada
+import { Beneficios } from '../components/home/Beneficios.jsx';
+import { LinkButton } from '../components/ui/general/LinkButton.jsx';
 
-const inclusiveVehicles = [
-  {
-    id: 'inc-1',
-    title: 'M-CAR',
-    desc: 'Vehículos eléctricos de diseño universal, creados desde fábrica para que cualquier persona se desplace con autonomía y comodidad.',
-    icon: Accessibility,
-  },
-  {
-    id: 'inc-2',
-    title: 'Fácil de usar',
-    desc: 'Transmisión automática, marcha en retroceso y conducción estable: pensadas para el uso diario sin complicaciones.',
-    icon: ArrowLeftRight,
-  },
-  {
-    id: 'inc-3',
-    title: 'Seguridad y confianza',
-    desc: 'Estructura resistente, estabilidad en ruta y soporte de GreenLine en cada etapa de tu compra.',
-    icon: ShieldCheck,
-  },
-];
 
 export default function Home() {
   const [filterCategory, setFilterCategory] = useState('Todas');
   const [productos, setProductos] = useState([]);
-  const [fechaActual, setFechaActual] = useState(new Date());
+  const [loading, setLoading] = useState(true); // 3. Nuevo estado para manejar la carga
 
   useEffect(() => {
-    fetchProductos().then(setProductos).catch(console.error);
+    fetchProductos()
+      .then((data) => {
+        setProductos(data);
+        setLoading(false); // Apagamos el loading cuando llegan los datos
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false); // También lo apagamos si hay error
+      });
   }, []);
 
   // COMENTADO (temporal — "últimas unidades" por números):
@@ -67,6 +56,9 @@ export default function Home() {
     return list.slice(0, 12);
   }, [productos, filterCategory]);
 
+  // 4. Arreglo unificado para los filtros (Principio DRY)
+  const filterOptions = ['Todas', ...CATEGORIAS];
+
   return (
     <>
       <SEOHead
@@ -82,9 +74,8 @@ export default function Home() {
 
       <Pillars /> 
 
-      { fechaActual.getMonth() === 8 && fechaActual.getDate() >= 1 && fechaActual.getDate() <= 24 ? <AnniversaryPromo /> : <CountdownBanner /> }
+      { isAniversarioActivo() ? <AnniversaryPromo /> : <CountdownBanner /> }
 
-      {/* Organic Grid - Destacados */}
       <section className="py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
@@ -94,35 +85,30 @@ export default function Home() {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setFilterCategory('Todas')}
-              className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                filterCategory === 'Todas'
-                  ? 'bg-brand text-white border-brand'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-brand hover:text-brand'
-              }`}
-            >
-              Todas
-            </button>
-            {CATEGORIAS.map((c) => (
+            {/* 6. Mapeo limpio de los botones de filtro */}
+            {filterOptions.map((option) => (
               <button
-                key={c}
+                key={option}
                 type="button"
-                onClick={() => setFilterCategory(c)}
+                onClick={() => setFilterCategory(option)}
                 className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                  filterCategory === c
+                  filterCategory === option
                     ? 'bg-brand text-white border-brand'
                     : 'bg-white text-gray-700 border-gray-300 hover:border-brand hover:text-brand'
                 }`}
               >
-                {c}
+                {option}
               </button>
             ))}
           </div>
         </div>
 
-        {displayed.length === 0 ? (
+        {/* 7. Skeleton/Indicador de Carga para evitar parpadeos visuales */}
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand"></div>
+          </div>
+        ) : displayed.length === 0 ? (
           <p className="text-center text-gray-500 py-12">
             No hay productos en esta categoría.
           </p>
@@ -134,14 +120,7 @@ export default function Home() {
           </div>
         )}
 
-        <div className="mt-10 text-center">
-          <Link
-            to="/tienda"
-            className="inline-block px-8 py-3 bg-brand hover:bg-brand-dark text-white font-semibold rounded-lg transition-colors"
-          >
-            Ver más productos
-          </Link>
-        </div>
+        <LinkButton to="/tienda" text="Ver más productos" />
       </section>
 
       {/* COMENTADO (temporal — Zona "Últimas unidades disponibles"):
@@ -190,39 +169,28 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {inclusiveVehicles.map(({ id, title, desc, icon: Icon }) => (
-              <div
+            {inclusive_vehicles.map(({ id, title, desc, icon}) => (
+              <FeatureCard
                 key={id}
-                className="bg-white rounded-xl p-6 text-center border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
-              >
-                <div className="mx-auto w-14 h-14 flex items-center justify-center rounded-full bg-brand/10 mb-4">
-                  <Icon className="w-7 h-7 text-brand" />
-                </div>
-                <h3 className="font-bold mb-2 text-lg text-gray-900">{title}</h3>
-                <p className="text-sm text-gray-600">{desc}</p>
-              </div>
+                title={title}
+                text={desc}
+                icon={icon}
+              />
             ))}
           </div>
 
-          <div className="mt-8 text-center">
-            <Link
-              to="/tienda?categoria=Cuatrimotos"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-brand text-white font-semibold rounded-lg hover:bg-brand-dark transition-colors"
-            >
-              Explorar opciones
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+          <LinkButton to="/tienda?categoria=Cuatrimotos" text="Explorar opciones" />
         </div>
       </section>
 
       <VideoSection />
-        
-      <Benefits />
+
+      <Beneficios />
+      
       <Objecciones />
-
+      
       <GreenTipsSection />
-
+      
       <Testimonials />
     </>
   );

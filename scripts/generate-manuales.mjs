@@ -6,44 +6,45 @@ const outputPath = './frontend/data/manuales_db.json';
 
 const files = fs.readdirSync(dirPath).filter(f => f.toLowerCase().endsWith('.pdf'));
 
-const results = [];
-
 function contains(str, arr) {
   return arr.some(k => str.toLowerCase().includes(k.toLowerCase()));
 }
 
-files.forEach(file => {
-  let category = 'Motos Eléctricas';
+function categoriaDeArchivo(file) {
+  const f = file.toLowerCase();
+  if (f.startsWith('ficha-tecnica')) return 'Fichas Técnicas';
+  if (contains(f, ['tc2', 'tc1', 'cargueros', 'carguero', 'pionero'])) return 'Cargueros';
+  if (contains(f, ['m-car', 'mcar'])) return 'Cuatrimotos';
+  if (contains(f, ['tm', 'tmt', 'lion', 'leopard', 'j120'])) return 'Trimotos Eléctricas';
+  if (contains(f, ['vmp', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's9', 'p01', 'p12', 'l1', 'l2', 'l3', 'l24', 'fl2', 't3', 't4', 'f6', 'y3', 'a4', 'runner', 'm2'])) return 'VMP';
+  return 'Motos Eléctricas';
+}
 
-  if (file.toLowerCase().startsWith('ficha-tecnica')) {
-    category = 'Fichas Técnicas';
-  } else if (contains(file, ['tc2', 'tc1', 'cargueros', 'carguero', 'pionero'])) {
-    category = 'Cargueros';
-  } else if (contains(file, ['m-car', 'mcar'])) {
-    category = 'Cuatrimotos';
-  } else if (contains(file, ['tm', 'tmt', 'lion', 'leopard', 'j120'])) {
-    category = 'Trimotos Eléctricas';
-  } else if (contains(file, ['vmp', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's9', 'p01', 'p12', 'l1', 'l2', 'l3', 'l24', 'fl2', 't3', 't4', 'f6', 'y3', 'a4', 'runner', 'm2'])) {
-    category = 'VMP';
+function extraerAnio(cleanName) {
+  const yearMatch = cleanName.match(/(20\d{2})|(\d{2}-\d{2}-\d{2})|(\d{8})/);
+  if (!yearMatch) return '';
+  const rawDate = yearMatch[0];
+  if (rawDate.length === 4) return ` (${rawDate})`;
+  if (rawDate.includes('-')) {
+    const parts = rawDate.split('-');
+    const y = parts[2];
+    const anio = y?.length === 2 ? `20${y}` : y;
+    return ` (${anio})`;
   }
+  return '';
+}
 
-  let cleanName = file.replace(/\.pdf$/i, '');
-  
-  let yearMatch = cleanName.match(/(20\d{2})|(\d{2}-\d{2}-\d{2})|(\d{8})/);
-  let yearStr = '';
-  if (yearMatch) {
-    let rawDate = yearMatch[0];
-    if (rawDate.length === 4) {
-      yearStr = ` (${rawDate})`;
-    } else if (rawDate.includes('-')) {
-      let parts = rawDate.split('-');
-      let y = parts[2];
-      if (y && y.length === 2) y = '20' + y;
-      yearStr = ` (${y})`;
-    }
+function normalizarPalabra(word) {
+  if (['VMP', 'TM', 'TC', 'UPN', 'TAILG'].includes(word.toUpperCase())) {
+    return word.toUpperCase();
   }
+  if (word.toLowerCase() === 'y' || word.toLowerCase() === 'de') return word.toLowerCase();
+  if (word.toLowerCase() === 'pro') return 'Pro';
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
 
-  cleanName = cleanName
+function limpiarNombre(rawName) {
+  let name = rawName
     .replace(/^GreenLine[-_]Manual[-_]de[-_]uso[-_]Modelo[-_]/i, '')
     .replace(/^GreenLine[-_]Manual[-_]de[-_]uso[-_]/i, '')
     .replace(/^GreenLine[-_]Manual[-_]Uso[-_]/i, '')
@@ -54,7 +55,7 @@ files.forEach(file => {
     .replace(/^Manual[-_]/i, '')
     .replace(/^FICHA[-_]TECNICA[-_]/i, 'Ficha Técnica ');
 
-  cleanName = cleanName
+  name = name
     .replace(/[-_]\d{2}[-_]\d{2}[-_]\d{2,4}/g, '')
     .replace(/[-_]\d{8}/g, '')
     .replace(/[-_]20\d{2}/g, '')
@@ -65,38 +66,34 @@ files.forEach(file => {
     .replace(/[-_]/g, ' ')
     .trim();
 
-  if (cleanName.toLowerCase().startsWith('ficha tecnica')) {
-    cleanName = cleanName.replace(/ficha tecnica/i, 'Ficha Técnica');
-  } else {
-    if (!cleanName.toLowerCase().startsWith('manual') && !cleanName.toLowerCase().startsWith('ficha')) {
-      cleanName = 'Manual ' + cleanName;
-    }
+  const lowercase = name.toLowerCase();
+  if (lowercase.startsWith('ficha tecnica')) {
+    name = name.replace(/ficha tecnica/i, 'Ficha Técnica');
+  } else if (!lowercase.startsWith('manual') && !lowercase.startsWith('ficha')) {
+    name = 'Manual ' + name;
   }
 
-  cleanName = cleanName
+  return name
     .split(' ')
-    .map(word => {
-      if (word.toUpperCase() === 'VMP' || word.toUpperCase() === 'TM' || word.toUpperCase() === 'TC' || word.toUpperCase() === 'UPN' || word.toUpperCase() === 'TAILG') {
-        return word.toUpperCase();
-      }
-      if (word.toLowerCase() === 'y' || word.toLowerCase() === 'de') return word.toLowerCase();
-      if (word.toLowerCase() === 'pro') return 'Pro';
-      return word.charAt(0).toUpperCase() + word.slice(1);
-    })
+    .map(normalizarPalabra)
     .join(' ');
+}
 
-  if (yearStr && !cleanName.includes(yearStr.trim())) {
-    cleanName += yearStr;
-  }
-
+function construirEntrada(file) {
+  const rawName = file.replace(/\.pdf$/i, '');
+  const yearStr = extraerAnio(rawName);
+  const base = limpiarNombre(rawName);
+  const name = yearStr && !base.includes(yearStr.trim()) ? base + yearStr : base;
   const slug = file.toLowerCase().replace(/\.pdf$/i, '').replace(/[^a-z0-9]+/g, '-');
-  results.push({
+  return {
     file,
-    name: cleanName,
-    category,
+    name,
+    category: categoriaDeArchivo(file),
     slug,
-  });
-});
+  };
+}
+
+const results = files.map(construirEntrada);
 
 results.sort((a, b) => a.name.localeCompare(b.name));
 

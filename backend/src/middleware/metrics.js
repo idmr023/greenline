@@ -51,3 +51,36 @@ export function getMetrics() {
     },
   };
 }
+
+// Export en formato texto Prometheus (text/plain; version=0.0.4)
+// para scraping por Grafana/ops. Sin dependencias, se derivan del mismo
+// registro en memoria de getMetrics().
+export function getPrometheusMetrics() {
+  const m = getMetrics();
+  const lines = [];
+
+  const meter = (name, help, type, value) => {
+    lines.push(`# HELP ${name} ${help}`);
+    lines.push(`# TYPE ${name} ${type}`);
+    lines.push(`${name} ${value}`);
+  };
+
+  meter('process_uptime_seconds', 'Tiempo de actividad del proceso', 'gauge', m.uptimeSec);
+  meter('greenline_requests_total', 'Peticiones HTTP totales', 'counter', m.requests.total);
+  meter('greenline_requests_in_flight', 'Peticiones en curso', 'gauge', m.requests.inFlight);
+  meter('greenline_requests_avg_response_ms', 'Latencia media por petición', 'gauge', m.requests.avgResponseTimeMs);
+  meter('greenline_requests_max_response_ms', 'Latencia máxima por petición', 'gauge', m.requests.maxResponseTimeMs);
+
+  for (const [method, count] of Object.entries(m.requests.byMethod)) {
+    lines.push(`greenline_requests_total_by_method{method="${method}"} ${count}`);
+  }
+  for (const [status, count] of Object.entries(m.requests.byStatus)) {
+    lines.push(`greenline_requests_total_by_status{status="${status}"} ${count}`);
+  }
+
+  meter('process_memory_rss_bytes', 'Memoria RSS', 'gauge', m.memory.rssMB * 1024 * 1024);
+  meter('process_memory_heap_total_bytes', 'Heap total', 'gauge', m.memory.heapTotalMB * 1024 * 1024);
+  meter('process_memory_heap_used_bytes', 'Heap usado', 'gauge', m.memory.heapUsedMB * 1024 * 1024);
+
+  return lines.join('\n') + '\n';
+}

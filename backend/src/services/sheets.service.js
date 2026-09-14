@@ -48,11 +48,11 @@ async function getSheetTabs() {
 // Asegura que exista el tab del año actual. Si no existe, lo crea y copia la
 // fila de encabezados (fila 1) del último año previo presente en el libro.
 async function ensureYearSheet() {
-  const sheets = getSheets();
   const name = yearSheetName();
   const tabs = await getSheetTabs();
-  if (tabs.includes(name)) return name;
+  if (tabs.includes(name)) return;
 
+  const sheets = getSheets();
   await sheets.spreadsheets.batchUpdate({
     spreadsheetId: SPREADSHEET_ID,
     requestBody: {
@@ -77,7 +77,6 @@ async function ensureYearSheet() {
       requestBody: { values },
     });
   }
-  return name;
 }
 
 /**
@@ -87,7 +86,8 @@ async function ensureYearSheet() {
  */
 export async function getNextClaimNumber() {
   const sheets = getSheets();
-  const sheetName = await ensureYearSheet();
+  await ensureYearSheet();
+  const sheetName = yearSheetName();
 
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
@@ -106,7 +106,8 @@ export async function getNextClaimNumber() {
 
 export async function appendReclamo(row) {
   const sheets = getSheets();
-  const sheetName = await ensureYearSheet();
+  await ensureYearSheet();
+  const sheetName = yearSheetName();
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: SPREADSHEET_ID,

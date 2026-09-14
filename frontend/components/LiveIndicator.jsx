@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink } from '../lib/icons';
 import { API_URL } from '../lib/api';
 
 const CHECK_INTERVAL = 5 * 60 * 1000;

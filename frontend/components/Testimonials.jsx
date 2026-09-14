@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star } from 'lucide-react';
+import { Star, StarOutline } from '../lib/icons';
 import { fetchTestimonios } from '../lib/testimonios';
+import FeatureCard from './ui/general/FeaturedCard';
 
 function StarRating({ rating }) {
   return (
     <div className="flex gap-0.5">
       {Array.from({ length: 5 }, (_, i) => (
-        <Star
-          key={i}
-          className={`w-4 h-4 ${i < rating ? 'fill-amber-400 text-amber-400' : 'fill-gray-200 text-gray-200'}`}
-        />
+        i < rating
+          ? <Star key={i} className="w-4 h-4 mx-0.5 text-amber-400" />
+          : <StarOutline key={i} className="w-4 h-4 mx-0.5 text-gray-300" />
       ))}
     </div>
   );
@@ -87,26 +87,13 @@ export default function Testimonials() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {reviews.map((r) => (
-              <div
+              <FeatureCard
                 key={r.id}
-                className="bg-gray-50 rounded-xl p-6 border border-gray-100 hover:shadow-md transition-shadow"
-              >
-                <StarRating rating={r.rating} />
-                <p className="text-gray-700 text-sm leading-relaxed mt-3 mb-4">
-                  &ldquo;{r.texto}&rdquo;
-                </p>
-                <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-                  <div>
-                    <p className="font-semibold text-gray-900 text-sm">{r.nombre}</p>
-                    {r.rol && <p className="text-xs text-gray-500">{r.rol}</p>}
-                  </div>
-                  {r.vehiculo && (
-                    <span className="text-xs font-semibold text-brand bg-brand/10 px-2 py-1 rounded">
-                      {r.vehiculo}
-                    </span>
-                  )}
-                </div>
-              </div>
+                icon={<StarRating rating={r.rating} />}
+                title={r.nombre}
+                text={`"${r.texto}"`}
+                badgeText={r.vehiculo}
+              />
             ))}
           </div>
         )}

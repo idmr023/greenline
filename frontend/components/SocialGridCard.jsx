@@ -1,7 +1,8 @@
-import { InstagramIcon, TiktokIcon } from './SocialIcons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faInstagram, faTiktok } from '@fortawesome/free-brands-svg-icons';
 
 export default function SocialGridCard({ item }) {
-  const Icon = item.network === 'TikTok' ? TiktokIcon : InstagramIcon;
+  const Icon = item.network === 'TikTok' ? faTiktok : faInstagram;
 
   return (
     <a
@@ -13,7 +14,7 @@ export default function SocialGridCard({ item }) {
     >
       {/* Barra verde superior: red social */}
       <div className="flex items-center justify-center gap-2 shrink-0 bg-brand p-5 text-white">
-        <Icon className="w-4 h-4" />
+        <FontAwesomeIcon icon={Icon} className="w-4 h-4" />
         <span className="text-xs font-bold uppercase tracking-widest">
           {item.network}
         </span>

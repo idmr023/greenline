@@ -13,12 +13,12 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
-} from "lucide-react";
+} from '../lib/icons';
 import { supabase } from "../lib/supabase";
 import NovedadImagen from "../components/NovedadImagen";
 import SEOHead, { articleSchema, breadcrumbSchema } from "../components/SEOHead";
 import TextToVoice from "../components/TextToVoice";
-import { versionarImagen } from "../lib/imagenVersionada";
+import { versionarImagen } from "../lib/images";
 import BlogContent from "../components/blog/BlogContent";
 
 type Post = {
@@ -140,21 +140,7 @@ export default function NovedadDetalle() {
           setPost(data);
 
           if (data) {
-            const { data: related } = await supabase
-              .from("greenline_posts_public")
-              .select("*")
-              .neq("id", data.id)
-              .eq("category_slug", data.category_slug)
-              .order("published_at", { ascending: false })
-              .limit(3);
-
-            if (!cancelled) {
-              setRelatedPosts(
-                (related ?? []).length >= 3
-                  ? related!
-                  : await getFallbackRelated(data, cancelled)
-              );
-            }
+            setRelatedPosts(await cargarRelacionados(data, cancelled));
           }
         }
       } catch (err) {
@@ -168,6 +154,19 @@ export default function NovedadDetalle() {
       } finally {
         if (!cancelled) setLoading(false);
       }
+    }
+
+    async function cargarRelacionados(current: Post, cancelled: boolean): Promise<Post[]> {
+      const { data } = await supabase
+        .from("greenline_posts_public")
+        .select("*")
+        .neq("id", current.id)
+        .eq("category_slug", current.category_slug)
+        .order("published_at", { ascending: false })
+        .limit(3);
+      if (cancelled) return [];
+      if ((data ?? []).length >= 3) return data!;
+      return getFallbackRelated(current, cancelled);
     }
 
     async function getFallbackRelated(current: Post, cancelled: boolean): Promise<Post[]> {

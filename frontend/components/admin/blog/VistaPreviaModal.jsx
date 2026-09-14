@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { X, Eye } from 'lucide-react';
-import { versionarImagen } from '../../../lib/imagenVersionada';
+import { X, Eye } from '../../../lib/icons';
+import { versionarImagen } from '../../../lib/images';
 import BlogContent from '../../blog/BlogContent';
 
 const CONTENT_CLASS = `

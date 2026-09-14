@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Plus, Pencil, Trash2, Check } from 'lucide-react';
+import { Plus, Pencil, Trash2, Check } from '../../lib/icons';
 
 export default function AdminColores() {
   const [colores, setColores] = useState([]);

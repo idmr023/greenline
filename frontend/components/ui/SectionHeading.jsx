@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * Encabezado de sección reutilizable (eyebrow + título + subtítulo),
  * centrado o alineado a la izquierda, siguiendo la identidad Green Line.

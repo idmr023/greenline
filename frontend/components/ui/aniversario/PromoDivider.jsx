@@ -1,4 +1,4 @@
-import { Gift } from 'lucide-react';
+import { Gift } from '../../../lib/icons';
 
 export default function PromoDivider() {
   return (

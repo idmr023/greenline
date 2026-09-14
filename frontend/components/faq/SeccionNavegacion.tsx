@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Zap, DollarSign, Wrench, Shield } from 'lucide-react';
+import { Zap, DollarSign, Wrench, Shield } from '../../lib/icons';
 
 const SECCIONES = [
   { id: 'motos-electricas', label: 'Motos Eléctricas', icon: Zap },

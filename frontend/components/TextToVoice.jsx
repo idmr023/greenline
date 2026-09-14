@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Play, Square, Settings2, Volume2 } from 'lucide-react';
+import { Play, Square, Settings2, Volume2 } from '../lib/icons';
 
 export default function LectorFichaTecnica({texto}) {
   const [voces, setVoces] = useState([]);

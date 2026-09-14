@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { authAPI } from '../../lib/api';
-import { ShieldCheck, ArrowLeft, AlertCircle, Loader2 } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, AlertCircle, Loader2 } from '../../lib/icons';
 
 export default function TwoFactorVerify({ tempToken, onVerified, onBack }) {
   const [code, setCode] = useState(['', '', '', '', '', '']);

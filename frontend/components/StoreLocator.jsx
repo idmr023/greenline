@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import {
   MapPin, Clock, Navigation, MessageCircle, Wrench, Store,
   Loader2, ChevronRight, Phone, MapPinned, Building2,
-} from 'lucide-react';
+} from '../lib/icons';
 import { fetchStores, fetchDistributors, fetchProvinceSales } from '../lib/locations';
 import { TIENDAS } from '../lib/images';
 
@@ -176,7 +176,7 @@ function DistributorCard({ d }) {
 
 function DistributorAccordion({ distributors, expandedDept, setExpandedDept, selectedProv, setSelectedProv, filteredDistributors, provinceSales }) {
   const departments = useMemo(
-    () => [...new Set(distributors.map((d) => d.department))].sort(),
+    () => [...new Set(distributors.map((d) => d.department))].sort((a, b) => a.localeCompare(b, 'es')),
     [distributors]
   );
 
@@ -187,7 +187,7 @@ function DistributorAccordion({ distributors, expandedDept, setExpandedDept, sel
       map[d.department].add(d.province);
     }
     for (const k of Object.keys(map)) {
-      map[k] = [...map[k]].sort();
+      map[k] = [...map[k]].sort((a, b) => a.localeCompare(b, 'es'));
     }
     return map;
   }, [distributors]);

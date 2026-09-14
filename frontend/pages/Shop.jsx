@@ -1,25 +1,22 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { SlidersHorizontal, Zap, Book, X, } from 'lucide-react';
+import { SlidersHorizontal, Zap, Book, X, } from '../lib/icons';
 import PageBanner from '../components/PageBanner';
 import SEOHead, { breadcrumbSchema } from '../components/SEOHead';
-import ProductCard from '../components/ProductCard';
-import ProductViewer from '../components/ProductViewer';
+import ProductCard from '../components/product/ProductCard';
+import ProductViewer from '../components/product/ProductViewer';
 import EcommerceStrip from '../components/EcommerceStrip';
 import SocialGridCard from '../components/SocialGridCard';
 import { interleaveSocialGrid } from '../lib/socialGrid';
-import { CATEGORIAS, BATERIAS, BANNERS, sortProducts, formatPrice, } from '../lib/utils';
-import { fetchProductos } from '../lib/productos';
-import Visor360 from '../components/Vista306';
+import { CATEGORIAS, BATERIAS, sortProducts, fetchProductos } from '../lib/productos';
+import { formatPrice } from '../lib/utils';
+import { BANNERS } from '../lib/images';
 
 export default function Shop() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const initialCat = searchParams.get('categoria');
 
   const [productos, setProductos] = useState([]);
-  const [selectedCategories, setSelectedCategories] = useState(() =>
-    initialCat && CATEGORIAS.includes(initialCat) ? [initialCat] : [],
-  );
   const [selectedBaterias, setSelectedBaterias] = useState([]);
   const [priceMax, setPriceMax] = useState(10000);
   const [sortBy, setSortBy] = useState('price_asc');
@@ -29,15 +26,27 @@ export default function Shop() {
     fetchProductos().then(setProductos).catch(console.error);
   }, []);
 
-  // Sincronizar URL con filtros si el usuario llega desde navbar
-  useEffect(() => {
-    if (initialCat && CATEGORIAS.includes(initialCat)) {
-      setSelectedCategories([initialCat]);
-    }
-  }, [initialCat]);
+  // La URL es la única fuente de verdad para las categorías
+  const selectedCategories = useMemo(
+    () =>
+      initialCat
+        ? initialCat.split(',').filter((c) => CATEGORIAS.includes(c))
+        : [],
+    [initialCat],
+  );
 
   const toggle = (val, list, setList) => {
     setList(list.includes(val) ? list.filter((v) => v !== val) : [...list, val]);
+  };
+
+  const toggleCategory = (c) => {
+    const next = selectedCategories.includes(c)
+      ? selectedCategories.filter((v) => v !== c)
+      : [...selectedCategories, c];
+    const params = new URLSearchParams(searchParams);
+    if (next.length) params.set('categoria', next.join(','));
+    else params.delete('categoria');
+    setSearchParams(params, { replace: true });
   };
 
   const filtered = useMemo(() => {
@@ -54,7 +63,7 @@ export default function Shop() {
   const gridCells = useMemo(() => interleaveSocialGrid(filtered), [filtered]);
 
   const banner =
-    BANNERS[searchParams.get('categoria')] ?? BANNERS.default;
+    BANNERS[initialCat] ?? BANNERS.default;
 
   return (
     <div>
@@ -73,8 +82,6 @@ export default function Shop() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
       <ProductViewer productos={productos} />
-
-      {/* <Visor360/> */}
 
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar */}
@@ -96,9 +103,7 @@ export default function Shop() {
                   <input
                     type="checkbox"
                     checked={selectedCategories.includes(c)}
-                    onChange={() =>
-                      toggle(c, selectedCategories, setSelectedCategories)
-                    }
+                    onChange={() => toggleCategory(c)}
                     className="accent-brand"
                   />
                   {c}
@@ -163,7 +168,7 @@ export default function Shop() {
               onClick={() => setCatalogOpen(true)}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border-2 border-brand text-brand font-semibold text-xl hover:bg-brand hover:text-white transition-colors"
             >
-              <Book className="w-4 h-20 text-xl" />
+              <Book className="w-4 h-5 text-xl" />
               Ver catálogo
             </button>
           </div>

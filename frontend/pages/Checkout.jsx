@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   ShoppingCart, Minus, Plus, Trash2, Loader2,
   CheckCircle2, Phone, AlertCircle,
-} from 'lucide-react';
+} from '../lib/icons';
 import { useCart } from '../contexts/CartContext';
 import { supabase } from '../lib/supabase';
 import { pedidosAPI } from '../lib/api';
