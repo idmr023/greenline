@@ -1,13 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
-import { versionarImagen } from '../../lib/imagenVersionada';
+import { versionarImagen } from '../../lib/images';
 import stripHtml from '../../utils/stripHtml';
-import RichTextEditor from './blog/RichTextEditor';
+import { subirImagenBlog } from '../../lib/blogUpload';
+import BlogBlocksEditor from './blog/BlogBlocksEditor';
 import VistaPreviaModal from './blog/VistaPreviaModal';
 import {
   Plus, Pencil, Trash2, ArrowLeft, Save, Upload, FileText,
   Eye, EyeOff, GripVertical, X, AlertTriangle, Image as ImageIcon,
-} from 'lucide-react';
+} from '../../lib/icons';
 
 const EMPTY = {
   title: '',
@@ -29,6 +30,120 @@ function slugify(text) {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
+}
+
+function htmlToBlocks(html) {
+  if (!html) return [];
+  try {
+    const parsed = JSON.parse(html);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {}
+  const blocks = [];
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = html;
+  let currentText = '';
+  const flushText = () => {
+    if (currentText.trim()) {
+      blocks.push({ id: newId(), type: 'text', content: currentText });
+      currentText = '';
+    }
+  };
+  function newId() { return `block_${Date.now()}_${Math.random().toString(36).slice(2)}`; }
+  const parseDataImages = (el) => {
+    try {
+      const raw = JSON.parse(el.getAttribute('data-images') || '[]');
+      if (Array.isArray(raw)) {
+        return raw.map((img) => (typeof img === 'string' ? img : img?.src)).filter(Boolean);
+      }
+    } catch {}
+    return Array.from(el.querySelectorAll('img')).map((img) => img.getAttribute('src')).filter(Boolean);
+  };
+
+  const convertirColumnas = (el) => {
+    const cols = Array.from(el.querySelectorAll(':scope > div')).map((col) => ({ content: col.innerHTML }));
+    if (cols.length) return { flush: true, block: { id: newId(), type: 'columns', cols: cols.length, blocks: cols } };
+    return null;
+  };
+
+  const convertirCarrusel = (el) => {
+    const imgs = parseDataImages(el);
+    if (imgs.length) return { flush: true, block: { id: newId(), type: 'carrusel', images: imgs } };
+    return null;
+  };
+
+  const convertir = (el) => {
+    const tag = el.tagName.toLowerCase();
+    if (['h2', 'h3', 'h4'].includes(tag)) {
+      return { flush: true, block: { id: newId(), type: 'heading', content: el.innerHTML, level: Number(tag[1]) } };
+    }
+    if (tag === 'p') return { text: `<p>${el.innerHTML}</p>` };
+    if (tag === 'img') {
+      return { flush: true, block: { id: newId(), type: 'image', src: el.getAttribute('src'), alt: el.alt || '', caption: '' } };
+    }
+    if (tag === 'table') {
+      const headers = Array.from(el.querySelectorAll('thead th')).map((th) => th.textContent);
+      const rows = Array.from(el.querySelectorAll('tbody tr')).map((tr) => Array.from(tr.querySelectorAll('td')).map((td) => td.textContent));
+      return { flush: true, block: { id: newId(), type: 'table', headers: headers.length ? headers : ['Col 1', 'Col 2'], rows: rows.length ? rows : [['', '']] } };
+    }
+    if (tag === 'blockquote') {
+      const author = el.querySelector('footer')?.textContent || '—';
+      return { flush: true, block: { id: newId(), type: 'quote', content: el.textContent.replace(author, '').trim(), author } };
+    }
+    if (tag === 'hr') return { flush: true, block: { id: newId(), type: 'separator' } };
+    if (el.dataset.columnLayout || el.classList.contains('columns-container')) {
+      return convertirColumnas(el);
+    }
+    if (el.dataset.carrusel || el.classList.contains('carrusel')) {
+      return convertirCarrusel(el);
+    }
+    return { text: el.outerHTML };
+  };
+
+  wrapper.querySelectorAll('h2,h3,h4,p,img,table,blockquote,hr,div[data-column-layout],div[data-carrusel],div.columns-container,div.carrusel').forEach((el) => {
+    const r = convertir(el);
+    if (!r) return;
+    if (r.flush) flushText();
+    if (r.block) blocks.push(r.block);
+    else currentText += r.text;
+  });
+  flushText();
+  return blocks;
+}
+
+function blocksToHtml(blocks) {
+  if (typeof blocks === 'string') {
+    try {
+      const parsed = JSON.parse(blocks);
+      blocks = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return blocks;
+    }
+  }
+  if (!Array.isArray(blocks)) return '';
+  return blocks.map((b) => {
+    switch (b.type) {
+      case 'heading':
+        return `<h${b.level || 2}>${b.content || ''}</h${b.level || 2}>`;
+      case 'text':
+        return b.content || '<p></p>';
+      case 'image':
+        return `<figure><img src="${b.src || ''}" alt="${b.alt || ''}" />${b.caption ? `<figcaption>${b.caption}</figcaption>` : ''}</figure>`;
+      case 'columns': {
+        const n = b.cols === 3 ? 3 : 2;
+        return `<div data-column-layout data-columns="${n}" style="display:grid;grid-template-columns:repeat(${n},1fr);gap:1.5rem">${(b.blocks || []).map((c) => `<div data-column>${c.content || '<p></p>'}</div>`).join('')}</div>`;
+      }
+      case 'table':
+        return `<table class="w-full text-sm border-collapse border border-gray-200 rounded-lg overflow-hidden"><thead><tr class="bg-gray-50">${(b.headers || []).map((h) => `<th class="px-3 py-2 text-left font-medium text-gray-700 border-b border-gray-200">${h}</th>`).join('')}</tr></thead><tbody>${(b.rows || []).map((row) => `<tr class="hover:bg-gray-50">${row.map((cell) => `<td class="px-3 py-2 border-b border-gray-100">${cell}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+      case 'quote':
+        return `<blockquote class="border-l-4 border-brand bg-brand/5 px-4 py-3 text-gray-700 italic">${b.content || ''} ${b.author ? `<footer class="text-xs text-gray-500 mt-1">${b.author}</footer>` : ''}</blockquote>`;
+      case 'separator':
+        return '<hr class="border-gray-200 my-4" />';
+      case 'carrusel':
+        return `<div data-carrusel data-images='${JSON.stringify(b.images || []).replace(/'/g, '&#39;')}'></div>`;
+      default:
+        return '';
+    }
+  }).join('\n');
 }
 
 function ConfirmModal({ open, title, message, confirmLabel, onConfirm, onCancel, danger }) {
@@ -64,40 +179,18 @@ function ConfirmModal({ open, title, message, confirmLabel, onConfirm, onCancel,
   );
 }
 
-function GalleryManager({ _postId, images, onImagesChange, uploadingGallery, setUploadingGallery }) {
+function GalleryManager({ slug, _postId, images, onImagesChange, uploadingGallery, setUploadingGallery }) {
   const handleUploadGallery = async (files) => {
     if (!files || !files.length) return;
     setUploadingGallery(true);
     const newImages = [];
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.access_token) {
-      alert('Sesión no válida. Inicia sesión de nuevo.');
-      setUploadingGallery(false);
-      return;
-    }
-
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-
     for (const file of files) {
       try {
-        const formData = new FormData();
-        formData.append('image', file);
-
-        const res = await fetch(`${apiUrl}/blog/upload`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${session.access_token}` },
-          body: formData,
-        });
-
-        const data = await res.json();
-        if (!res.ok) {
-          alert('Error subiendo imagen: ' + (data.error || res.statusText));
-          continue;
-        }
-        newImages.push({ image_url: data.url, image_alt: '', sort_order: images.length + newImages.length });
+        const url = await subirImagenBlog(file, slug);
+        newImages.push({ image_url: url, image_alt: '', sort_order: images.length + newImages.length });
       } catch (err) {
-        alert(`Error de conexión al API (${apiUrl}): ` + err.message);
+        alert('Error subiendo imagen: ' + err.message);
       }
     }
     if (newImages.length > 0) {
@@ -253,6 +346,7 @@ export default function AdminBlog() {
       published_at: new Date().toISOString().slice(0, 10),
       title: '',
       slug: '',
+      content_html: JSON.stringify([]),
     });
   };
 
@@ -263,7 +357,7 @@ export default function AdminBlog() {
       slug: post.slug || '',
       category_id: post.category_id || '',
       excerpt: post.excerpt || '',
-      content_html: post.content_html || '',
+      content_html: JSON.stringify(htmlToBlocks(post.content_html || '')),
       image_url: post.image_url || '',
       image_alt: post.image_alt || '',
       published_at: (post.published_at || '').slice(0, 10),
@@ -289,6 +383,23 @@ export default function AdminBlog() {
 
   const setField = (field, value) => setForm((f) => ({ ...f, [field]: value }));
 
+  const crearCategoria = async () => {
+    const name = prompt('Nombre de la nueva categoría:');
+    if (!name?.trim()) return;
+    const sort = categories.length > 0 ? Math.max(...categories.map((c) => c.sort_order || 0)) + 1 : 0;
+    const { data, error } = await supabase
+      .from('greenline_categories')
+      .insert({ name: name.trim(), slug: slugify(name.trim()), sort_order: sort })
+      .select()
+      .single();
+    if (error) {
+      alert('Error: ' + error.message);
+      return;
+    }
+    setCategories((prev) => [...prev, data].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)));
+    setForm((f) => ({ ...f, category_id: data.id }));
+  };
+
   const handleUpload = async (file) => {
     if (!file) return;
     setUploading(true);
@@ -302,29 +413,12 @@ export default function AdminBlog() {
 
   const uploadBlogImage = async (file) => {
     if (!file) return null;
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.access_token) {
-      alert('Sesión no válida. Inicia sesión de nuevo.');
+    try {
+      return await subirImagenBlog(file, form.slug || slugify(form.title));
+    } catch (err) {
+      alert('Error subiendo imagen: ' + err.message);
       return null;
     }
-
-    const formData = new FormData();
-    formData.append('image', file);
-
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-    const res = await fetch(`${apiUrl}/blog/upload`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${session.access_token}` },
-      body: formData,
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      alert('Error subiendo imagen: ' + (data.error || res.statusText));
-      return null;
-    }
-
-    return data.url;
   };
 
   const handleDelete = async (post) => {
@@ -355,12 +449,17 @@ export default function AdminBlog() {
   };
 
   const requestSave = () => {
-    if (!form.title.trim() || !stripHtml(form.content_html).trim()) {
-      alert('Título y contenido son obligatorios');
+    const bloques = htmlToBlocks(form.content_html);
+    if (!form.title.trim()) {
+      alert('Título es obligatorio');
       return;
     }
     if (!form.category_id) {
       alert('Selecciona una categoría');
+      return;
+    }
+    if (!bloques.length || !stripHtml(blocksToHtml(bloques)).trim()) {
+      alert('Agrega al menos un bloque con contenido');
       return;
     }
     setConfirmAction({ type: 'save' });
@@ -371,13 +470,14 @@ export default function AdminBlog() {
     setConfirmOpen(false);
     setSaving(true);
 
+    const contentHtml = blocksToHtml(form.content_html);
     const payload = {
       title: form.title.trim(),
       slug: form.slug.trim() || slugify(form.title),
       category_id: form.category_id,
       excerpt: form.excerpt || null,
-      content_html: form.content_html,
-      content_text: form.excerpt || stripHtml(form.content_html),
+      content_html: contentHtml,
+      content_text: form.excerpt || stripHtml(contentHtml),
       image_url: form.image_url || null,
       image_alt: form.image_alt || null,
       published_at: form.published_at || new Date().toISOString().slice(0, 10),
@@ -621,24 +721,7 @@ export default function AdminBlog() {
               </select>
               <button
                 type="button"
-                onClick={() => {
-                  const name = prompt('Nombre de la nueva categoría:');
-                  if (name && name.trim()) {
-                    setTimeout(() => {
-                      const slug = slugify(name.trim());
-                      const sort = categories.length > 0 ? Math.max(...categories.map(c => c.sort_order || 0)) + 1 : 0;
-                      supabase.from('greenline_categories')
-                        .insert({ name: name.trim(), slug, sort_order: sort })
-                        .select()
-                        .single()
-                        .then(({ data, error }) => {
-                          if (error) { alert('Error: ' + error.message); return; }
-                          setCategories((prev) => [...prev, data].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)));
-                          setForm((f) => ({ ...f, category_id: data.id }));
-                        });
-                    }, 0);
-                  }
-                }}
+                onClick={crearCategoria}
                 className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-600 transition-colors"
                 title="Nueva categoría"
               >
@@ -681,17 +764,14 @@ export default function AdminBlog() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Contenido</h2>
-        <RichTextEditor
-          key={editingId || 'nuevo'}
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Contenido (bloques)</h2>
+        <BlogBlocksEditor
           value={form.content_html}
-          onChange={(html) => setField('content_html', html)}
+          onChange={(json) => setField('content_html', json)}
           onUpload={uploadBlogImage}
         />
         <p className="mt-3 text-xs text-gray-400">
-          Tipos de letra, listas, tablas y columnas (2 o 3) directamente sobre el editor. Las
-          imágenes se suben con el botón Subir y los carruseles de imágenes con el botón de la
-          barra de herramientas.
+          Usa los bloques para construir tu artículo: encabezados, párrafos, imágenes, columnas, tablas, citas, separadores y carruseles. Reordenar bloques con los botones de flecha.
         </p>
       </div>
 
@@ -734,6 +814,7 @@ export default function AdminBlog() {
       <div className="bg-white rounded-xl border border-gray-100 p-6 mb-6">
         <h2 className="text-lg font-bold text-gray-900 mb-4">Galería de imágenes</h2>
         <GalleryManager
+          slug={form.slug}
           postId={editingId}
           images={galleryImages}
           onImagesChange={setGalleryImages}
@@ -781,7 +862,7 @@ export default function AdminBlog() {
               ?.name || null,
           image_url: form.image_url,
           image_alt: form.image_alt,
-          content_html: form.content_html,
+          content_html: blocksToHtml(form.content_html),
         }}
       />
     </div>

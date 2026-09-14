@@ -100,27 +100,40 @@ export async function inventarioBucket(supabase, carpeta, opts = {}) {
   const { soloImagenes = false } = opts;
   const archivos = new Set();
 
+  async function listarPagina(Actual, offset) {
+    const { data, error } = await supabase.storage
+      .from(BUCKET)
+      .list(Actual, {
+        limit: STORAGE_PAGE_SIZE,
+        offset,
+        sortBy: { column: 'name', order: 'asc' },
+      });
+    if (error) throw new Error(`Error listando ${Actual}: ${error.message}`);
+    return data || [];
+  }
+
+  function procesarItem(item, Actual) {
+    const ruta = Actual ? `${Actual}/${item.name}` : item.name;
+    const esCarpeta = item.id === null || item.metadata === null;
+    if (esCarpeta) {
+      return { ruta, esCarpeta: true };
+    }
+    if (!soloImagenes || extensionValida(ruta)) {
+      archivos.add(ruta);
+    }
+    return null;
+  }
+
   async function recorrer(Actual) {
     let offset = 0;
     while (true) {
-      const { data, error } = await supabase.storage
-        .from(BUCKET)
-        .list(Actual, {
-          limit: STORAGE_PAGE_SIZE,
-          offset,
-          sortBy: { column: 'name', order: 'asc' },
-        });
-
-      if (error) throw new Error(`Error listando ${Actual}: ${error.message}`);
-      if (!data?.length) break;
+      const data = await listarPagina(Actual, offset);
+      if (!data.length) break;
 
       for (const item of data) {
-        const ruta = Actual ? `${Actual}/${item.name}` : item.name;
-        const esCarpeta = item.id === null || item.metadata === null;
-        if (esCarpeta) {
-          await recorrer(ruta);
-        } else if (!soloImagenes || extensionValida(ruta)) {
-          archivos.add(ruta);
+        const procesado = procesarItem(item, Actual);
+        if (procesado) {
+          await recorrer(procesado.ruta);
         }
       }
 
@@ -130,7 +143,7 @@ export async function inventarioBucket(supabase, carpeta, opts = {}) {
   }
 
   await recorrer(carpeta.replace(/\/$/, ''));
-  return [...archivos].sort();
+  return [...archivos].sort((a, b) => a.localeCompare(b, 'es'));
 }
 
 // ── Upload a Supabase Storage ───────────────────────────────

@@ -69,8 +69,10 @@ const LOCAL = ARGS.includes('--local') || ARGS.includes('--local-only');
 // Limpia originales PNG/JPG que ya fueron procesados a WebP.
 const CLEANUP = ARGS.includes('--cleanup');
 
-// Carpetas del bucket a descargar (solo en modo --descargar). Se mapean a public/assets.
-const RUTAS_ORIGEN_DESCARGAR = ['assets/imagenes', 'productos', 'articulos'];
+// Carpetas del bucket a descargar (solo en modo --descargar). El bucket guarda
+// las rutas con el prefijo real assets/imagenes/... (igual que en local), así que
+// ese es el único origen a inventariar.
+const RUTAS_ORIGEN_DESCARGAR = ['assets/imagenes'];
 
 // Sube las imágenes en su tamaño original: NO redimensiona ni recorta.
 // Solo convierte el archivo a WebP para reducir el peso. Útil cuando el
@@ -165,6 +167,21 @@ const confirmar = async (pregunta, porDefecto = true) => {
 //   "1-5, 8, 10-12"   →  [0,1,2,3,4,7,9,10,11]
 //   "all"             →  todos los índices
 // Entrada vacía o sin valores válidos → [].
+function registrarRango(indices, trozo, max) {
+  const [a, b] = trozo.split('-');
+  const ini = Number.parseInt(a, 10);
+  const fin = Number.parseInt(b, 10);
+  if (Number.isNaN(ini) || Number.isNaN(fin) || ini < 1 || fin > max || ini > fin) return;
+  for (let i = ini; i <= fin; i++) indices.add(i - 1);
+}
+
+function registrarIndice(indices, trozo, max) {
+  const num = Number.parseInt(trozo, 10);
+  if (!Number.isNaN(num) && num >= 1 && num <= max) {
+    indices.add(num - 1);
+  }
+}
+
 function parseSeleccion(respuesta, max) {
   const rta = (respuesta || '').trim().toLowerCase();
   if (!rta) return [];
@@ -175,25 +192,10 @@ function parseSeleccion(respuesta, max) {
     const trozo = parte.trim();
     if (!trozo) continue;
 
-    const rango = trozo.split('-');
-    if (rango.length === 2) {
-      const ini = Number.parseInt(rango[0], 10);
-      const fin = Number.parseInt(rango[1], 10);
-      if (
-        !Number.isNaN(ini) &&
-        !Number.isNaN(fin) &&
-        ini >= 1 &&
-        fin <= max &&
-        ini <= fin
-      ) {
-        for (let i = ini; i <= fin; i++) indices.add(i - 1);
-      }
-      continue;
-    }
-
-    const num = Number.parseInt(trozo, 10);
-    if (!Number.isNaN(num) && num >= 1 && num <= max) {
-      indices.add(num - 1);
+    if (trozo.split('-').length === 2) {
+      registrarRango(indices, trozo, max);
+    } else {
+      registrarIndice(indices, trozo, max);
     }
   }
 
@@ -431,7 +433,12 @@ function rutaLocalParaDescargar(objeto) {
   for (const origen of RUTAS_ORIGEN_DESCARGAR) {
     const prefijo = origen.replace(/\/$/, '');
     if (ruta === prefijo || ruta.startsWith(`${prefijo}/`)) {
-      return ruta.slice(prefijo.length + (ruta.startsWith(`${prefijo}/`) ? 1 : 0));
+      // El bucket usa assets/imagenes/... como prefijo real, igual que local.
+      // Colapsar el "imagenes" duplicado de objetos antiguos
+      // (assets/imagenes/imagenes/productos/...) y dejar la ruta relativa a public/assets.
+      return ruta
+        .replace(/^assets\/imagenes\/imagenes\//, 'assets/imagenes/')
+        .replace(/^assets\//, '');
     }
   }
   return ruta;
@@ -443,6 +450,42 @@ async function descargarDeBucket(objeto) {
     .download(objeto);
   if (error) throw error;
   return Buffer.from(await data.arrayBuffer());
+}
+
+async function descargarUna(objeto, stats) {
+  const relativa = rutaLocalParaDescargar(objeto);
+  const destino = path.join(CARPETA_LOCAL, relativa.split('/').join(path.sep));
+
+  try {
+    const buffer = await descargarDeBucket(objeto);
+    const procesado = await procesarImagen(buffer, {
+      original: PRESERVAR_ORIGINAL,
+    });
+
+    const originalKB = (buffer.length / 1024).toFixed(1);
+    const finalKB = (procesado.length / 1024).toFixed(1);
+    stats.descargadas++;
+
+    if (DRY_RUN) {
+      console.log(`    🧪 ${originalKB}KB → ${finalKB}KB → ${relativa}`);
+      return;
+    }
+
+    const existe = fs.existsSync(destino);
+    if (existe && !FORCE) {
+      stats.saltadas++;
+      console.log(`    ⏭️ Ya existe en local (usa --force para sobrescribir): ${relativa}`);
+      return;
+    }
+
+    fs.mkdirSync(path.dirname(destino), { recursive: true });
+    fs.writeFileSync(destino, procesado);
+    stats.escritas++;
+    console.log(`    ✅ ${originalKB}KB → ${finalKB}KB → ${relativa}`);
+  } catch (error) {
+    stats.errores++;
+    console.error(`    ❌ ${error.message}`);
+  }
 }
 
 async function ejecutarDescarga() {
@@ -460,17 +503,7 @@ async function ejecutarDescarga() {
     console.log(`📁 Creada carpeta local: ${CARPETA_LOCAL}\n`);
   }
 
-  console.log('☁️ Consultando Supabase...');
-  const objetosRaw = [];
-  for (const origen of RUTAS_ORIGEN_DESCARGAR) {
-    try {
-      const items = await inventarioBucket(supabase, origen, { soloImagenes: true });
-      objetosRaw.push(...items);
-    } catch {
-      // Carpeta de origen vacía o inexistente: se omite.
-    }
-  }
-  const objetos = [...new Set(objetosRaw)].sort();
+  const objetos = await listarObjetosBucket();
   console.log(`☁️ ${objetos.length} imágenes encontradas en el bucket.\n`);
 
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -486,59 +519,23 @@ async function ejecutarDescarga() {
   console.log('🎨 Fondo blanco');
   console.log('');
 
-  let descargadas = 0;
-  let escritas = 0;
-  let saltadas = 0;
-  let errores = 0;
+  const stats = { descargadas: 0, escritas: 0, saltadas: 0, errores: 0 };
 
   for (let i = 0; i < objetos.length; i++) {
     const objeto = objetos[i];
-    const relativa = rutaLocalParaDescargar(objeto);
-    const destino = path.join(CARPETA_LOCAL, relativa.split('/').join(path.sep));
-
     console.log(`[${i + 1}/${objetos.length}] 📥 ${objeto}`);
-
-    try {
-      const buffer = await descargarDeBucket(objeto);
-      const procesado = await procesarImagen(buffer, {
-        original: PRESERVAR_ORIGINAL,
-      });
-
-      const originalKB = (buffer.length / 1024).toFixed(1);
-      const finalKB = (procesado.length / 1024).toFixed(1);
-      descargadas++;
-
-      if (DRY_RUN) {
-        console.log(`    🧪 ${originalKB}KB → ${finalKB}KB → ${relativa}`);
-        continue;
-      }
-
-      const existe = fs.existsSync(destino);
-      if (existe && !FORCE) {
-        saltadas++;
-        console.log(`    ⏭️ Ya existe en local (usa --force para sobrescribir): ${relativa}`);
-        continue;
-      }
-
-      fs.mkdirSync(path.dirname(destino), { recursive: true });
-      fs.writeFileSync(destino, procesado);
-      escritas++;
-      console.log(`    ✅ ${originalKB}KB → ${finalKB}KB → ${relativa}`);
-    } catch (error) {
-      errores++;
-      console.error(`    ❌ ${error.message}`);
-    }
+    await descargarUna(objeto, stats);
   }
 
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log(DRY_RUN ? '🧪 VISTA PREVIA FINALIZADA' : '🎉 DESCARGA FINALIZADA');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(`📥 Descargadas : ${descargadas}`);
+  console.log(`📥 Descargadas : ${stats.descargadas}`);
   if (!DRY_RUN) {
-    console.log(`💾 Escritas    : ${escritas}`);
-    console.log(`⏭️ Saltadas    : ${saltadas}`);
+    console.log(`💾 Escritas    : ${stats.escritas}`);
+    console.log(`⏭️ Saltadas    : ${stats.saltadas}`);
   }
-  console.log(`❌ Errores     : ${errores}`);
+  console.log(`❌ Errores     : ${stats.errores}`);
   console.log(
     `📐 Resultado   : ${
       PRESERVAR_ORIGINAL ? 'WebP a tamaño original' : `${TARGET_SIZE}x${TARGET_SIZE}px WebP`
@@ -547,6 +544,19 @@ async function ejecutarDescarga() {
   if (DRY_RUN) {
     console.log('\n💡 Para escribir ejecuta: node scripts/sincronizar-imagenes-greenline.mjs --descargar');
   }
+}
+
+async function listarObjetosBucket() {
+  const objetosRaw = [];
+  for (const origen of RUTAS_ORIGEN_DESCARGAR) {
+    try {
+      const items = await inventarioBucket(supabase, origen, { soloImagenes: true });
+      objetosRaw.push(...items);
+    } catch {
+      // Carpeta de origen vacía o inexistente: se omite.
+    }
+  }
+  return [...new Set(objetosRaw)].sort((a, b) => a.localeCompare(b, 'es'));
 }
 
 // ============================================================
@@ -563,7 +573,7 @@ async function filtrarLocales(locales) {
   if (opcion === '2') {
     const carpetas = [
       ...new Set(locales.map((a) => path.dirname(a.rutaRelativa))),
-    ].sort();
+    ].sort((a, b) => a.localeCompare(b, 'es'));
 
     console.log('\nCarpetas disponibles:');
     carpetas.forEach((c, index) =>
@@ -600,68 +610,171 @@ async function filtrarLocales(locales) {
 // ------------------------------------------------------------
 // Subida: local → Supabase (sync original)
 // ------------------------------------------------------------
-async function ejecutarSubida() {
-  const modeLabel = DRY_RUN
-    ? '🧪 DRY RUN (solo vista previa, sin subir)'
-    : FORCE
-      ? '⚡ FORCE (re-subir todo sin preguntar)'
-      : '🚀 Modo interactivo';
+function calcularDelta(completos, remotas) {
+  const mapaLocal = new Map(
+    completos.map((archivo) => [
+      rutaRelativaStorage(archivo.rutaDestino),
+      archivo,
+    ])
+  );
 
-  console.log(`\n${modeLabel}`);
+  const nuevos = completos.filter(
+    (archivo) => !remotas.has(rutaRelativaStorage(archivo.rutaDestino))
+  );
+  const existentes = completos.filter(
+    (archivo) => remotas.has(rutaRelativaStorage(archivo.rutaDestino))
+  );
+  const sobrantes = [...remotas]
+    .filter((ruta) => !mapaLocal.has(ruta))
+    .sort((a, b) => a.localeCompare(b, 'es'));
+
+  return { nuevos, existentes, sobrantes };
+}
+
+async function planificarSubida(nuevos, existentes, sobrantes) {
+  if (DRY_RUN) {
+    return {
+      paraSubir: SOLO_NUEVO ? [...nuevos] : [...nuevos, ...existentes],
+      paraEliminar: [],
+      mensaje: `\n🧪 DRY RUN: se procesarán ${SOLO_NUEVO ? nuevos.length : nuevos.length + existentes.length} imágenes para vista previa.\n`,
+    };
+  }
+  if (FORCE) {
+    return {
+      paraSubir: SOLO_NUEVO ? [...nuevos] : [...nuevos, ...existentes],
+      paraEliminar: await gestionarSobrantes(sobrantes),
+      mensaje: `\n⚡ FORCE: re-procesando ${SOLO_NUEVO ? nuevos.length : nuevos.length + existentes.length} imágenes.\n`,
+    };
+  }
+  if (SOLO_NUEVO) {
+    return {
+      paraSubir: [...nuevos],
+      paraEliminar: [],
+      mensaje: `\n🔒 --solo-nuevo: solo se subirán ${nuevos.length} imagen(es) nueva(s). No se sobrescribe ni elimina nada.\n`,
+    };
+  }
+  return {
+    paraSubir: await decidirSubida(nuevos, existentes),
+    paraEliminar: await gestionarSobrantes(sobrantes),
+    mensaje: '',
+  };
+}
+
+async function eliminarRutas(paraEliminar) {
+  let eliminados = 0;
+  let erroresEliminacion = 0;
+  for (const ruta of paraEliminar) {
+    try {
+      console.log(`🗑️ Eliminando ${ruta}...`);
+      await eliminarStorage(supabase, `${RUTA_SUPABASE}${ruta}`);
+      eliminados++;
+    } catch (error) {
+      erroresEliminacion++;
+      console.error(`❌ Error eliminando ${ruta}: ${error.message}`);
+    }
+  }
+  return { eliminados, erroresEliminacion };
+}
+
+async function subirUna(archivo, stats) {
+  const tamanoOriginal = fs.statSync(archivo.rutaCompleta).size;
+  try {
+    const buffer = await procesarImagen(archivo.rutaCompleta, {
+      rutaRelativa: archivo.rutaRelativa,
+      original: PRESERVAR_ORIGINAL,
+    });
+    const tamanoProcesado = buffer.length;
+    const ratioNum = (1 - tamanoProcesado / tamanoOriginal) * 100;
+    const cambio = `${ratioNum > 0 ? '-' : '+'}${Math.abs(ratioNum).toFixed(1)}%`;
+    if (DRY_RUN) {
+      console.log(`    📐 Original: ${formatearTamano(tamanoOriginal)} → Procesado: ${formatearTamano(tamanoProcesado)} (${cambio})`);
+      return;
+    }
+    await subirStorage(supabase, archivo.rutaDestino, buffer);
+    stats.subidos++;
+    console.log(`    ✅ ${formatearTamano(tamanoOriginal)} → ${formatearTamano(tamanoProcesado)} (${cambio}) → ${archivo.rutaDestino}`);
+  } catch (error) {
+    stats.erroresSubida++;
+    console.error(`    ❌ ${error.message}`);
+  }
+}
+
+function modoLabelSubida() {
+  if (DRY_RUN) return '🧪 DRY RUN (solo vista previa, sin subir)';
+  if (FORCE) return '⚡ FORCE (re-subir todo sin preguntar)';
+  return '🚀 Modo interactivo';
+}
+
+async function filtrarLocalesModo(locales) {
+  if (FORCE || DRY_RUN || SOLO_NUEVO || locales.length === 0) return locales;
+  const filtrados = await filtrarLocales(locales);
+  if (filtrados.length === 0 || filtrados.length === locales.length) return locales;
+  return filtrados;
+}
+
+async function manejarEliminacionSubida(paraEliminar) {
+  if (DRY_RUN) {
+    if (paraEliminar.length) {
+      console.log(`\n🧪 DRY RUN: se eliminarían ${paraEliminar.length} imágenes sobrantes.`);
+    }
+    return { eliminados: 0, erroresEliminacion: 0 };
+  }
+  if (!paraEliminar.length) return { eliminados: 0, erroresEliminacion: 0 };
+  return eliminarRutas(paraEliminar);
+}
+
+function imprimirEncabezadoSubida() {
+  console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log(DRY_RUN ? '🧪 VISTA PREVIA DE PROCESAMIENTO' : '☁️ PROCESANDO Y SUBIENDO');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  if (PRESERVAR_ORIGINAL) {
+    console.log('📐 Tamaño original conservado (solo conversión a WebP)');
+  } else {
+    console.log(`📐 Todas quedarán en ${TARGET_SIZE}x${TARGET_SIZE}px`);
+    console.log('✂️ Márgenes blancos exteriores recortados');
+    console.log('📏 Proporción original conservada');
+  }
+  console.log('🎨 Fondo blanco');
+  console.log('');
+}
+
+function descripcionResultado() {
+  return PRESERVAR_ORIGINAL ? 'WebP a tamaño original' : `${TARGET_SIZE}x${TARGET_SIZE}px WebP`;
+}
+
+function imprimirResumenSubida(paraSubir, stats, eliminados, erroresEliminacion) {
+  console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log(DRY_RUN ? '🧪 VISTA PREVIA FINALIZADA' : '🎉 PROCESO FINALIZADO');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  if (DRY_RUN) {
+    console.log(`📐 Procesadas   : ${paraSubir.length} imágenes`);
+    console.log(`📐 Resultado    : ${descripcionResultado()}`);
+    console.log('\n💡 Para subir ejecuta: node scripts/sincronizar-imagenes-greenline.mjs --force');
+    return;
+  }
+  console.log(`☁️ Subidas        : ${stats.subidos}`);
+  console.log(`❌ Errores subida : ${stats.erroresSubida}`);
+  console.log(`🗑️ Eliminadas     : ${eliminados}`);
+  console.log(`❌ Errores borrado: ${erroresEliminacion}`);
+console.log(`📐 Resultado      : ${descripcionResultado()}`);
+  }
+
+async function ejecutarSubida() {
+  console.log(`\n${modoLabelSubida()}`);
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
   if (!fs.existsSync(CARPETA_LOCAL)) {
     throw new Error(`No existe la carpeta local:\n${CARPETA_LOCAL}`);
   }
 
-  // ESCANEAR LOCAL
   console.log('🔍 Escaneando local...');
-  let locales = inventarioLocal();
-  console.log(`📁 ${locales.length} imágenes locales válidas.`);
-
-  // ESCANEAR SUPABASE
-  console.log('☁️ Consultando Supabase...');
+  const locales = await filtrarLocalesModo(inventarioLocal());
   const remotasRaw = await inventarioBucket(supabase, RUTA_SUPABASE);
-  const remotas = new Set(
-    remotasRaw.map((ruta) => rutaRelativaStorage(ruta))
-  );
+  const remotas = new Set(remotasRaw.map((ruta) => rutaRelativaStorage(ruta)));
+  console.log(`📁 ${locales.length} imágenes locales válidas.`);
   console.log(`☁️ ${remotas.size} imágenes existentes en Supabase.`);
 
-  const calcular = (completos) => {
-    const mapaLocal = new Map(
-      completos.map((archivo) => [
-        rutaRelativaStorage(archivo.rutaDestino),
-        archivo,
-      ])
-    );
-
-    const nuevos = completos.filter(
-      (archivo) =>
-        !remotas.has(rutaRelativaStorage(archivo.rutaDestino))
-    );
-
-    const existentes = completos.filter(
-      (archivo) =>
-        remotas.has(rutaRelativaStorage(archivo.rutaDestino))
-    );
-
-    const sobrantes = [...remotas]
-      .filter((ruta) => !mapaLocal.has(ruta))
-      .sort();
-
-    return { nuevos, existentes, sobrantes };
-  };
-
-  let { nuevos, existentes, sobrantes } = calcular(locales);
-
-  // FILTRAR (solo interactivo, respecto a todo el set local)
-  if (!FORCE && !DRY_RUN && !SOLO_NUEVO && locales.length > 0) {
-    const filtrados = await filtrarLocales(locales);
-    if (filtrados.length > 0 && filtrados.length !== locales.length) {
-      locales = filtrados;
-      ({ nuevos, existentes, sobrantes } = calcular(locales));
-    }
-  }
+  const { nuevos, existentes, sobrantes } = calcularDelta(locales, remotas);
 
   // RESUMEN
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -673,132 +786,25 @@ async function ejecutarSubida() {
   console.log(`⚠️ Sobrantes    : ${sobrantes.length}`);
 
   // GESTIONAR SOBRANTES + ELEGIR SUBIDA
-  let paraEliminar = [];
-  let paraSubir = [];
-
-  if (DRY_RUN) {
-    paraSubir = SOLO_NUEVO ? [...nuevos] : [...nuevos, ...existentes];
-    console.log(`\n🧪 DRY RUN: se procesarán ${paraSubir.length} imágenes para vista previa.\n`);
-  } else if (FORCE) {
-    paraSubir = SOLO_NUEVO ? [...nuevos] : [...nuevos, ...existentes];
-    paraEliminar = await gestionarSobrantes(sobrantes);
-    console.log(`\n⚡ FORCE: re-procesando ${paraSubir.length} imágenes.\n`);
-  } else if (SOLO_NUEVO) {
-    paraSubir = [...nuevos];
-    console.log(`\n🔒 --solo-nuevo: solo se subirán ${nuevos.length} imagen(es) nueva(s). No se sobrescribe ni elimina nada.\n`);
-  } else {
-    paraEliminar = await gestionarSobrantes(sobrantes);
-    paraSubir = await decidirSubida(nuevos, existentes);
-  }
+  const { paraSubir, paraEliminar, mensaje } = await planificarSubida(nuevos, existentes, sobrantes);
+  if (mensaje) console.log(mensaje);
 
   // ELIMINAR
-  let eliminados = 0;
-  let erroresEliminacion = 0;
-
-  if (!DRY_RUN) {
-    for (const ruta of paraEliminar) {
-      try {
-        console.log(`🗑️ Eliminando ${ruta}...`);
-        await eliminarStorage(supabase, `${RUTA_SUPABASE}${ruta}`);
-        eliminados++;
-      } catch (error) {
-        erroresEliminacion++;
-        console.error(`❌ Error eliminando ${ruta}: ${error.message}`);
-      }
-    }
-  } else if (paraEliminar.length) {
-    console.log(`\n🧪 DRY RUN: se eliminarían ${paraEliminar.length} imágenes sobrantes.`);
-  }
+  const { eliminados, erroresEliminacion } = await manejarEliminacionSubida(paraEliminar);
 
   // PROCESAR Y SUBIR
-  let subidos = 0;
-  let erroresSubida = 0;
-
-  console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(
-    DRY_RUN
-      ? '🧪 VISTA PREVIA DE PROCESAMIENTO'
-      : '☁️ PROCESANDO Y SUBIENDO'
-  );
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
-  if (PRESERVAR_ORIGINAL) {
-    console.log('📐 Tamaño original conservado (solo conversión a WebP)');
-  } else {
-    console.log(`📐 Todas quedarán en ${TARGET_SIZE}x${TARGET_SIZE}px`);
-    console.log('✂️ Márgenes blancos exteriores recortados');
-    console.log('📏 Proporción original conservada');
-  }
-
-  console.log('🎨 Fondo blanco');
-  console.log('');
+  const stats = { subidos: 0, erroresSubida: 0 };
+  imprimirEncabezadoSubida();
 
   for (let i = 0; i < paraSubir.length; i++) {
     const archivo = paraSubir[i];
-    const tamanoOriginal = fs.statSync(archivo.rutaCompleta).size;
-
     console.log(
       `[${i + 1}/${paraSubir.length}] ⚙️ ${archivo.rutaRelativa}`
     );
-
-    try {
-      const buffer = await procesarImagen(archivo.rutaCompleta, {
-        rutaRelativa: archivo.rutaRelativa,
-        original: PRESERVAR_ORIGINAL,
-      });
-
-      const tamanoProcesado = buffer.length;
-      const ratio = (
-        (1 - tamanoProcesado / tamanoOriginal) * 100
-      ).toFixed(1);
-
-      if (DRY_RUN) {
-        console.log(
-          `    📐 Original: ${formatearTamano(tamanoOriginal)} → Procesado: ${formatearTamano(tamanoProcesado)} (${ratio > 0 ? '-' : '+'}${Math.abs(ratio)}%)`
-        );
-      } else {
-        await subirStorage(supabase, archivo.rutaDestino, buffer);
-        subidos++;
-        console.log(
-          `    ✅ ${formatearTamano(tamanoOriginal)} → ${formatearTamano(tamanoProcesado)} (${ratio > 0 ? '-' : '+'}${Math.abs(ratio)}%) → ${archivo.rutaDestino}`
-        );
-      }
-    } catch (error) {
-      erroresSubida++;
-      console.error(`    ❌ ${error.message}`);
-    }
+    await subirUna(archivo, stats);
   }
 
-  // RESULTADO
-  console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(
-    DRY_RUN
-      ? '🧪 VISTA PREVIA FINALIZADA'
-      : '🎉 PROCESO FINALIZADO'
-  );
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
-  if (DRY_RUN) {
-    console.log(`📐 Procesadas   : ${paraSubir.length} imágenes`);
-    console.log(
-      `📐 Resultado    : ${
-        PRESERVAR_ORIGINAL ? 'WebP a tamaño original' : `${TARGET_SIZE}x${TARGET_SIZE}px WebP`
-      }`
-    );
-    console.log(
-      '\n💡 Para subir ejecuta: node scripts/sincronizar-imagenes-greenline.mjs --force'
-    );
-  } else {
-    console.log(`☁️ Subidas        : ${subidos}`);
-    console.log(`❌ Errores subida : ${erroresSubida}`);
-    console.log(`🗑️ Eliminadas     : ${eliminados}`);
-    console.log(`❌ Errores borrado: ${erroresEliminacion}`);
-    console.log(
-      `📐 Resultado      : ${
-        PRESERVAR_ORIGINAL ? 'WebP a tamaño original' : `${TARGET_SIZE}x${TARGET_SIZE}px WebP`
-      }`
-    );
-  }
+  imprimirResumenSubida(paraSubir, stats, eliminados, erroresEliminacion);
 }
 
 
@@ -832,49 +838,57 @@ function escaneaLocalNoWebP() {
     });
 }
 
-async function ejecutarLocal() {
-  const modeLabel = DRY_RUN
-    ? '🧪 DRY RUN (solo vista previa, sin escribir)'
-    : FORCE
-      ? '⚡ FORCE (sobrescribir WebP existentes)'
-      : '🔧 Modo local';
-
-  console.log(`\n${modeLabel}`);
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-
-  if (!fs.existsSync(CARPETA_LOCAL)) {
-    throw new Error(`No existe la carpeta local:\n${CARPETA_LOCAL}`);
-  }
-
-  console.log('🔍 Escaneando imágenes no-WebP...');
-  const candidatos = escaneaLocalNoWebP();
-  console.log(`📁 ${candidatos.length} imágenes PNG/JPG encontradas.\n`);
-
-  // Separar: Ya tienen WebP vs No tienen WebP
-  const conWebpExistente = candidatos.filter((c) => c.yaExisteWebp);
-  const sinWebp = candidatos.filter((c) => !c.yaExisteWebp);
-
-  console.log(`  ✅ Ya tienen WebP  : ${conWebpExistente.length}`);
-  console.log(`  🔄 Para procesar  : ${sinWebp.length}`);
-  console.log('');
-
-  if (!sinWebp.length && !FORCE) {
-    console.log('✅ No hay nada que procesar.');
-    if (conWebpExistente.length) {
-      console.log(`\n💡 Hay ${conWebpExistente.length} originales PNG/JPG cuyo WebP ya existe.`);
-      console.log('   Usa --cleanup para eliminarlos.');
+async function procesarLocalUna(archivo, ctx) {
+  const tamanoOriginal = fs.statSync(archivo.rutaCompleta).size;
+  try {
+    const buffer = await procesarImagen(archivo.rutaCompleta, {
+      rutaRelativa: archivo.rutaRelativa,
+      original: PRESERVAR_ORIGINAL,
+    });
+    const tamanoProcesado = buffer.length;
+    const ratioNum = (1 - tamanoProcesado / tamanoOriginal) * 100;
+    const cambio = `${ratioNum > 0 ? '-' : '+'}${Math.abs(ratioNum).toFixed(1)}%`;
+    if (DRY_RUN) {
+      console.log(
+        `    📐 ${formatearTamano(tamanoOriginal)} → ${formatearTamano(tamanoProcesado)} (${cambio}) → ${archivo.rutaWebp}`
+      );
+      return;
     }
-    return;
+    fs.mkdirSync(path.dirname(archivo.destinoAbs), { recursive: true });
+    fs.writeFileSync(archivo.destinoAbs, buffer);
+    ctx.procesadas++;
+    ctx.manifest.push({
+      original: archivo.rutaRelativa,
+      webp: archivo.rutaWebp,
+      originalSize: tamanoOriginal,
+      webpSize: tamanoProcesado,
+    });
+    console.log(
+      `    ✅ ${formatearTamano(tamanoOriginal)} → ${formatearTamano(tamanoProcesado)} (${cambio}) → ${archivo.rutaWebp}`
+    );
+  } catch (error) {
+    ctx.errores++;
+    console.error(`    ❌ ${error.message}`);
   }
+}
 
-  // En modo FORCE, también re-procesar las que ya tienen WebP
-  const paraProcesar = FORCE ? candidatos : sinWebp;
+function modoLabelLocal() {
+  if (DRY_RUN) return '🧪 DRY RUN (solo vista previa, sin escribir)';
+  if (FORCE) return '⚡ FORCE (sobrescribir WebP existentes)';
+  return '🔧 Modo local';
+}
 
-  // RESUMEN
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(`📊 RESUMEN: ${paraProcesar.length} imágenes a procesar`);
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+function hayNadaQueProcesar(sinWebp, conWebpExistente) {
+  if (sinWebp.length > 0 || FORCE) return false;
+  console.log('✅ No hay nada que procesar.');
+  if (conWebpExistente.length) {
+    console.log(`\n💡 Hay ${conWebpExistente.length} originales PNG/JPG cuyo WebP ya existe.`);
+    console.log('   Usa --cleanup para eliminarlos.');
+  }
+  return true;
+}
 
+function imprimirEncabezadoLocal() {
   if (PRESERVAR_ORIGINAL) {
     console.log('📐 Tamaño original conservado (solo conversión a WebP)');
   } else {
@@ -883,69 +897,19 @@ async function ejecutarLocal() {
   }
   console.log('✂️ Márgenes blancos recortados');
   console.log('🎨 Fondo blanco\n');
+}
 
-  // PROCESAR
-  let procesadas = 0;
-  let errores = 0;
-  const manifest = [];
-
-  for (let i = 0; i < paraProcesar.length; i++) {
-    const archivo = paraProcesar[i];
-    const tamanoOriginal = fs.statSync(archivo.rutaCompleta).size;
-
-    console.log(`[${i + 1}/${paraProcesar.length}] ⚙️  ${archivo.rutaRelativa}`);
-
-    try {
-      const buffer = await procesarImagen(archivo.rutaCompleta, {
-        rutaRelativa: archivo.rutaRelativa,
-        original: PRESERVAR_ORIGINAL,
-      });
-
-      const tamanoProcesado = buffer.length;
-      const ratio = ((1 - tamanoProcesado / tamanoOriginal) * 100).toFixed(1);
-
-      if (DRY_RUN) {
-        console.log(
-          `    📐 ${formatearTamano(tamanoOriginal)} → ${formatearTamano(tamanoProcesado)} (${ratio > 0 ? '-' : '+'}${Math.abs(ratio)}%) → ${archivo.rutaWebp}`
-        );
-      } else {
-        fs.mkdirSync(path.dirname(archivo.destinoAbs), { recursive: true });
-        fs.writeFileSync(archivo.destinoAbs, buffer);
-        procesadas++;
-        manifest.push({
-          original: archivo.rutaRelativa,
-          webp: archivo.rutaWebp,
-          originalSize: tamanoOriginal,
-          webpSize: tamanoProcesado,
-        });
-        console.log(
-          `    ✅ ${formatearTamano(tamanoOriginal)} → ${formatearTamano(tamanoProcesado)} (${ratio > 0 ? '-' : '+'}${Math.abs(ratio)}%) → ${archivo.rutaWebp}`
-        );
-      }
-    } catch (error) {
-      errores++;
-      console.error(`    ❌ ${error.message}`);
-    }
-  }
-
-  // GUARDAR MANIFEST
-  if (!DRY_RUN && manifest.length) {
-    fs.mkdirSync(path.dirname(MANIFEST_PATH), { recursive: true });
-    fs.writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2));
-    console.log(`\n📝 Manifiesto guardado: ${MANIFEST_PATH}`);
-  }
-
-  // RESUMEN FINAL
+function imprimirResumenLocal(paraProcesar, ctx) {
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log(DRY_RUN ? '🧪 VISTA PREVIA FINALIZADA' : '🎉 PROCESAMIENTO LOCAL FINALIZADO');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(`⚙️  Procesadas  : ${DRY_RUN ? paraProcesar.length : procesadas}`);
-  console.log(`❌ Errores     : ${errores}`);
+  console.log(`⚙️  Procesadas  : ${DRY_RUN ? paraProcesar.length : ctx.procesadas}`);
+  console.log(`❌ Errores     : ${ctx.errores}`);
   console.log(`📐 Resultado   : ${
     PRESERVAR_ORIGINAL ? 'WebP a tamaño original' : `${TARGET_SIZE}x${TARGET_SIZE}px WebP`
   }`);
 
-  if (!DRY_RUN && manifest.length) {
+  if (!DRY_RUN && ctx.manifest.length) {
     console.log(`\n📝 Manifiesto: ${MANIFEST_PATH}`);
     console.log('\n👉 Siguiente paso: verifica que todo se vea bien en el navegador.');
     console.log('   Cuando confirmes, ejecuta: node scripts/sincronizar-imagenes-greenline.mjs --cleanup');
@@ -956,6 +920,54 @@ async function ejecutarLocal() {
       '\n💡 Para procesar ejecuta: node scripts/sincronizar-imagenes-greenline.mjs --local'
     );
   }
+}
+
+async function ejecutarLocal() {
+  console.log(`\n${modoLabelLocal()}`);
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+  if (!fs.existsSync(CARPETA_LOCAL)) {
+    throw new Error(`No existe la carpeta local:\n${CARPETA_LOCAL}`);
+  }
+
+  console.log('🔍 Escaneando imágenes no-WebP...');
+  const candidatos = escaneaLocalNoWebP();
+  const conWebpExistente = candidatos.filter((c) => c.yaExisteWebp);
+  const sinWebp = candidatos.filter((c) => !c.yaExisteWebp);
+
+  console.log(`📁 ${candidatos.length} imágenes PNG/JPG encontradas.\n`);
+  console.log(`  ✅ Ya tienen WebP  : ${conWebpExistente.length}`);
+  console.log(`  🔄 Para procesar  : ${sinWebp.length}`);
+  console.log('');
+
+  if (hayNadaQueProcesar(sinWebp, conWebpExistente)) return;
+
+  // En modo FORCE, también re-procesar las que ya tienen WebP
+  const paraProcesar = FORCE ? candidatos : sinWebp;
+
+  // RESUMEN
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log(`📊 RESUMEN: ${paraProcesar.length} imágenes a procesar`);
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  imprimirEncabezadoLocal();
+
+  // PROCESAR
+  const ctx = { procesadas: 0, errores: 0, manifest: [] };
+
+  for (let i = 0; i < paraProcesar.length; i++) {
+    const archivo = paraProcesar[i];
+    console.log(`[${i + 1}/${paraProcesar.length}] ⚙️  ${archivo.rutaRelativa}`);
+    await procesarLocalUna(archivo, ctx);
+  }
+
+  // GUARDAR MANIFEST
+  if (!DRY_RUN && ctx.manifest.length) {
+    fs.mkdirSync(path.dirname(MANIFEST_PATH), { recursive: true });
+    fs.writeFileSync(MANIFEST_PATH, JSON.stringify(ctx.manifest, null, 2));
+    console.log(`\n📝 Manifiesto guardado: ${MANIFEST_PATH}`);
+  }
+
+  imprimirResumenLocal(paraProcesar, ctx);
 }
 
 
@@ -977,7 +989,7 @@ function categoriaDeCandidato(rutaRelativa) {
 async function seleccionarCarpetas(candidatos) {
   const carpetas = [
     ...new Set(candidatos.map((c) => categoriaDeCandidato(c.rutaRelativa))),
-  ].sort();
+  ].sort((a, b) => a.localeCompare(b, 'es'));
 
   if (carpetas.length <= 1) return candidatos;
 

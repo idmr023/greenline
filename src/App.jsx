@@ -2,61 +2,31 @@ import { lazy, Suspense, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { AuthProvider } from '../frontend/contexts/AuthContext';
 import { CartProvider } from '../frontend/contexts/CartContext';
-import Navbar from '../frontend/components/Navbar';
-import Footer from '../frontend/components/Footer';
+import Navbar from '../frontend/components/navbar/Navbar';
+import Footer from '../frontend/components/ui/general/Footer';
 import ScrollTopButton from '../frontend/components/ScrollTopButton';
 import ScrollToTop from '../frontend/components/ScrollToTop';
 import WelcomeBanner from '../frontend/components/WelcomeBanner';
 import WhatsAppButton from '../frontend/components/WhatsAppButton';
-import CommunityDrawer from '../frontend/components/CommunityDrawer';
 import ProtectedRoute, { ADMIN_ROLES } from '../frontend/components/ProtectedRoute';
 import LegacyRedirect from '../frontend/components/LegacyRedirect';
 import CartDrawer from '../frontend/components/CartDrawer';
-import AnniversaryTheme from '../frontend/components/AnniversaryTheme';
+import AnniversaryTheme from '../frontend/components/aniversario/AnniversaryTheme';
 import confetti from 'canvas-confetti';
 import { CONFETTI_COLORS } from '../frontend/lib/aniversario';
+import UPN_SlideBar from '../frontend/components/UPN_SlideBar';
+import { buildRoutes } from './routes';
+import PageLoader from './PageLoader';
 
+// ==== Reservados: registro manual (fuera del auto-scan de src/routes.jsx) ====
 const Home = lazy(() => import('../frontend/pages/Home'));
-const Shop = lazy(() => import('../frontend/pages/Shop'));
-const Nosotros = lazy(() => import('../frontend/pages/Us'));
-const Tiendas = lazy(() => import('../frontend/pages/Shops'));
-const Contactanos = lazy(() => import('../frontend/pages/Contact'));
-const Comparar = lazy(() => import('../frontend/pages/Comparar'));
-const StubPage = lazy(() => import('../frontend/pages/StubPage'));
-const ProductPage = lazy(() => import('../frontend/pages/ProductPage'));
-const PreguntasFrecuentes = lazy(() => import('../frontend/pages/PreguntasFrecuentes'));
 const LoginPage = lazy(() => import('../frontend/pages/LoginPage'));
-const PoliticaPrivacidad = lazy(() => import('../frontend/pages/PoliticaPrivacidad'));
-const TrabajaConNosotros = lazy(() => import('../frontend/pages/TrabajaConNosotros'));
-const ManualesDeUso = lazy(() => import('../frontend/pages/ManualesDeUso'));
-const LibroReclamaciones = lazy(() => import('../frontend/pages/LibroReclamaciones'));
 const NotFoundPage = lazy(() => import('../frontend/pages/NotFoundPage'));
-const MiCuenta = lazy(() => import('../frontend/pages/MiCuenta'));
-const Checkout = lazy(() => import('../frontend/pages/Checkout'));
+const StubPage = lazy(() => import('../frontend/pages/StubPage'));
 const AdminPanel = lazy(() => import('../frontend/components/admin/AdminPanel'));
-const AdminDashboardPage = lazy(() => import('../frontend/pages/admin/DashboardPage'));
-const AdminProductosPage = lazy(() => import('../frontend/pages/admin/ProductosPage'));
-const AdminColoresPage = lazy(() => import('../frontend/pages/admin/ColoresPage'));
-const AdminBlogPage = lazy(() => import('../frontend/pages/admin/BlogPage'));
-const AdminDistribuidoresPage = lazy(() => import('../frontend/pages/admin/DistribuidoresPage'));
-const AdminTestimoniosPage = lazy(() => import('../frontend/pages/admin/TestimoniosPage'));
-const AdminPedidosPage = lazy(() => import('../frontend/pages/admin/PedidosPage'));
-const AdminMetricsPage = lazy(() => import('../frontend/pages/admin/MetricsPage'));
-const NuevoArticuloPage = lazy(() => import('../frontend/pages/admin/NuevoArticuloPage'));
-const NovedadesPage = lazy(() => import('../frontend/pages/NovedadesPage'));
-const NovedadDetalle = lazy(() => import('../frontend/pages/NovedadDetalle'));
-const Aniversario = lazy(() => import('../frontend/pages/Aniversario'));
 
-function PageLoader() {
-  return (
-    <div className="flex items-center justify-center min-h-[50vh]">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-10 h-10 border-4 border-brand/20 border-t-brand rounded-full animate-spin" />
-        <p className="text-sm text-gray-400">Cargando...</p>
-      </div>
-    </div>
-  );
-}
+// Rutas generadas automáticamente desde frontend/pages/*
+const AUTO_ROUTES = buildRoutes();
 
 function Layout() {
   const [communityOpen, setCommunityOpen] = useState(false);
@@ -96,7 +66,7 @@ function Layout() {
       <ScrollTopButton />
       <WelcomeBanner />
       <WhatsAppButton />
-      <CommunityDrawer
+      <UPN_SlideBar
         open={communityOpen}
         onClose={() => setCommunityOpen(false)}
       />
@@ -121,40 +91,28 @@ export default function App() {
           } />
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
-            <Route path="tienda" element={<Shop />} />
-            <Route path="nosotros" element={<Nosotros />} />
-            <Route path="tiendas" element={<Tiendas />} />
-            <Route path="contacto" element={<Contactanos />} />
-            <Route path="comparar" element={<Comparar />} />
-            <Route path="preguntas-frecuentes" element={<PreguntasFrecuentes />} />
-            <Route path="blog" element={<NovedadesPage />} />
-            <Route path="novedades/:slug" element={<NovedadDetalle />} />
-            <Route path="producto/:slug" element={<ProductPage />} />
+            {AUTO_ROUTES.map(({ path, Component, protected: isProtected }) => (
+              <Route
+                key={path}
+                path={path}
+                element={
+                  isProtected ? (
+                    <ProtectedRoute>
+                      <Component />
+                    </ProtectedRoute>
+                  ) : (
+                    <Component />
+                  )
+                }
+              />
+            ))}
             <Route path="proximamente" element={<StubPage />} />
-            <Route path="politica-privacidad" element={<PoliticaPrivacidad />} />
-            <Route path="trabaja-con-nosotros" element={<TrabajaConNosotros />} />
-            <Route path="aniversario" element={<Aniversario />} />
-            <Route path="manuales-de-uso" element={<ManualesDeUso />} />
-            <Route path="checkout" element={<Checkout />} />
-            <Route path="libro-de-reclamaciones" element={<LibroReclamaciones />} />
-            <Route path="mi-cuenta" element={
-              <ProtectedRoute>
-                <MiCuenta />
-              </ProtectedRoute>
-            } />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
           <Route path="/admin/*" element={
             <ProtectedRoute requiredRoles={ADMIN_ROLES}>
               <Suspense fallback={<PageLoader />}>
                 <AdminPanel />
-              </Suspense>
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/nuevo-articulo" element={
-            <ProtectedRoute requiredRoles={ADMIN_ROLES}>
-              <Suspense fallback={<PageLoader />}>
-                <NuevoArticuloPage />
               </Suspense>
             </ProtectedRoute>
           } />

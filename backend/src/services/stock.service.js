@@ -143,6 +143,44 @@ export async function getStockByTienda(tiendaId, filters = {}) {
 // ============================================================
 // Consultar stock general (todas las tiendas)
 // ============================================================
+function acumularMovimiento(stockByTienda, move) {
+  if (!stockByTienda[move.tiendaId]) {
+    stockByTienda[move.tiendaId] = {
+      tienda: move.tienda,
+      productos: {},
+    };
+  }
+
+  const key = `${move.productoId}-${move.colorId || 'sin-color'}`;
+  if (!stockByTienda[move.tiendaId].productos[key]) {
+    stockByTienda[move.tiendaId].productos[key] = {
+      productoId: move.productoId,
+      colorId: move.colorId,
+      cantidad: 0,
+    };
+  }
+
+  const entry = stockByTienda[move.tiendaId].productos[key];
+  if (['INGRESO', 'AJUSTE'].includes(move.tipo)) {
+    entry.cantidad += move.cantidad;
+  } else if (move.tipo === 'EGRESO') {
+    entry.cantidad -= move.cantidad;
+  }
+}
+
+function calcularStockTotal(stockByTienda) {
+  const stockTotal = {};
+  for (const tienda of Object.values(stockByTienda)) {
+    for (const prod of Object.values(tienda.productos)) {
+      if (!stockTotal[prod.productoId]) {
+        stockTotal[prod.productoId] = { productoId: prod.productoId, total: 0 };
+      }
+      stockTotal[prod.productoId].total += Math.max(0, prod.cantidad);
+    }
+  }
+  return Object.values(stockTotal);
+}
+
 export async function getStockGeneral(filters = {}) {
   const where = { estado: EstadoStock.APROBADO };
 
@@ -161,42 +199,9 @@ export async function getStockGeneral(filters = {}) {
     },
   });
 
-  // Agrupar por tienda
   const stockByTienda = {};
   for (const move of moves) {
-    if (!stockByTienda[move.tiendaId]) {
-      stockByTienda[move.tiendaId] = {
-        tienda: move.tienda,
-        productos: {},
-      };
-    }
-
-    const key = `${move.productoId}-${move.colorId || 'sin-color'}`;
-    if (!stockByTienda[move.tiendaId].productos[key]) {
-      stockByTienda[move.tiendaId].productos[key] = {
-        productoId: move.productoId,
-        colorId: move.colorId,
-        cantidad: 0,
-      };
-    }
-
-    const entry = stockByTienda[move.tiendaId].productos[key];
-    if (['INGRESO', 'AJUSTE'].includes(move.tipo)) {
-      entry.cantidad += move.cantidad;
-    } else if (move.tipo === 'EGRESO') {
-      entry.cantidad -= move.cantidad;
-    }
-  }
-
-  // Calcular stock total por producto
-  const stockTotal = {};
-  for (const tienda of Object.values(stockByTienda)) {
-    for (const prod of Object.values(tienda.productos)) {
-      if (!stockTotal[prod.productoId]) {
-        stockTotal[prod.productoId] = { productoId: prod.productoId, total: 0 };
-      }
-      stockTotal[prod.productoId].total += Math.max(0, prod.cantidad);
-    }
+    acumularMovimiento(stockByTienda, move);
   }
 
   return {
@@ -204,7 +209,7 @@ export async function getStockGeneral(filters = {}) {
       ...t.tienda,
       stock: Object.values(t.productos).filter((p) => p.cantidad > 0),
     })),
-    totalGeneral: Object.values(stockTotal),
+    totalGeneral: calcularStockTotal(stockByTienda),
   };
 }
 

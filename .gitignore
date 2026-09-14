@@ -13,6 +13,9 @@ node_modules/
 # Build
 dist/
 
+# Test coverage
+backend/coverage/
+
 # Environment variables
 .env
 .env.local

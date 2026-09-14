@@ -1,5 +1,5 @@
-import { Newspaper } from "lucide-react";
-import { versionarImagen } from "../lib/imagenVersionada";
+import { Newspaper } from '../lib/icons';
+import { versionarImagen } from "../lib/images";
 
 type Props = {
   src?: string | null;

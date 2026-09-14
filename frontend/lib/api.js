@@ -77,6 +77,9 @@ export const authAPI = {
   verifyOTP: (email, codigo) =>
     request('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ email, codigo }) }),
 
+  verifyGate: (tempToken, gate) =>
+    request('/auth/verify-gate', { method: 'POST', body: JSON.stringify({ tempToken, gate }) }),
+
   verify2FA: (tempToken, totpCode) =>
     request('/auth/verify-2fa', { method: 'POST', body: JSON.stringify({ tempToken, totpCode }) }),
 

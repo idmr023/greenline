@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Download, FileText, HelpCircle, BookOpen, Search, X, ExternalLink, FileCog, ArrowRight } from 'lucide-react';
+import { Download, FileText, HelpCircle, BookOpen, Search, X, ExternalLink, FileCog, ArrowRight } from '../lib/icons';
 import PageBanner from '../components/PageBanner';
 import SEOHead, { breadcrumbSchema } from '../components/SEOHead';
-import manualesDB from '../data/manuales_db.json';
+import { fetchManuales, MANUALES_LOCALES } from '../lib/manuales';
 
 const BASE = '/assets/manuales_uso/';
 
@@ -12,19 +12,28 @@ export default function ManualesDeUso() {
   const [activeCategory, setActiveCategory] = useState('Todas');
   const [selectedManual, setSelectedManual] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [manuales, setManuales] = useState(MANUALES_LOCALES);
+
+  useEffect(() => {
+    let active = true;
+    fetchManuales().then((data) => {
+      if (active && data) setManuales(data);
+    });
+    return () => { active = false; };
+  }, []);
 
   const categories = useMemo(() => [
     'Todas',
-    ...Array.from(new Set(manualesDB.map(m => m.category))).sort(),
-  ], []);
+    ...Array.from(new Set(manuales.map(m => m.category))).sort((a, b) => a.localeCompare(b, 'es')),
+  ], [manuales]);
 
   const filteredManuals = useMemo(() => {
-    return manualesDB.filter(m => {
+    return manuales.filter(m => {
       const matchesSearch = m.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = activeCategory === 'Todas' || m.category === activeCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [searchTerm, activeCategory]);
+  }, [manuales, searchTerm, activeCategory]);
 
   const openReader = (manual) => {
     setSelectedManual(manual);
@@ -109,7 +118,7 @@ export default function ManualesDeUso() {
             />
           </div>
           <div className="text-sm text-gray-500 font-medium">
-            {filteredManuals.length} de {manualesDB.length} manuales
+            {filteredManuals.length} de {manuales.length} manuales
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { authAPI } from '../../lib/api';
-import { ShieldCheck, AlertCircle, Loader2, Copy, Check } from 'lucide-react';
+import { ShieldCheck, AlertCircle, Loader2, Copy, Check } from '../../lib/icons';
 
 export default function TwoFactorSetup({ onComplete }) {
   const { accessToken } = useAuth();

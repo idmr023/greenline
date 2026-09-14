@@ -1,73 +1,9 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Target, Leaf, Users, Award } from 'lucide-react';
+import { ArrowRight, Target, Leaf, Users, Award } from '../lib/icons';
 import PageBanner from '../components/PageBanner';
 import SEOHead, { organizationSchema, breadcrumbSchema } from '../components/SEOHead';
 import { NOSOTROS_HEADER, NOSOTROS_CARRUSEL } from '../lib/images';
-
-const values = [
-  {
-    icon: Target,
-    title: 'Misión',
-    desc: 'Impulsar la revolución sostenible en el Perú ofreciendo soluciones de movilidad eléctrica limpia, eficiente y accesible para todos.',
-  },
-  {
-    icon: Leaf,
-    title: 'Sostenibilidad',
-    desc: 'Cada vehículo que vendemos reduce la huella de carbono. Creemos en un futuro donde la movilidad no dañe el medio ambiente.',
-  },
-  {
-    icon: Users,
-    title: 'Comunidad',
-    desc: 'Construimos una comunidad activa de conductores eléctricos que comparten experiencias y promueven la movilidad sostenible.',
-  },
-  {
-    icon: Award,
-    title: 'Calidad',
-    desc: 'Trabajamos con marcas líderes mundiales como Sunra, Zuboo y Huaihai para garantizar vehículos seguros y duraderos.',
-  },
-];
-
-const milestones = [
-  { 
-    year: '2017', 
-    text: 'Nace GreenLine en el Perú con la visión de transformar la movilidad.' 
-  },
-
-  { 
-    year: '2021', 
-    text: 'Abrimos nuestra primera tienda en Lima, en Lince, acercando la movilidad eléctrica a más personas.' 
-  },
-
-  { 
-    year: '2023', 
-    text: 'Expandimos nuestra visión a Sudamérica: GreenLine inicia operaciones en Chile.' 
-  },
-
-  { 
-    year: '2025', 
-    text: 'Impulsamos una nueva generación de movilidad junto a la comunidad universitaria de la UPN.' 
-  },
-  { 
-    year: '2025', 
-    text: 'Llevamos nuestra visión a nuevos espacios: participamos en la Cumbre Perú Sostenible y ExpoChina.' 
-  },
-  {
-    year: '2025', 
-    text: 'Iniciamos un convenio con el BBVA para ofrecer financiamiento a nuestros clientes, facilitando el acceso a la movilidad eléctrica.' 
-  },
-  { 
-    year: '2026', 
-    text: 'Seguimos creciendo: llegamos a Comas y Ate en Lima, y expandimos nuestra presencia hasta Huancayo.' 
-  },
-  {  
-    year: '2026', 
-    text: 'Somos invitados a una ponencia en la UPN donde hablamos acerca de la importancia de la movilidad eléctrica en el desarrollo sostenible.' 
-  },
-  { 
-    year: '2026', 
-    text: 'Celebramos el inicio de ciclo junto a la UPN Breña, conectando movilidad, innovación y comunidad con los estudiantes.' 
-  },
-];
+import { nosotros_values as values, nosotros_milestones as milestones } from '../../src/data_json.jsx';
 
 export default function Nosotros() {
   return (

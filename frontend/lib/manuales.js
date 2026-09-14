@@ -1,3 +1,12 @@
+import { supabase } from './supabase';
+import manualesLocales from '../data/manuales_db.json';
+
+export const MANUALES_LOCALES = manualesLocales;
+
+const supabaseConfigured = !!(
+  import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
 const BASE = '/assets/manuales_uso/';
 
 const MANUAL_POR_SLUG = {
@@ -26,4 +35,41 @@ const MANUAL_POR_SLUG = {
 export function manualUrl(slug) {
   const archivo = MANUAL_POR_SLUG[slug];
   return archivo ? BASE + archivo : null;
+}
+
+let _manualesCache = null;
+
+export async function fetchManuales() {
+  if (_manualesCache) return _manualesCache;
+
+  if (!supabaseConfigured) {
+    console.warn('Supabase no configurado: manuales desde el catálogo local.');
+    _manualesCache = MANUALES_LOCALES;
+    return _manualesCache;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('greenline_manuales')
+      .select('titulo, categoria, archivo, slug')
+      .eq('activo', true)
+      .order('orden', { ascending: true });
+
+    if (error) throw error;
+    if (!data) throw new Error('sin datos de manuales');
+    _manualesCache = data.map(normalizeManual);
+  } catch (err) {
+    console.warn('Supabase fetch manuales failed:', err.message);
+    _manualesCache = MANUALES_LOCALES;
+  }
+  return _manualesCache;
+}
+
+function normalizeManual(raw) {
+  return {
+    name: raw.titulo,
+    category: raw.categoria,
+    file: raw.archivo,
+    slug: raw.slug,
+  };
 }

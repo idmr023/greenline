@@ -3,6 +3,7 @@ import {
   generateURI,
   verify,
 } from 'otplib';
+import crypto from 'crypto';
 
 import QRCode from 'qrcode';
 
@@ -35,14 +36,9 @@ export function generateBackupCodes(count = 8) {
   const codes = [];
 
   for (let i = 0; i < count; i++) {
-    const randomPart = Math.random()
-      .toString(36)
-      .substring(2, 8)
-      .toUpperCase();
-
-    codes.push(
-      `${randomPart.slice(0, 3)}-${randomPart.slice(3)}`
-    );
+    // CSPRNG: 3 bytes aleatorios → 6 hex, formateados como XXX-XXX
+    const randomHex = crypto.randomBytes(3).toString('hex').toUpperCase();
+    codes.push(`${randomHex.slice(0, 3)}-${randomHex.slice(3)}`);
   }
 
   return codes;

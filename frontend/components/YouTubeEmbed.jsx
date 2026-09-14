@@ -1,4 +1,4 @@
-import { extractVideoId } from '../lib/videosYT';
+import { extractVideoId } from '../data/videosYT';
 
 export default function YouTubeEmbed({ videoId }) {
   const id = extractVideoId(videoId) || videoId;

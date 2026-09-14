@@ -4,18 +4,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { authAPI } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import SEOHead from '../components/SEOHead';
-import { Lock, Mail, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Lock, Mail, AlertCircle, ArrowLeft } from '../lib/icons';
 import OTPVerify from '../components/auth/OTPVerify';
 import TwoFactorVerify from '../components/auth/TwoFactorVerify';
-
-const STAFF_ROLES = [
-  'ADMIN', 'EDITORA_BLOG', 'DISTRIBUCION', 'GERENTE_TIENDA',
-  'COLABORADOR_TIENDA', 'GERENTE_ALMACEN', 'COLABORADOR_ALMACEN', 'DESARROLLADOR_WEB',
-];
-
-// TEMPORAL: contraseña de verificación simple a nivel front para el staff.
-// Se removerá/mejorará en el futuro (verificación solo en el navegador).
-const TEMP_STAFF_PASSWORD = '020403';
+import { login_staff_roles as STAFF_ROLES } from '../../src/data_json.jsx';
 
 // Vincula la sesión de Supabase Auth del staff usando la misma credencial del backend.
 async function linkSupabase(email, password, accessToken) {
@@ -58,8 +50,8 @@ export default function LoginPage() {
         return;
       }
 
-      // TEMPORAL: el staff debe pasar una verificación simple de contraseña.
-      if (res.user && res.user.rol !== 'CLIENTE') {
+      // El staff pasa por la puerta de acceso (verificada en el servidor).
+      if (res.requiresStaffGate) {
         setLoginResult(res);
         setStep('temp');
         setLoading(false);
@@ -92,29 +84,45 @@ export default function LoginPage() {
 
   const handleTempVerified = async (e) => {
     e.preventDefault();
-    if (tempPassword !== TEMP_STAFF_PASSWORD) {
-      setError('Contraseña temporal incorrecta');
+    if (!tempPassword) {
+      setError('Ingresa el código de acceso');
       return;
     }
 
-    const res = loginResult;
-
-    if (res.requires2FA) {
-      setError('');
-      setStep('2fa');
-      return;
-    }
-
-    saveSession({ accessToken: res.accessToken, refreshToken: res.refreshToken }, res.user);
-    if (res.user.rol !== 'CLIENTE') {
-      try {
-        await linkSupabase(email, password, res.accessToken);
-      } catch {
-        // El panel pedirá la vinculación si hace falta
-      }
-    }
     setError('');
-    navigate('/admin');
+    setLoading(true);
+
+    try {
+      const res = await authAPI.verifyGate(loginResult.tempToken, tempPassword);
+
+      if (!res.success) {
+        setError(res.error || 'Código de acceso incorrecto');
+        setLoading(false);
+        return;
+      }
+
+      // Staff con 2FA: avanzar al siguiente factor
+      if (res.requires2FA) {
+        setLoginResult({ ...loginResult, tempToken: res.tempToken });
+        setStep('2fa');
+        setLoading(false);
+        return;
+      }
+
+      saveSession({ accessToken: res.accessToken, refreshToken: res.refreshToken }, res.user);
+      if (res.user.rol !== 'CLIENTE') {
+        try {
+          await linkSupabase(email, password, res.accessToken);
+        } catch {
+          // El panel pedirá la vinculación si hace falta
+        }
+      }
+      navigate('/admin');
+    } catch (err) {
+      setError(err.error || 'Error de conexión');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOTPVerified = (tokens, user) => {

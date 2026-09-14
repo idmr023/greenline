@@ -30,3 +30,19 @@ export function equivalentesDeCarga(ficha, referencias = CARGA_REFERENCIAS) {
     };
   });
 }
+
+export function estimateAutonomia(motorWatts) {
+  const w = Number.parseInt(motorWatts, 10);
+  if (Number.isNaN(w)) return 30;
+  if (w <= 350) return 45;
+  if (w <= 500) return 40;
+  if (w <= 800) return 35;
+  if (w <= 1000) return 30;
+  if (w <= 1200) return 28;
+  return 25;
+}
+
+export function consumoMensual(kmDiarios, autonomia) {
+  if (!autonomia || autonomia <= 0 || kmDiarios === '' || kmDiarios == null) return 0;
+  return (Number(kmDiarios) * 30 / autonomia) * 1.20;
+}

@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Gift, TicketPercent, Truck, ShieldCheck } from 'lucide-react';
+import { Gift, TicketPercent, Truck, ShieldCheck } from '../lib/icons';
 import confetti from 'canvas-confetti';
 import { aniversarioNumero } from '../lib/aniversario';
 import { SOCIAL } from '../lib/config';
 import SEOHead from '../components/SEOHead';
 import { ANIVERSARIO_VIDEO } from '../lib/images';
-import { TiktokIcon } from '../components/SocialIcons';
-import DynamicForm from '../components/ui/Form';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTiktok } from '@fortawesome/free-brands-svg-icons';
+import DynamicForm from '../components/ui/general/Form';
 import PromoDivider from '../components/ui/aniversario/PromoDivider';
 import { supabase } from '../lib/supabase';
+import { aniversario_perks as perks, aniversario_datos_form as datosForm } from '../../src/data_json.jsx';
 
 const CONFETTI_COLORS = ['#009000', '#006400', '#2eb82e', '#ffffff', '#ffd400'];
 
@@ -84,20 +86,6 @@ export default function Aniversario() {
     return () => window.clearTimeout(burst);
   }, []);
 
-  const perks = [
-    { icon: TicketPercent, title: 'Descuentos de aniversario', desc: `Durante todo setiembre tendremos el 50% de nuestro catálogo en descuento por nuestro ${numero}° aniversario.` },
-    { icon: ShieldCheck, title: 'Promociones y activaciones', desc: 'Durante todo el mes de Septiembre estaremos lanzando promociones, descuentos y activaciones. Atento a nuestras redes sociales.' },
-  ];
-
-  const datosForm = [
-    { id: 'nombre', label: 'Tu nombre:', type: 'text', placeholder: 'Nombre', required: true },
-    { id: 'apellido', label: 'Tu apellido:', type: 'text', placeholder: 'Apellido', required: true },
-    { id: 'telefono', label: 'Tu número de teléfono:', type: 'text', placeholder: 'Número de teléfono', required: true },
-    { id: 'dni', label: 'Tu DNI:', type: 'text', placeholder: 'DNI', required: true },
-    { id: 'email', label: 'Tu email:', type: 'email', placeholder: 'Email', required: true },
-    { id: 'testimonio', label: 'Tu testimonio:', type: 'textarea', placeholder: 'Escribe tu testimonio aquí...', required: true }
-  ];
-
   return (
     <main className="min-h-screen bg-white text-gray-900">
       <SEOHead
@@ -142,7 +130,7 @@ export default function Aniversario() {
                 loading="lazy"
               />
               <div className="flex top-0 items-center justify-center bg-black/30 text-white w-full">
-                <TiktokIcon className="w-4 h-4 mr-1.5" />
+                <FontAwesomeIcon icon={faTiktok} className="w-4 h-4 mr-1.5" />
                 Video explicativo en nuestro TikTok
               </div>
               </a>

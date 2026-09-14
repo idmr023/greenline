@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { clearCache } from '../../lib/productos';
-import { versionarImagen } from '../../lib/imagenVersionada';
-import { ArrowLeft, Save, Upload, X, GripVertical } from 'lucide-react';
+import { versionarImagen } from '../../lib/images';
+import { ArrowLeft, Save, Upload, X, GripVertical } from '../../lib/icons';
 
 const EMPTY_PRODUCT = {
   nombre: '',
@@ -34,6 +34,125 @@ const EMPTY_FICHA = {
   ancho_cm: '',
   alto_cm: '',
 };
+
+function slugify(text) {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
+async function guardarProductoPrincipal(form, isEdit, productoId) {
+  const data = {
+    nombre: form.nombre,
+    slug: form.slug || slugify(form.nombre),
+    descripcion: form.descripcion || null,
+    precio_original: form.precio_original ? Number(form.precio_original) : null,
+    precio_actual: Number(form.precio_actual),
+    destacado: form.destacado,
+    video_id: form.video_id || null,
+    categoria_id: form.categoria_id ? Number(form.categoria_id) : null,
+    disponible: form.disponible !== false,
+  };
+  if (isEdit) {
+    const { error } = await supabase.from('productos').update(data).eq('id', productoId);
+    return { prodId: productoId, error };
+  }
+  const { data: insertado, error } = await supabase.from('productos').insert(data).select('id').single();
+  return { prodId: insertado?.id, error };
+}
+
+async function guardarFichaTecnica(ficha, isEdit, prodId) {
+  const fichaData = {
+    producto_id: prodId,
+    potencia_motor: ficha.potencia_motor || null,
+    tipo_bateria: ficha.tipo_bateria || null,
+    autonomia_km: ficha.autonomia_km?.toString().trim() || null,
+    velocidad_max_kmh: ficha.velocidad_max_kmh ? Number(ficha.velocidad_max_kmh) : null,
+    tiempo_carga_min: ficha.tiempo_carga_min ? Number(ficha.tiempo_carga_min) : null,
+    capacidad_bateria: ficha.capacidad_bateria || null,
+    vida_util_bateria: ficha.vida_util_bateria || null,
+    bateria_extraible: ficha.bateria_extraible,
+    requiere_placa_soat: ficha.requiere_placa_soat ?? null,
+    tipo_toma_corriente: ficha.tipo_toma_corriente || null,
+    torque_maximo: ficha.torque_maximo || null,
+    potencia_bateria: ficha.potencia_bateria || null,
+    carga_maxima_kg: ficha.carga_maxima_kg ? Number(ficha.carga_maxima_kg) : null,
+    largo_cm: ficha.largo_cm ? Number(ficha.largo_cm) : null,
+    ancho_cm: ficha.ancho_cm ? Number(ficha.ancho_cm) : null,
+    alto_cm: ficha.alto_cm ? Number(ficha.alto_cm) : null,
+  };
+  const { error } = isEdit
+    ? await supabase.from('ficha_tecnica').upsert(fichaData, { onConflict: 'producto_id' })
+    : await supabase.from('ficha_tecnica').insert(fichaData);
+  return error;
+}
+
+async function guardarInfoAdicional(isEdit, prodId, idealPara, infoAdicionalData) {
+  const idealList = idealPara.split(',').map((s) => s.trim()).filter(Boolean);
+  if (!isEdit && !idealList.length) return null;
+  const data = { ...infoAdicionalData };
+  if (idealList.length) data.ideal_para = idealList;
+  else delete data.ideal_para;
+  const { error } = await supabase
+    .from('info_adicional')
+    .upsert({ producto_id: prodId, data }, { onConflict: 'producto_id' });
+  return error;
+}
+
+async function guardarColores(isEdit, prodId, productoColores) {
+  if (isEdit) {
+    const { error } = await supabase.from('prod_color_rel').delete().eq('producto_id', prodId);
+    if (error) return error;
+  }
+  for (const cr of productoColores) {
+    if (!cr.color_id) continue;
+    const { error } = await supabase.from('prod_color_rel').insert({
+      producto_id: prodId,
+      color_id: Number(cr.color_id),
+      stock: 0,
+    });
+    if (error) return error;
+  }
+  return null;
+}
+
+async function guardarImagenes(isEdit, prodId, imagenes) {
+  if (isEdit) {
+    const { error } = await supabase.from('imagenes').delete().eq('producto_id', prodId);
+    if (error) return error;
+  }
+  for (let i = 0; i < imagenes.length; i++) {
+    const img = imagenes[i];
+    if (!img.url) continue;
+    const { error } = await supabase.from('imagenes').insert({
+      producto_id: prodId,
+      url: img.url,
+      color: img.color || null,
+      es_principal: i === 0,
+      orden: i,
+    });
+    if (error) return error;
+  }
+  return null;
+}
+
+async function guardarProductoCompleto(context) {
+  const { form, isEdit, productoId, ficha, idealPara, infoAdicionalData, productoColores, imagenes } = context;
+  const { prodId, error: prodError } = await guardarProductoPrincipal(form, isEdit, productoId);
+  if (prodError) return { paso: 'producto', error: prodError };
+  const fichaError = await guardarFichaTecnica(ficha, isEdit, prodId);
+  if (fichaError) return { paso: 'ficha técnica', error: fichaError };
+  const infoError = await guardarInfoAdicional(isEdit, prodId, idealPara, infoAdicionalData);
+  if (infoError) return { paso: 'info adicional', error: infoError };
+  const coloresError = await guardarColores(isEdit, prodId, productoColores);
+  if (coloresError) return { paso: 'colores', error: coloresError };
+  const imagenesError = await guardarImagenes(isEdit, prodId, imagenes);
+  if (imagenesError) return { paso: 'imágenes', error: imagenesError };
+  return null;
+}
 
 export default function AdminProductoForm({ productoId, onBack, onSaved }) {
   const [form, setForm] = useState(EMPTY_PRODUCT);
@@ -177,14 +296,35 @@ potencia_bateria: ft.potencia_bateria || '',
     init();
   }, [productoId]);
 
-  function slugify(text) {
-    return text
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-  }
+  const handleSave = async () => {
+    if (!form.nombre || !form.precio_actual) {
+      alert('Nombre y precio son obligatorios');
+      return;
+    }
+
+    setSaving(true);
+
+    const fallo = await guardarProductoCompleto({
+      form,
+      isEdit,
+      productoId,
+      ficha,
+      idealPara,
+      infoAdicionalData,
+      productoColores,
+      imagenes,
+    });
+
+    if (fallo) {
+      alert(`No se pudo guardar (${fallo.paso}): ${fallo.error.message}`);
+      setSaving(false);
+      return;
+    }
+
+    setSaving(false);
+    clearCache();
+    onSaved();
+  };
 
   const handleNameChange = (val) => {
     setForm((f) => ({
@@ -277,141 +417,6 @@ potencia_bateria: ft.potencia_bateria || '',
 
     updateImage(index, 'url', urlData.publicUrl);
     setUploading(false);
-  };
-
-  const handleSave = async () => {
-    if (!form.nombre || !form.precio_actual) {
-      alert('Nombre y precio son obligatorios');
-      return;
-    }
-
-    setSaving(true);
-
-    const fail = (err, paso) => {
-      if (!err) return false;
-      alert(`No se pudo guardar (${paso}): ${err.message}`);
-      setSaving(false);
-      return true;
-    };
-
-    const prodData = {
-      nombre: form.nombre,
-      slug: form.slug || slugify(form.nombre),
-      descripcion: form.descripcion || null,
-      precio_original: form.precio_original ? Number(form.precio_original) : null,
-      precio_actual: Number(form.precio_actual),
-      destacado: form.destacado,
-      video_id: form.video_id || null,
-      categoria_id: form.categoria_id ? Number(form.categoria_id) : null,
-      disponible: form.disponible !== false,
-    };
-
-    let prodId = productoId;
-
-    if (isEdit) {
-      const { error } = await supabase.from('productos').update(prodData).eq('id', prodId);
-      if (fail(error, 'producto')) return;
-    } else {
-      const { data, error } = await supabase.from('productos').insert(prodData).select('id').single();
-      if (fail(error, 'producto')) return;
-      prodId = data.id;
-    }
-
-    // Ficha técnica
-    const fichaData = {
-      producto_id: prodId,
-      potencia_motor: ficha.potencia_motor || null,
-      tipo_bateria: ficha.tipo_bateria || null,
-      autonomia_km: ficha.autonomia_km?.toString().trim() || null,
-      velocidad_max_kmh: ficha.velocidad_max_kmh ? Number(ficha.velocidad_max_kmh) : null,
-      tiempo_carga_min: ficha.tiempo_carga_min ? Number(ficha.tiempo_carga_min) : null,
-      capacidad_bateria: ficha.capacidad_bateria || null,
-      vida_util_bateria: ficha.vida_util_bateria || null,
-      bateria_extraible: ficha.bateria_extraible,
-      requiere_placa_soat: ficha.requiere_placa_soat ?? null,
-      tipo_toma_corriente: ficha.tipo_toma_corriente || null,
-      torque_maximo: ficha.torque_maximo || null,
-      potencia_bateria: ficha.potencia_bateria || null,
-      carga_maxima_kg: ficha.carga_maxima_kg ? Number(ficha.carga_maxima_kg) : null,
-      largo_cm: ficha.largo_cm ? Number(ficha.largo_cm) : null,
-      ancho_cm: ficha.ancho_cm ? Number(ficha.ancho_cm) : null,
-      alto_cm: ficha.alto_cm ? Number(ficha.alto_cm) : null,
-    };
-
-    const { error: fichaErr } = isEdit
-      ? await supabase.from('ficha_tecnica').upsert(fichaData, { onConflict: 'producto_id' })
-      : await supabase.from('ficha_tecnica').insert(fichaData);
-    if (fail(fichaErr, 'ficha técnica')) return;
-
-    // Ideal para (se guarda en info_adicional.data como array de personas)
-    const idealList = idealPara.split(',').map((s) => s.trim()).filter(Boolean);
-    if (isEdit || idealList.length) {
-      const infoData = { ...infoAdicionalData };
-      if (idealList.length) infoData.ideal_para = idealList;
-      else delete infoData.ideal_para;
-      const { error: infoErr } = await supabase
-        .from('info_adicional')
-        .upsert({ producto_id: prodId, data: infoData }, { onConflict: 'producto_id' });
-      if (fail(infoErr, 'info adicional')) return;
-    }
-
-    // Colores  (el stock por sucursal quedó comentado — TEMPORAL:
-    // la lógica numérica de prod_color_stock se reactivará a futuro)
-    // COMENTADO:
-    // const { error: delStockErr } = await supabase
-    //   .from('prod_color_stock').delete().eq('producto_id', prodId);
-    // if (fail(delStockErr, 'stock por ubicación')) return;
-
-    if (isEdit) {
-      const { error: delErr } = await supabase.from('prod_color_rel').delete().eq('producto_id', prodId);
-      if (fail(delErr, 'colores')) return;
-    }
-
-    for (const cr of productoColores) {
-      if (!cr.color_id) continue;
-      const { error } = await supabase.from('prod_color_rel').insert({
-        producto_id: prodId,
-        color_id: Number(cr.color_id),
-        stock: 0,
-      });
-      if (fail(error, 'colores')) return;
-
-      // COMENTADO (temporal — stock por sucursal):
-      // for (const t of sucursales) {
-      //   const cantidad = Number(cr.porUbicacion?.[t.id]);
-      //   if (!Number.isFinite(cantidad) || cantidad <= 0) continue;
-      //   const { error: stockErr } = await supabase.from('prod_color_stock').insert({
-      //     producto_id: prodId,
-      //     color_id: Number(cr.color_id),
-      //     tienda_id: t.id,
-      //     stock: cantidad,
-      //   });
-      //   if (fail(stockErr, `stock ${shortName(t.nombre)}`)) return;
-      // }
-    }
-
-    // Imágenes
-    if (isEdit) {
-      const { error: delErr } = await supabase.from('imagenes').delete().eq('producto_id', prodId);
-      if (fail(delErr, 'imágenes')) return;
-    }
-
-    for (let i = 0; i < imagenes.length; i++) {
-      const img = imagenes[i];
-      if (!img.url) continue;
-      const { error } = await supabase.from('imagenes').insert({
-        producto_id: prodId,
-        url: img.url,
-        color: img.color || null,
-        es_principal: i === 0,
-        orden: i,
-      });
-      if (fail(error, 'imágenes')) return;
-    }
-
-    setSaving(false);
-    clearCache();
-    onSaved();
   };
 
   if (loading) return <div className="p-8 text-gray-400 text-sm">Cargando...</div>;

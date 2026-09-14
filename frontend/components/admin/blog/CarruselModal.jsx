@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { X, Upload, Plus, Trash2, Images } from 'lucide-react';
+import { X, Upload, Plus, Trash2, Images } from '../../../lib/icons';
 
 export default function CarruselModal({ open, onClose, onConfirm, onUpload }) {
   const [images, setImages] = useState([]);

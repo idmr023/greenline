@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Check, RefreshCw, Search, X } from 'lucide-react';
+import { Check, RefreshCw, Search, X } from '../lib/icons';
 import { formatPrice } from '../lib/utils';
 
 const METRICAS_HIGHLIGHT = [

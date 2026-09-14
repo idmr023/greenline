@@ -5,7 +5,7 @@
  */
 
 import { supabase } from './supabase';
-import { versionarImagen } from './imagenVersionada';
+import { versionarImagen, versionarImagenAltaResolucion } from './images';
 
 const supabaseConfigured = !!(
   import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -69,6 +69,7 @@ function adaptarVista(vista) {
   const imagenes = (vista.imagenes || []).map((img) => ({
     id: img.id,
     src: versionarImagen(img.src),
+    src_alta_resolucion: versionarImagenAltaResolucion(img.src),
     color: img.color,
     es_principal: img.es_principal,
   }));
@@ -141,4 +142,26 @@ function slugify(text) {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
+}
+
+export const CATEGORIAS = [
+  'VMP',
+  'Motos Eléctricas',
+  'Trimotos Eléctricas',
+  'Cargueros',
+  'Cuatrimotos',
+];
+
+export const BATERIAS = ['Litio', 'Plomo Ácido', 'Plomo Grafeno'];
+
+export function sortProducts(products, sortBy = 'price_asc') {
+  const sorted = [...products];
+  switch (sortBy) {
+    case 'price_desc':
+      return sorted.sort((a, b) => (b.precio_actual ?? 0) - (a.precio_actual ?? 0));
+    case 'name_asc':
+      return sorted.sort((a, b) => a.nombre.localeCompare(b.nombre));
+    default:
+      return sorted.sort((a, b) => (a.precio_actual ?? Infinity) - (b.precio_actual ?? Infinity));
+  }
 }

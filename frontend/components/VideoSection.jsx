@@ -1,4 +1,4 @@
-import { Play } from 'lucide-react';
+import { Play } from '../lib/icons';
 import { useState } from 'react';
 import YouTubeEmbed from './YouTubeEmbed';
 

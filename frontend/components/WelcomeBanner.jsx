@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Sparkles } from 'lucide-react';
+import { X, Sparkles } from '../lib/icons';
 
 const STORAGE_KEY = 'greenline_welcome_closed';
 

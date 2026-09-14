@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { formatPrice } from '../../lib/utils';
-import { Package, ChevronDown, Phone, Mail, RefreshCw } from 'lucide-react';
+import { Package, ChevronDown, Phone, Mail, RefreshCw } from '../../lib/icons';
 import { CONTACT } from '../../lib/config';
 
 const ESTADOS = [
