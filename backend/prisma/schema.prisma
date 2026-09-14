@@ -159,6 +159,8 @@ model RefreshToken {
   revoked   Boolean  @default(false)
   ip        String?
   userAgent String?  @map("user_agent")
+  /** Fingerprint SHA-256 del dispositivo (bind de sesión en refresh). */
+  fingerprint String? @map("fingerprint")
 
   createdAt DateTime @default(now()) @map("created_at")
 

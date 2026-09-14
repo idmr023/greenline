@@ -1,12 +1,48 @@
-/**
- * Capa central de URLs de imágenes.
- *
- * Todas las imágenes viven en public/assets/imagenes/ y se sirven
- * directamente desde el hosting estático (Vite / Render).
- * Sin dependencia de Supabase Storage.
- */
+function buildVersion() {
+  const env = import.meta.env?.VITE_IMAGE_VERSION;
+  if (env) return String(env);
+  return "20260915";
+}
 
-import { versionarImagen } from './imagenVersionada';
+const VERSION = buildVersion();
+
+const STORAGE_PUBLIC = "/storage/v1/object/public/";
+const LOCAL_ASSETS_RE = /^\.?\/assets\//;
+const VERSION_RE = /[?&]v=([\w.-]+)/;
+
+function agregarVersion(src) {
+  return src + (src.includes("?") ? "&" : "?") + `v=${VERSION}`;
+}
+
+export function versionarImagen(src) {
+  if (!src) return src;
+  const esStorage = src.includes(STORAGE_PUBLIC);
+  const esLocal = LOCAL_ASSETS_RE.test(src);
+  if (!esStorage && !esLocal) return src;
+  if (VERSION_RE.test(src)) return src;
+  return agregarVersion(src);
+}
+
+export function versionarImagenAltaResolucion(src) {
+  if (!src) return src;
+  return versionarImagen(src.split('?')[0]);
+}
+
+/**
+ * Aplica versionado (cache-busting) a las imágenes dentro de un HTML
+ * (p. ej. el `content_html` de los artículos del blog): reescribe el
+ * atributo `src` de cada <img> cuando todavía no tiene `?v=`.
+ */
+export function versionarHtml(html) {
+  if (!html) return html;
+  return html.replace(
+    /(<img[^>]*\bsrc=["'])([^"']+)(["'][^>]*>)/gi,
+    (match, antes, src, despues) => {
+      const versionada = versionarImagen(src);
+      return versionada === src ? match : `${antes}${versionada}${despues}`;
+    }
+  );
+}
 
 const v = versionarImagen;
 
@@ -20,9 +56,9 @@ export const LOGO = v('/assets/imagenes/logos/logo_final.webp');
 // ----------------------------------------------------------------------------
 export const CARRUSEL = [
   v('/assets/imagenes/caroussel/1.png'),
-  v('/assets/imagenes/caroussel/2.jpg'),
-  v('/assets/imagenes/caroussel/3.jpg'),
-  v('/assets/imagenes/caroussel/portada_setiembre_aniversario.png'),
+  v('/assets/imagenes/caroussel/2.png'),
+  v('/assets/imagenes/caroussel/3.png'),
+  v('/assets/imagenes/caroussel/4.png'),
 ];
 
 // ----------------------------------------------------------------------------

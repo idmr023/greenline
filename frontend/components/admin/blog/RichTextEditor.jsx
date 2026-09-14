@@ -21,7 +21,7 @@ import {
   Upload,
   Trash2,
   Images as ImagesIcon,
-} from 'lucide-react';
+} from '../../../lib/icons';
 import { ColumnLayout, Column } from './ColumnExtensions';
 import Carrusel from './CarruselExtension';
 import CarruselModal from './CarruselModal';

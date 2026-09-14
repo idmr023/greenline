@@ -1,57 +1,7 @@
-import { Briefcase, Users, Heart, Zap, Mail, MapPin, ArrowRight } from 'lucide-react';
+import { Briefcase, Users, Heart, Zap, Mail, MapPin, ArrowRight } from '../lib/icons';
 import PageBanner from '../components/PageBanner';
 import SEOHead, { breadcrumbSchema } from '../components/SEOHead';
-
-const beneficios = [
-  {
-    icon: Zap,
-    titulo: 'Mobilitad eléctrica',
-    descripcion: 'Forma parte del futuro de la transporte sostenible en Perú.',
-  },
-  {
-    icon: Users,
-    titulo: 'Equipo joven',
-    descripcion: 'Trabaja con personas apasionadas, creativas y en constante crecimiento.',
-  },
-  {
-    icon: Heart,
-    titulo: 'Beneficios',
-    descripcion: 'Descuentos en productos, capacitaciones y ambiente de trabajo flexible.',
-  },
-  {
-    icon: Briefcase,
-    titulo: 'Crecimiento',
-    descripcion: 'Oportunidades reales de desarrollo profesional y ascenso.',
-  },
-];
-
-const areas = [
-  {
-    titulo: 'Ventas y Atención al Cliente',
-    descripcion: 'Asesores de tienda, soporte post-venta y atención al cliente.',
-    icono: '🏪',
-  },
-  {
-    titulo: 'Logística y Almacén',
-    descripcion: 'Gestión de inventario, despacho y control de stock.',
-    icono: '📦',
-  },
-  {
-    titulo: 'Marketing y Contenido',
-    descripcion: 'Redes sociales, contenido digital, diseño gráfico y community management.',
-    icono: '📱',
-  },
-  {
-    titulo: 'Tecnología e Ingeniería',
-    descripcion: 'Desarrollo web, sistemas, ingeniería de producto y soporte técnico.',
-    icono: '💻',
-  },
-  {
-    titulo: 'Administración y Finanzas',
-    descripcion: 'Contabilidad, tesorería, análisis financiero y control administrativo.',
-    icono: '📊',
-  },
-];
+import { trabaja_beneficios as beneficios, trabaja_areas as areas } from '../../src/data_json.jsx';
 
 export default function TrabajaConNosotros() {
   return (

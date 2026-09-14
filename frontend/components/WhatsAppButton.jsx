@@ -1,3 +1,6 @@
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faWhatsapp } from '@fortawesome/free-brands-svg-icons'
+
 const WHATSAPP_NUMBER = '51919445661';
 const WHATSAPP_MESSAGE =
   '¡Hola! Les escribo desde la web de GreenLine. Tenía una consulta sobre sus vehículos eléctricos. ¿Me pueden ayudar?';
@@ -25,9 +28,9 @@ export default function WhatsAppButton() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Contactar por WhatsApp"
-      className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#009000] text-white shadow-lg transition-transform hover:scale-110 animate-pulse"
+      className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#009000] shadow-lg transition-transform hover:scale-110 animate-pulse"
     >
-      {WHATSAPP_ICON}
+      <FontAwesomeIcon icon={faWhatsapp} className="text-2xl text-white"/>
     </a>
   );
 }

@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { metricsAPI } from '../../lib/api';
 import {
   Cpu, MemoryStick, Activity, Timer, RefreshCw, Loader2, AlertCircle, ShieldOff,
-} from 'lucide-react';
+} from '../../lib/icons';
 
 const ALLOWED = ['ADMIN', 'DESARROLLADOR_WEB'];
 

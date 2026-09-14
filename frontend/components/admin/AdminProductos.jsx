@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Plus, Pencil, Trash2, Search, Star } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Star } from '../../lib/icons';
 
 export default function AdminProductos({ onEdit, onNew }) {
   const [productos, setProductos] = useState([]);

@@ -1,0 +1,322 @@
+Claro. Te lo ordeno como un listado técnico de problemas, archivos involucrados y solución propuesta, sin inventar archivos adicionales cuando no están mencionados.
+
+## Listado de problemas, archivos involucrados y solución
+
+### 1. Error al guardar la ficha técnica por RLS
+
+Problema:
+
+```text
+No se pudo guardar (ficha técnica):
+new row violates row-level security policy for table "ficha_tecnica"
+```
+
+Archivos involucrados:
+
+* No indicado.
+
+Solución:
+
+* Revisar las políticas RLS de la tabla `ficha_tecnica`.
+* Verificar qué rol está realizando el INSERT/UPDATE desde la aplicación.
+* Crear o corregir una política que permita la operación al usuario/rol autorizado.
+* Validar que la política utilice correctamente las condiciones de autenticación y permisos del sistema.
+* No desactivar RLS como solución.
+* Después de corregir la política, probar tanto la creación como la actualización de fichas técnicas.
+
+---
+
+### 2. La búsqueda del blog puede romperse
+
+Problema:
+
+* `NovedadesPage.tsx` utiliza `post.source_tags`.
+* Ese campo no existe actualmente en la vista ni en el esquema utilizado.
+
+Archivo involucrado:
+
+* `frontend/pages/NovedadesPage.tsx`
+
+Solución:
+
+* Revisar qué estructura devuelve actualmente la consulta del blog.
+* Si `source_tags` ya no forma parte del modelo, eliminar su utilización en `NovedadesPage.tsx`.
+* Si el campo realmente es necesario para la funcionalidad, incorporarlo correctamente al esquema/vista y mantenerlo consistente con el frontend.
+* La opción recomendada es no depender de un campo inexistente y adaptar el frontend al modelo actual.
+
+---
+
+### 3. Seguridad de Supabase fragmentada
+
+Problema:
+Existen diferentes definiciones de políticas, RLS y auditoría distribuidas en distintos lugares. Actualmente:
+
+* `schema.sql`
+* migración reciente
+* `backend/prisma/audit-triggers.sql`
+* scripts antiguos
+
+definen políticas y mecanismos de auditoría que no necesariamente contienen exactamente la misma información.
+
+Esto genera el riesgo de que una instalación nueva basada solamente en `schema.sql` no reciba todas las correcciones de seguridad realizadas posteriormente.
+
+Archivos involucrados:
+
+* `schema.sql`
+* migración reciente
+* `backend/prisma/audit-triggers.sql`
+* scripts antiguos
+
+Solución:
+
+* Comparar las tres fuentes actuales.
+* Identificar políticas RLS duplicadas, diferentes o desactualizadas.
+* Unificar las reglas de seguridad y auditoría en 20260914130000_auditoria_seguridad_reportes.sql
+* Actualizar `schema.sql` para que represente el estado real y actualizado de la base de datos.
+* Revisar los scripts/migraciones existentes para evitar que una instalación nueva dependa de ejecutar archivos adicionales en un orden específico.
+* Mantener una única fuente de verdad para RLS, permisos y auditoría.
+
+Nota:
+Actualmente se puede solucionar ejecutando ambas queries necesarias, pero no es la situación ideal. Lo recomendable es dejar los tres puntos alineados y unificados.
+
+---
+
+### 4. Scripts que apuntan a archivos SQL inexistentes
+
+Problema:
+Hay scripts que intentan ejecutar archivos SQL que fueron eliminados o cambiaron de ubicación.
+
+Archivos involucrados:
+
+* `scripts/aplicar-audit-rls.mjs`
+* `backend/scripts/aplicar-rls-admin.mjs`
+
+Archivos SQL referenciados que ya no existen:
+
+* `rls-auth-tablas.sql`
+* `arreglar-rls-admin.sql`
+
+Solución:
+
+* Revisar los scripts y determinar qué funcionalidad tenían originalmente esos SQL.
+* Si las funcionalidades fueron reemplazadas, eliminar las referencias antiguas.
+* Si todavía son necesarias, actualizar las rutas para apuntar a las definiciones actuales.
+* Evitar mantener scripts ejecutables que fallen debido a dependencias eliminadas.
+* Verificar que todos los scripts de administración puedan ejecutarse correctamente desde una instalación limpia.
+
+---
+
+### 5. `seed.sql` contiene usuarios y hashes de prueba
+
+Problema:
+
+* El archivo de seed contiene usuarios y hashes destinados a pruebas.
+* Esto no representa una configuración apropiada para un entorno real.
+
+Archivo involucrado:
+
+* `seed.sql`
+
+Solución:
+
+* Separar claramente los datos de desarrollo/prueba de los datos reales.
+* No incluir credenciales o hashes de usuarios reales dentro de un repositorio.
+* Crear los usuarios reales mediante el mecanismo de autenticación correspondiente.
+* Utilizar correos reales únicamente para las cuentas que realmente deben existir en producción.
+* Mantener el seed destinado a datos estructurales o de prueba y evitar que cree cuentas administrativas innecesarias automáticamente.
+* Si se necesitan usuarios iniciales, utilizar un proceso de creación controlado y seguro.
+
+---
+
+### 6. El catálogo descarga demasiada información
+
+Problema:
+
+* `fetchProductos()` carga todos los productos.
+* También carga imágenes, fichas técnicas e información adicional.
+* `ProductPage` descarga todo el catálogo aunque solamente necesita mostrar un producto.
+
+Esto genera:
+
+* Mayor transferencia de datos.
+* Mayor latencia.
+* Mayor consumo de Supabase.
+* Mayor procesamiento innecesario en frontend.
+* Peor rendimiento a medida que aumenta el catálogo.
+
+Archivos involucrados:
+
+* `fetchProductos()`
+* `ProductPage`
+
+Solución:
+
+* Separar la consulta de listado de la consulta de detalle.
+* El catálogo debe solicitar únicamente los campos necesarios para mostrar las tarjetas.
+* `ProductPage` debe solicitar únicamente el producto cuyo `slug` o `id` se está visualizando.
+* Cargar imágenes, ficha técnica e información adicional únicamente para el producto solicitado.
+* Evitar descargar el catálogo completo para resolver una página individual.
+* Aplicar paginación al listado si el número de productos continúa creciendo.
+
+---
+
+### 7. El blog carga más información de la necesaria
+
+Problema:
+
+* Los listados descargan el contenido HTML completo.
+* También descargan galerías.
+* El detalle puede ejecutar varias consultas secuenciales.
+
+Esto aumenta:
+
+* Transferencia.
+* Tiempo de respuesta.
+* Cantidad de consultas.
+* Consumo de Supabase.
+
+Archivos involucrados:
+
+* No indicados.
+
+Solución:
+
+* En el listado devolver solamente los campos necesarios: título, resumen/extracto, imagen principal, fecha, slug, etc.
+* No descargar `content_html` completo en el listado.
+* No cargar galerías completas hasta que sean necesarias.
+* Optimizar el detalle para reducir consultas secuenciales.
+* Cuando sea posible, combinar consultas relacionadas o utilizar una vista/consulta específica para el detalle.
+* Implementar carga diferida para contenido pesado.
+
+---
+
+### 8. El cálculo de stock no escala correctamente
+
+Problema:
+
+* `stock.service.js` obtiene los movimientos completos.
+* Posteriormente calcula el stock en memoria.
+* Además, existe una función que calcula el saldo utilizando únicamente los últimos 100 movimientos.
+
+Esto puede generar dos problemas:
+
+1. Rendimiento deficiente cuando existan muchos movimientos.
+2. Saldos incorrectos cuando existan más de 100 movimientos relevantes.
+
+Archivo involucrado:
+
+* `backend/src/services/stock.service.js`
+
+Solución:
+
+* Evitar descargar todos los movimientos para calcular el stock.
+* Mover el cálculo hacia PostgreSQL mediante consultas agregadas.
+* Calcular entradas y salidas directamente en la base de datos.
+* Eliminar la limitación arbitraria de los últimos 100 movimientos.
+* Si existe un saldo acumulado, utilizarlo como punto de partida junto con los movimientos posteriores.
+* Considerar índices sobre las columnas utilizadas para consultar movimientos por producto, almacén/tienda y fecha.
+* El objetivo debe ser que calcular el stock de un producto requiera procesar solamente los datos necesarios, no todo el historial.
+
+---
+
+### 9. Las imágenes tienen un cache demasiado agresivo
+
+Problema:
+
+* `image-utils.mjs` configura:
+
+```js
+cacheControl: '0'
+```
+
+Esto evita aprovechar correctamente la caché/CDN.
+
+Archivo involucrado:
+
+* `backend/scripts/image-utils.mjs`
+
+Solución:
+
+* Cambiar la política de caché a un valor apropiado para recursos estáticos.
+* Mantener el versionado/cache-busting de las imágenes cuando se reemplazan.
+* Utilizar URLs versionadas para que una imagen nueva pueda tener una URL diferente aunque conserve el mismo nombre lógico.
+* De esta forma se puede utilizar una caché prolongada sin que el usuario quede viendo imágenes antiguas.
+
+La estrategia ideal sería:
+
+```text
+imagen-v1 → caché prolongada
+imagen-v2 → nueva URL → nueva caché
+```
+
+en lugar de:
+
+```text
+misma URL → cacheControl 0 → no se aprovecha CDN
+```
+
+---
+
+### 10. El confeti se ejecuta en cada navegación
+
+Problema:
+
+* El efecto de confeti se ejecuta durante aproximadamente 2,5 segundos.
+* Actualmente está asociado a `src/App.jsx`.
+* Esto provoca que el efecto pueda ejecutarse nuevamente al navegar entre rutas.
+* Consume recursos aunque la campaña correspondiente no esté activa.
+
+Archivo involucrado:
+
+* `src/App.jsx`
+
+Solución:
+
+* Mover la lógica del confeti al layout global.
+* Controlar desde el layout cuándo debe ejecutarse.
+* Condicionar la ejecución a que la campaña/promoción realmente esté activa.
+* Evitar que el efecto se vuelva a inicializar simplemente porque cambió la ruta.
+* Ejecutarlo una sola vez durante el ciclo correspondiente de la campaña.
+
+La lógica debería pasar conceptualmente de:
+
+```text
+Cambio de ruta
+      ↓
+App.jsx
+      ↓
+Confeti
+      ↓
+2,5 segundos
+```
+
+a:
+
+```text
+Layout
+   ↓
+¿Campaña activa?
+   ↓ sí
+¿Ya se ejecutó?
+   ↓ no
+Confeti
+```
+
+---
+
+## Resumen de prioridad
+
+| Prioridad  | Problema                         | Impacto                               |
+| ---------- | -------------------------------- | ------------------------------------- |
+| Alta       | RLS de `ficha_tecnica`           | Impide guardar información            |
+| Alta       | Seguridad Supabase fragmentada   | Riesgo de configuración inconsistente |
+| Alta       | Stock limitado a 100 movimientos | Puede producir saldos incorrectos     |
+| Alta       | Catálogo descarga todo           | Rendimiento y consumo                 |
+| Media      | Blog descarga contenido de más   | Rendimiento                           |
+| Media      | Scripts SQL inexistentes         | Mantenimiento/despliegue              |
+| Media      | Usuarios de prueba en `seed.sql` | Seguridad/producción                  |
+| Media      | Cache de imágenes en `0`         | Rendimiento/CDN                       |
+| Baja/Media | Confeti en cada navegación       | Consumo innecesario                   |
+| Media      | `source_tags` inexistente        | Puede romper búsqueda del blog        |
+
+La corrección más importante antes de seguir agregando funcionalidades sería resolver primero RLS, unificar seguridad/migraciones y corregir el cálculo de stock. Después optimizaría las consultas del catálogo y blog, porque esas mejoras sí van a tener un impacto directo conforme GreenLine tenga más productos, imágenes, artículos y usuarios.

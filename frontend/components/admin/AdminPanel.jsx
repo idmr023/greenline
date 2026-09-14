@@ -11,7 +11,7 @@ import AdminPedidos from './AdminPedidos';
 import AdminBlog from './AdminBlog';
 import AdminMetrics from './AdminMetrics';
 import AdminDistribuidores from './AdminDistribuidores';
-import { LayoutDashboard, Package, Palette, MessageSquareQuote, ShoppingCart, LogOut, ShieldCheck, Lock, Mail, Loader2, AlertCircle, Activity, FileText, Gift, MapPin } from 'lucide-react';
+import { LayoutDashboard, Package, Palette, MessageSquareQuote, ShoppingCart, LogOut, ShieldCheck, Lock, Mail, Loader2, AlertCircle, Activity, FileText, Gift, MapPin } from '../../lib/icons';
 import { toggleTemaAniversario, temaAniversarioActivo } from '../../lib/aniversario';
 
 const VIEWS = {

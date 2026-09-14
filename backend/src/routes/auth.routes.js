@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { login, verifyOTP, verify2FALogin, setup2FA, confirm2FA, refreshTokens, logout } from '../services/auth.service.js';
+import { login, verifyStaffGate, verifyOTP, verify2FALogin, setup2FA, confirm2FA, refreshTokens, logout, requestPasswordReset, resetPassword } from '../services/auth.service.js';
 import { syncSupabaseAuthUser } from '../services/supabase-admin.service.js';
 import { listPanelRoles, setPanelRole } from '../services/panel.service.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { requirePermission } from '../middleware/rbac.js';
-import { loginLimiter, otpLimiter } from '../middleware/rateLimiter.js';
+import { loginLimiter, otpLimiter, gateLimiter, twoFALimiter, refreshLimiter, resetRequestLimiter, resetConfirmLimiter } from '../middleware/rateLimiter.js';
 import { validate } from '../middleware/validate.js';
 
 const router = Router();
@@ -14,6 +14,13 @@ const loginSchema = z.object({
   body: z.object({
     email: z.string().email('Email inválido'),
     password: z.string().min(1, 'Contraseña requerida'),
+  }),
+});
+
+const gateSchema = z.object({
+  body: z.object({
+    tempToken: z.string(),
+    gate: z.string().min(1, 'Código de acceso requerido'),
   }),
 });
 
@@ -34,6 +41,20 @@ const verify2FASchema = z.object({
 const refreshSchema = z.object({
   body: z.object({
     refreshToken: z.string(),
+  }),
+});
+
+const resetRequestSchema = z.object({
+  body: z.object({
+    email: z.string().email('Email inválido'),
+  }),
+});
+
+const resetConfirmSchema = z.object({
+  body: z.object({
+    email: z.string().email('Email inválido'),
+    codigo: z.string().length(6, 'El código debe tener 6 dígitos'),
+    newPassword: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
   }),
 });
 
@@ -85,8 +106,25 @@ router.post('/verify-otp', otpLimiter, validate(otpSchema), async (req, res) => 
   }
 });
 
+// POST /auth/verify-gate — Verificar puerta de acceso staff
+router.post('/verify-gate', gateLimiter, validate(gateSchema), async (req, res) => {
+  try {
+    const { tempToken, gate } = req.body;
+    const result = await verifyStaffGate(tempToken, gate, req.ip, req.headers['user-agent']);
+
+    if (!result.success) {
+      return res.status(401).json(result);
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error verificando puerta:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 // POST /auth/verify-2fa — Verificar 2FA TOTP (staff)
-router.post('/verify-2fa', validate(verify2FASchema), async (req, res) => {
+router.post('/verify-2fa', twoFALimiter, validate(verify2FASchema), async (req, res) => {
   try {
     const { tempToken, totpCode } = req.body;
     const result = await verify2FALogin(tempToken, totpCode, req.ip, req.headers['user-agent']);
@@ -131,7 +169,7 @@ router.post('/confirm-2fa', authMiddleware, async (req, res) => {
 });
 
 // POST /auth/refresh — Renovar tokens
-router.post('/refresh', validate(refreshSchema), async (req, res) => {
+router.post('/refresh', refreshLimiter, validate(refreshSchema), async (req, res) => {
   try {
     const result = await refreshTokens(req.body.refreshToken, req.ip, req.headers['user-agent']);
 
@@ -142,6 +180,34 @@ router.post('/refresh', validate(refreshSchema), async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Error refrescando tokens:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// POST /auth/request-reset — Solicitar restablecimiento de contraseña
+router.post('/request-reset', resetRequestLimiter, validate(resetRequestSchema), async (req, res) => {
+  try {
+    const result = await requestPasswordReset(req.body.email, req.ip);
+    res.json(result);
+  } catch (error) {
+    console.error('Error solicitando restablecimiento:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// POST /auth/reset-password — Confirmar restablecimiento con el OTP recibido
+router.post('/reset-password', resetConfirmLimiter, validate(resetConfirmSchema), async (req, res) => {
+  try {
+    const { email, codigo, newPassword } = req.body;
+    const result = await resetPassword(email, codigo, newPassword, req.ip);
+
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error restableciendo contraseña:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

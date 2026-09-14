@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, MessageCircle, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, MessageCircle, Loader2, CheckCircle2, AlertCircle } from '../lib/icons';
 import PageBanner from '../components/PageBanner';
 import SEOHead, { organizationSchema, breadcrumbSchema } from '../components/SEOHead';
 import { contactAPI } from '../lib/api';

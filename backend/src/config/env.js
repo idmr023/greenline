@@ -1,7 +1,10 @@
 import { z } from 'zod';
 import { config } from 'dotenv';
+import { fileURLToPath } from 'node:url';
 
-config();
+// Cargar backend/.env de forma independiente del cwd (las variables ya
+// presentes en el entorno —p. ej. Render— NO se sobrescriben).
+config({ path: fileURLToPath(new URL('../../.env', import.meta.url)) });
 
 const envSchema = z.object({
   DATABASE_URL: z.string().url(),
@@ -9,8 +12,16 @@ const envSchema = z.object({
 
   JWT_SECRET: z.string().min(32),
   JWT_REFRESH_SECRET: z.string().min(32),
+  /** Secreto para tokens temporales de challenge (puerta staff y 2FA). Separado de access/refresh para evitar reuso. */
+  JWT_TEMP_SECRET: z.string().min(32),
   JWT_EXPIRY: z.string().default('15m'),
   JWT_REFRESH_EXPIRY: z.string().default('7d'),
+
+  /** Código de puerta compartido del staff. Se valida del lado del servidor (nunca en el bundle cliente). */
+  STAFF_GATE_CODE: z.string().min(4),
+
+  /** Clave maestra para cifrado de campos sensibles en reposo (AES-256-GCM). Mínimo 32 caracteres. */
+  FIELD_ENCRYPTION_KEY: z.string().min(32),
 
   SMTP_HOST: z.string().default('smtp.gmail.com'),
   SMTP_PORT: z.coerce.number().default(587),
@@ -51,6 +62,8 @@ const envSchema = z.object({
 
   SUPABASE_URL: z.string().url().optional(),
   SUPABASE_ANON_KEY: z.string().optional(),
+  /** Service role key de Supabase (solo servidor; nunca exponer al cliente). Obligatoria en producción. */
+  SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -61,4 +74,14 @@ if (!parsed.success) {
   process.exit(1);
 }
 
-export const env = parsed.data;
+const env = parsed.data;
+
+// Rechazos de seguridad en producción (deny by default).
+const PRODUCTION_REQUIRED = ['SUPABASE_SERVICE_ROLE_KEY'];
+const missingProduction = PRODUCTION_REQUIRED.filter((key) => !env[key]);
+if (env.NODE_ENV === 'production' && missingProduction.length > 0) {
+  console.error(`❌ En producción faltan variables requeridas: ${missingProduction.join(', ')}`);
+  process.exit(1);
+}
+
+export { env };

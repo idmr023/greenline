@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
-import { versionarHtml, versionarImagen } from '../../lib/imagenVersionada';
+import { versionarHtml, versionarImagen } from '../../lib/images';
 import BlogCarrusel from './BlogCarrusel';
 
 function leerImagenes(block) {

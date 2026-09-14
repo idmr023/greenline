@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Plus, Pencil, Trash2, Check, X, ArrowUp, ArrowDown, Eye, EyeOff } from 'lucide-react';
+import { Plus, Pencil, Trash2, Check, X, ArrowUp, ArrowDown, Eye, EyeOff } from '../../lib/icons';
 
 const EMPTY_FORM = {
   nombre: '',

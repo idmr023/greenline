@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { User, Mail, Shield, LogOut } from 'lucide-react';
+import { User, Mail, Shield, LogOut } from '../lib/icons';
 import PageBanner from '../components/PageBanner';
 import SEOHead from '../components/SEOHead';
 

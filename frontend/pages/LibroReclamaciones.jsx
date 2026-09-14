@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpenCheck, MapPin, Phone, Mail, CheckCircle2, FileSignature } from 'lucide-react';
+import { BookOpenCheck, MapPin, Phone, Mail, CheckCircle2, FileSignature } from '../lib/icons';
 import PageBanner from '../components/PageBanner';
 import SEOHead, { breadcrumbSchema } from '../components/SEOHead';
 import { CONTACT, BRAND } from '../lib/config';
@@ -8,20 +8,7 @@ import { fetchStores } from '../lib/locations';
 import { fetchProductos } from '../lib/productos';
 import { API_URL } from '../lib/api';
 import COLOR_DOT_CLASS, { colorDotClassFor } from '../lib/colores';
-
-const DOC_TYPES = ['DNI', 'Carné de extranjería', 'Pasaporte', 'RUC'];
-const SERVICIO_OPCIONES = [
-  '—Por favor, elige una opción—',
-  'Atención al cliente',
-  'Servicio técnico',
-  'Distribución'
-];
-
-const TIPO_OPCIONES = [
-  '—Por favor, elige una opción—',
-  'Queja',
-  'Reclamo',
-];
+import { libro_doc_types as DOC_TYPES, libro_servicio_opciones as SERVICIO_OPCIONES, libro_tipo_opciones as TIPO_OPCIONES } from '../../src/data_json.jsx';
 
 const emptyForm = {
   nombre: '',

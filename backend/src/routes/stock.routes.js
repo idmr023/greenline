@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { createStockMove, approveStockMove, getStockByTienda, getStockGeneral, getPendingApprovals } from '../services/stock.service.js';
 import { authMiddleware } from '../middleware/auth.js';
-import { requirePermission, requireOwnStore, requireApproval } from '../middleware/rbac.js';
+import { requirePermission, requireOwnStore, requireApproval, scopeToOwnStore } from '../middleware/rbac.js';
 import { validate } from '../middleware/validate.js';
 import { auditLog } from '../middleware/auditLog.js';
 import prisma from '../config/prisma.js';
@@ -31,8 +31,9 @@ const approveSchema = z.object({
   }),
 });
 
-// GET /stock/general — Stock general (admin, logística, gerentes)
-router.get('/general', requirePermission('stock:almacen:read', 'stock:tienda:read'), async (req, res) => {
+// GET /stock/general — Stock general (admin, logística, gerentes).
+// Roles no elevados quedan restringidos a su propia tienda (scopeToOwnStore).
+router.get('/general', requirePermission('stock:almacen:read', 'stock:tienda:read'), scopeToOwnStore, async (req, res) => {
   try {
     const result = await getStockGeneral(req.query);
     res.json(result);
@@ -53,8 +54,9 @@ router.get('/tienda/:tiendaId', requirePermission('stock:almacen:read', 'stock:t
   }
 });
 
-// POST /stock/move — Crear movimiento de stock
-router.post('/move', requirePermission('stock:almacen:write', 'stock:tienda:write'), requireApproval, validate(createMoveSchema), auditLog('CREATE', 'stock_moves'), async (req, res) => {
+// POST /stock/move — Crear movimiento de stock.
+// requireOwnStore valida que colaboradores/gerentes solo operen sobre su tienda.
+router.post('/move', requirePermission('stock:almacen:write', 'stock:tienda:write'), requireOwnStore, requireApproval, validate(createMoveSchema), auditLog('CREATE', 'stock_moves'), async (req, res) => {
   try {
     const move = await createStockMove({
       ...req.body,
@@ -91,7 +93,7 @@ router.get('/pending', requirePermission('stock:almacen:approve', 'stock:tienda:
 });
 
 // GET /stock/movements — Historial de movimientos
-router.get('/movements', requirePermission('stock:almacen:read', 'stock:tienda:read'), async (req, res) => {
+router.get('/movements', requirePermission('stock:almacen:read', 'stock:tienda:read'), scopeToOwnStore, async (req, res) => {
   try {
     const { tiendaId, productoId, tipo, page = 1, limit = 50 } = req.query;
 

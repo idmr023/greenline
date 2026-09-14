@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp } from '../lib/icons';
 
 export default function ScrollTopButton() {
   const [visible, setVisible] = useState(false);

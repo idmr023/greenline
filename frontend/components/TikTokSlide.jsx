@@ -1,5 +1,4 @@
-import { Radio, ExternalLink } from 'lucide-react';
-import { TiktokIcon } from './SocialIcons';
+import { Radio, ExternalLink, TikTok } from '../lib/icons';
 import { SOCIAL } from '../lib/config';
 
 /**
@@ -28,7 +27,7 @@ export default function TikTokSlide() {
         className="absolute inset-0 flex items-center justify-end pr-[8%] select-none"
         style={{ fontSize: 'min(30vw, 34vh)' }}
       >
-        <TiktokIcon className="text-white/5" style={{ width: '1em', height: '1em' }} />
+        <TikTok className="text-white/5" style={{ width: '1em', height: '1em' }} />
       </span>
 
       {/* Contenido */}
@@ -54,7 +53,7 @@ export default function TikTokSlide() {
           rel="noopener noreferrer"
           className="mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-[#25f4ee] px-7 py-3 font-bold text-black-contrast transition-all hover:scale-105 hover:bg-[#4ff9f3]"
         >
-          <TiktokIcon className="h-5 w-5" />
+          <TikTok className="h-5 w-5" />
           Ver nuestro TikTok
           <ExternalLink className="h-4 w-4" />
         </a>

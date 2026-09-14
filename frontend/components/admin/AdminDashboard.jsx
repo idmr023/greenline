@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Package, AlertTriangle, Image, TrendingUp } from 'lucide-react';
+import { Package, AlertTriangle, Image, TrendingUp } from '../../lib/icons';
 
 export default function AdminDashboard({ onNavigate }) {
   const [stats, setStats] = useState({

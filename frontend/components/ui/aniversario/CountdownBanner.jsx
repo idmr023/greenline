@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, Gift } from 'lucide-react';
+import { Clock, Gift } from '../../../lib/icons';
 import useCountdown from '../../../hooks/useCountdown';
 import { isAniversarioActivo, aniversarioNumero } from '../../../lib/aniversario';
 import AnniversaryPromo from './AniversaryPromo';

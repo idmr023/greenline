@@ -80,7 +80,8 @@ export function requirePermission(...permissions) {
   };
 }
 
-// Middleware: el usuario solo puede acceder a datos de su tienda
+// Middleware: el usuario solo puede acceder a datos de su tienda.
+// Rechaza (403) si pide una tienda distinta a la suya (previene IDOR).
 export function requireOwnStore(req, res, next) {
   const user = req.user;
 
@@ -94,7 +95,34 @@ export function requireOwnStore(req, res, next) {
     return res.status(403).json({ error: 'Sin tienda asignada' });
   }
 
+  const tiendaSolicitada = req.params?.tiendaId || req.query?.tiendaId || req.body?.tiendaId;
+  if (tiendaSolicitada && tiendaSolicitada !== user.tiendaId) {
+    return res.status(403).json({ error: 'Sin permisos para esta tienda' });
+  }
+
   req.storeFilter = user.tiendaId;
+  next();
+}
+
+// Middleware: fuerza el alcance (scope) a la tienda del usuario en consultas
+// que aceptan tiendaId por query (ej. /stock/general, /stock/movements).
+// Admin y desarrolladores conservan visión global.
+export function scopeToOwnStore(req, res, next) {
+  const user = req.user;
+
+  if (['ADMIN', 'DESARROLLADOR_WEB'].includes(user.rol)) {
+    return next();
+  }
+
+  if (!user.tiendaId) {
+    return res.status(403).json({ error: 'Sin tienda asignada' });
+  }
+
+  if (req.query?.tiendaId && req.query.tiendaId !== user.tiendaId) {
+    return res.status(403).json({ error: 'Sin permisos para esta tienda' });
+  }
+
+  req.query.tiendaId = user.tiendaId;
   next();
 }
 

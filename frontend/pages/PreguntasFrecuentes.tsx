@@ -12,7 +12,7 @@ import {
   BatteryCharging,
   CircleDollarSign,
   Settings,
-} from 'lucide-react';
+} from '../lib/icons';
 import { CONTACT } from '../lib/config';
 import PageBanner from '../components/PageBanner';
 import SEOHead, { breadcrumbSchema } from '../components/SEOHead';
@@ -22,43 +22,7 @@ import TablaComparativa from '../components/faq/TablaComparativa';
 import FormulaBlock from '../components/faq/FormulaBlock';
 import TarjetaConsejo from '../components/faq/TarjetaConsejo';
 import CurvaCargaSVG from '../components/faq/CurvaCargaSVG';
-
-const SECTIONS = [
-  {
-    id: 'motos-electricas',
-    questions: [
-      'cómo funciona una moto eléctrica',
-      'diferencia entre las motos eléctricas y los de gasolina',
-      'dónde puedo cargar los productos eléctricos',
-      'cuánto tiempo tiene que recargar las baterías',
-      'qué tipo de batería llevan las motos eléctricas y cuál es la vida útil',
-      'cuántos caballos de fuerza equivale un watt',
-    ],
-  },
-  {
-    id: 'costos',
-    questions: [
-      'cuánto es el costo en consumo de energía',
-      'es costoso mantener una moto eléctrica',
-      'cuánto cuestan las baterías',
-      'es costoso los repuestos de la moto eléctrica',
-    ],
-  },
-  {
-    id: 'mantenimiento',
-    questions: [
-      'qué tipo de mantenimiento o revisión necesitan las motos eléctricas',
-      'cuál es la diferencia entre mantenimiento y revisión técnica',
-    ],
-  },
-  {
-    id: 'garantia',
-    questions: [
-      'a quién debo acudir en caso de requerir alguna asistencia técnica',
-      'cuál es la garantía de greenline',
-    ],
-  },
-];
+import { faq_sections as SECTIONS } from '../../src/data_json.jsx';
 
 function normalize(v: string) {
   return v.replace(/\s+/g, ' ').trim().toLowerCase();
