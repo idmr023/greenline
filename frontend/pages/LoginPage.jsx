@@ -93,7 +93,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await authAPI.verifyGate(loginResult.tempToken, tempPassword);
+      const res = await authAPI.verifyGate(loginResult.tempToken, tempPassword.trim());
 
       if (!res.success) {
         setError(res.error || 'Código de acceso incorrecto');
@@ -149,8 +149,8 @@ export default function LoginPage() {
               <div className="w-12 h-12 bg-brand rounded-xl flex items-center justify-center mx-auto mb-3">
                 <Lock className="w-6 h-6 text-white" />
               </div>
-              <h1 className="text-xl font-bold text-gray-900">Verificación temporal</h1>
-              <p className="text-sm text-gray-500 mt-1">Ingresa la contraseña de acceso temporal</p>
+              <h1 className="text-xl font-bold text-gray-900">Código de acceso</h1>
+              <p className="text-sm text-gray-500 mt-1">Ingresa el código de acceso del staff</p>
             </div>
 
             {error && (
@@ -162,7 +162,7 @@ export default function LoginPage() {
 
             <form onSubmit={handleTempVerified} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña temporal</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Código de acceso</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
@@ -172,7 +172,7 @@ export default function LoginPage() {
                     value={tempPassword}
                     onChange={(e) => setTempPassword(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
-                    placeholder="••••••••"
+                    placeholder="Código de 6 dígitos"
                   />
                 </div>
               </div>
