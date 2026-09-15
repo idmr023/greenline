@@ -174,8 +174,8 @@ export async function verifyStaffGate(tempToken, gate, ip, userAgent) {
 // Comparación en tiempo constante del código de puerta (evita timing attacks).
 function verifyGateCode(gate) {
   if (!env.STAFF_GATE_CODE) return false;
-  const a = Buffer.from(String(gate));
-  const b = Buffer.from(String(env.STAFF_GATE_CODE));
+  const a = Buffer.from(String(gate).trim());
+  const b = Buffer.from(String(env.STAFF_GATE_CODE).trim());
   if (a.length !== b.length) return false;
   return crypto.timingSafeEqual(a, b);
 }
