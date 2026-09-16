@@ -135,9 +135,23 @@ export const contactAPI = {
 export const pedidosAPI = {
   send: (payload) =>
     request('/pedidos', { method: 'POST', body: JSON.stringify(payload) }),
+
+  reenviarEmail: (payload, accessToken) =>
+    request('/pedidos/reenviar-email', {
+      method: 'POST',
+      headers: authHeaders(accessToken),
+      body: JSON.stringify(payload),
+    }),
 };
 
 export const metricsAPI = {
   get: (accessToken) =>
     request('/metrics', { headers: authHeaders(accessToken) }),
+};
+
+export const imagenesAPI = {
+  listar: (ruta, accessToken) =>
+    request(`/imagenes/listar?ruta=${encodeURIComponent(ruta || '')}`, {
+      headers: authHeaders(accessToken),
+    }),
 };

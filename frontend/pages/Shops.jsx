@@ -1,6 +1,7 @@
 import PageBanner from '../components/PageBanner';
 import SEOHead, { breadcrumbSchema } from '../components/SEOHead';
 import StoreLocator from '../components/StoreLocator';
+import TrustSeals from '../components/TrustSeals';
 
 export default function Tiendas() {
   return (
@@ -20,6 +21,7 @@ export default function Tiendas() {
         subtitle="Encuentra tu sucursal o distribuidor Green Line mǭs cercano"
       />
       <StoreLocator />
+      <TrustSeals />
     </div>
   );
 }

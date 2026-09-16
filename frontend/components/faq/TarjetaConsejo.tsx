@@ -8,10 +8,10 @@ interface TarjetaConsejoProps {
 }
 
 const VARIANTE_STYLES = {
-  verde: 'bg-emerald-50 border-emerald-200 text-emerald-800',
-  rojo: 'bg-red-50 border-red-200 text-red-800',
-  azul: 'bg-blue-50 border-blue-200 text-blue-800',
-  neutro: 'bg-gray-50 border-gray-200 text-gray-800',
+  verde: 'bg-brand/10 border-brand/30 text-brand-dark',
+  rojo: 'bg-neutral-900 border-neutral-900 text-white',
+  azul: 'bg-neutral-100 border-neutral-300 text-neutral-900',
+  neutro: 'bg-white border-neutral-200 text-neutral-800',
 } as const;
 
 export default function TarjetaConsejo({

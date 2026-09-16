@@ -4,7 +4,7 @@ import ProductImage from './ProductImage';
 import ProductGallery from './ProductGallery';
 import { BBVACard } from '../ui/general/BBVACard';
 import { formatPrice } from '../../lib/utils';
-import { colorDotClassFor } from '../../lib/colores';
+import { colorDotClassFor, colorDotStyle } from '../../lib/colores';
 
 export default function ProductModal({ producto, onClose }) {
   const [activeColor, setActiveColor] = useState(null);
@@ -124,6 +124,7 @@ export default function ProductModal({ producto, onClose }) {
                       }`}
                     >
                       <span
+                        style={colorDotStyle(producto.colores_detalle, c)}
                         className={`w-3 h-3 rounded-full border border-gray-200 ${
                           colorDotClassFor(c)
                         }`}

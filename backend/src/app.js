@@ -21,6 +21,7 @@ import pedidosRoutes from './routes/pedidos.routes.js';
 import blogRoutes from './routes/blog.routes.js';
 import tiktokRoutes from './routes/tiktok.routes.js';
 import reclamacionesRoutes from './routes/reclamaciones.routes.js';
+import imagenesRoutes from './routes/imagenes.routes.js';
 
 const app = express();
 
@@ -117,6 +118,7 @@ app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/tiktok-live', tiktokRoutes);
 app.use('/api/reclamaciones', reclamacionesRoutes);
+app.use('/api/imagenes', imagenesRoutes);
 
 // 404
 app.use((req, res) => {

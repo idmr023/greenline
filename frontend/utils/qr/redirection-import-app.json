@@ -352,8 +352,8 @@
     },
     {
       "id": 14,
-      "url": "/libro-de-reclamaciones/",
-      "match_url": "/libro-de-reclamaciones",
+      "url": "/libro-reclamaciones/",
+      "match_url": "/libro-reclamaciones",
       "match_data": {
         "source": {
           "flag_query": "exact",
@@ -365,7 +365,7 @@
       "action_code": 301,
       "action_type": "url",
       "action_data": {
-        "url": "https://greenline-eta.vercel.app/libro-de-reclamaciones"
+        "url": "https://greenline-eta.vercel.app/libro-reclamaciones"
       },
       "match_type": "url",
       "title": "",

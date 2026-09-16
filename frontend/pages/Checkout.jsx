@@ -59,6 +59,7 @@ export default function Checkout() {
   const [error, setError] = useState('');
   const [attempted, setAttempted] = useState(false);
   const [success, setSuccess] = useState(null);
+  const [emailNotice, setEmailNotice] = useState(false);
 
   const setField = (field, value) => setForm((f) => ({ ...f, [field]: value }));
 
@@ -147,14 +148,16 @@ export default function Checkout() {
       if (insertErr) throw new Error('supabase');
 
       try {
-        await pedidosAPI.send({
+        const res = await pedidosAPI.send({
           codigo,
           cliente,
           items: snapshotItems,
           total: snapshotTotal,
         });
+        setEmailNotice(res?.emailOk === false);
       } catch (mailErr) {
         console.error('No se pudo enviar el correo del pedido:', mailErr);
+        setEmailNotice(true);
       }
 
       setSuccess({ codigo, items: snapshotItems, total: snapshotTotal });
@@ -194,6 +197,16 @@ export default function Checkout() {
               Tu pedido <span className="font-bold text-gray-900">{success.codigo}</span> fue
               registrado. Nuestro equipo te contactará para coordinar el pago y la entrega.
             </p>
+            {emailNotice && (
+              <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg px-4 py-3 mb-6 text-left">
+                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                <p>
+                  Tu pedido quedó registrado, pero no pudimos enviar la confirmación por correo.
+                  Tu información llegó a nuestro equipo; también puedes confirmar tu pedido por
+                  WhatsApp con el botón de abajo.
+                </p>
+              </div>
+            )}
             <div className="mb-6">
               {success.items.map((it, i) => (
                 <div

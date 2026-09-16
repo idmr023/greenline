@@ -3,6 +3,12 @@ import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 import { pedidosLimiter } from '../middleware/rateLimiter.js';
 import { enqueueEmail } from '../queue/email.queue.js';
+import {
+  getSupabaseAdmin,
+  trackPedidoEmail,
+} from '../services/pedidos-email-track.service.js';
+import { authMiddleware } from '../middleware/auth.js';
+import { requirePermission } from '../middleware/rbac.js';
 import { env } from '../config/env.js';
 
 const router = Router();
@@ -37,26 +43,107 @@ const pedidoSchema = z.object({
 });
 
 router.post('/', pedidosLimiter, validate(pedidoSchema), async (req, res) => {
+  const { codigo, cliente, items, total } = req.validated.body;
+
+  // Encolar el email y responder al instante (no bloquear con SMTP).
+  // Prioridad alta para que el equipo distinga pedidos de notificaciones.
+  // El estado del envío se registra en la fila del pedido (worker) para que el
+  // panel muestre qué pedidos quedaron sin correo en vez de "pudrirse" en silencio.
+  let emailOk = true;
   try {
-    const { codigo, cliente, items, total } = req.validated.body;
-
-    const html = generarEmailPedido({ codigo, cliente, items, total });
-
-    // Encolar el email y responder al instante (no bloquear con SMTP).
-    // Prioridad alta para que el equipo distinga pedidos de notificaciones.
     await enqueueEmail({
       to: env.ORDERS_MAIL_TO,
       subject: `Pedido ${codigo} — ${cliente.nombre}`,
-      html,
+      html: generarEmailPedido({ codigo, cliente, items, total }),
       priority: 'high',
+      meta: { codigo },
+    });
+  } catch (error) {
+    console.error('Error encolando notificación de pedido:', error);
+    emailOk = false;
+    await trackPedidoEmail(codigo, { ok: false, error: error.message });
+  }
+
+  res.status(200).json({ ok: true, emailOk });
+});
+
+// ============================================================
+// POST /api/pedidos/reenviar-email — Reenvío manual (admin)
+// Vuelve a encolar el correo de notificación de un pedido desde
+// el panel (útil cuando el envío automático falló o para pruebas).
+// El estado del envío se registra igual que en el flujo público.
+// ============================================================
+
+const reenviarEmailSchema = z.object({
+  body: z.object({
+    codigo: z.string().trim().min(3).max(40),
+  }),
+});
+
+router.post(
+  '/reenviar-email',
+  authMiddleware,
+  requirePermission('pedidos:email'),
+  validate(reenviarEmailSchema),
+  async (req, res) => {
+    const { codigo } = req.validated.body;
+
+    const sb = getSupabaseAdmin();
+    if (!sb) {
+      return res.status(500).json({ error: 'Configuración de Supabase no disponible' });
+    }
+
+    const { data: pedido, error } = await sb
+      .from('pedidos')
+      .select('*')
+      .eq('codigo', codigo)
+      .maybeSingle();
+
+    if (error) {
+      console.error('[pedidos] error leyendo pedido para reenvío:', error.message);
+      return res.status(500).json({ error: 'No se pudo leer el pedido' });
+    }
+    if (!pedido) {
+      return res.status(404).json({ error: 'Pedido no encontrado' });
+    }
+
+    let cliente = {};
+    let items = [];
+    try {
+      cliente = typeof pedido.cliente === 'string' ? JSON.parse(pedido.cliente) : pedido.cliente || {};
+    } catch {}
+    try {
+      items = Array.isArray(pedido.items)
+        ? pedido.items
+        : typeof pedido.items === 'string'
+          ? JSON.parse(pedido.items || '[]')
+          : [];
+    } catch {}
+
+    const subject = `Pedido ${codigo} — ${cliente.nombre || 'Cliente'}`;
+    const html = generarEmailPedido({
+      codigo,
+      cliente,
+      items,
+      total: Number(pedido.total),
     });
 
-    res.status(200).json({ ok: true });
-  } catch (error) {
-    console.error('Error enviando notificación de pedido:', error);
-    res.status(500).json({ error: 'No se pudo registrar el pedido. Intenta más tarde.' });
-  }
-});
+    try {
+      await enqueueEmail({
+        to: env.ORDERS_MAIL_TO,
+        subject,
+        html,
+        priority: 'high',
+        meta: { codigo },
+      });
+      res.json({ ok: true, emailOk: true });
+    } catch (err) {
+      console.error('[pedidos] error encolando reenvío de correo:', err.message);
+      await trackPedidoEmail(codigo, { ok: false, error: err.message });
+      res.status(500).json({ ok: false, error: err.message });
+    }
+  },
+);
 
 function formatPrice(value) {
   return 'S/ ' + Number(value).toLocaleString('es-PE', {
@@ -65,7 +152,7 @@ function formatPrice(value) {
   });
 }
 
-function generarEmailPedido({ codigo, cliente, items, total }) {
+export function generarEmailPedido({ codigo, cliente, items, total }) {
   const filas = items
     .map(
       (it) => `

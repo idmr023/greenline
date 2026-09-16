@@ -429,7 +429,7 @@ export default function PreguntasFrecuentes() {
         {/* ═══════════════════════════════════════════════════ */}
         <section id="costos" className="scroll-mt-32">
           <div className="mb-8">
-            <span className="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 text-sm font-semibold rounded-full mb-3">
+            <span className="inline-block px-3 py-1 bg-brand/10 text-brand text-sm font-semibold rounded-full mb-3">
               Ahorro
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
@@ -678,7 +678,7 @@ export default function PreguntasFrecuentes() {
         {/* ═══════════════════════════════════════════════════ */}
         <section id="mantenimiento" className="scroll-mt-32">
           <div className="mb-8">
-            <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-sm font-semibold rounded-full mb-3">
+            <span className="inline-block px-3 py-1 bg-neutral-900 text-white text-sm font-semibold rounded-full mb-3">
               Cuidado
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
@@ -717,17 +717,17 @@ export default function PreguntasFrecuentes() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Revisión */}
-                  <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5">
+                  <div className="rounded-2xl border border-brand-dark bg-brand-dark p-5">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-blue-600 text-xs font-bold">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-light text-white text-xs font-bold">
                         1
                       </span>
                       <h4 className="text-sm font-bold text-gray-900">La Revisión</h4>
                     </div>
-                    <p className="text-xs text-blue-700 font-semibold uppercase tracking-wider mb-2">
+                    <p className="text-xs text-white font-semibold uppercase tracking-wider mb-2">
                       El diagnóstico analítico y visual
                     </p>
-                    <p className="text-sm text-gray-600 leading-relaxed mb-3">
+                    <p className="text-sm text-zinc-400 leading-relaxed mb-3">
                       Un proceso puramente de evaluación. Consiste en examinar el estado
                       actual de tu vehículo para mapear qué funciona a la perfección y qué
                       requiere atención inmediata, sin intervenir o cambiar piezas en el
@@ -736,7 +736,7 @@ export default function PreguntasFrecuentes() {
                     <p className="text-xs font-semibold text-gray-900 mb-1.5">
                       ¿Qué incluye el chequeo?
                     </p>
-                    <ul className="text-xs text-gray-700 space-y-1.5">
+                    <ul className="text-xs text-zinc-400 space-y-1.5">
                       <li>
                         <strong>Lectura de Batería:</strong> Revisión de conexiones de
                         terminales y análisis de cada celda.
@@ -755,7 +755,7 @@ export default function PreguntasFrecuentes() {
                       </li>
                     </ul>
                     <div className="mt-3 rounded-xl bg-blue-100/50 p-3">
-                      <p className="text-xs font-bold text-blue-700">El Resultado:</p>
+                      <p className="text-xs font-bold text-black">El Resultado:</p>
                       <p className="text-xs text-gray-600 mt-0.5">
                         Te entregamos un diagnóstico detallado con las prioridades de tu moto
                         (ej. "Batería en óptimo estado al 92%, pero pastillas de freno al 15%
@@ -828,7 +828,7 @@ export default function PreguntasFrecuentes() {
         {/* ═══════════════════════════════════════════════════ */}
         <section id="garantia" className="scroll-mt-32">
           <div className="mb-8">
-            <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 text-sm font-semibold rounded-full mb-3">
+            <span className="inline-block px-3 py-1 bg-neutral-900 text-white text-sm font-semibold rounded-full mb-3">
               Post-Venta
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">

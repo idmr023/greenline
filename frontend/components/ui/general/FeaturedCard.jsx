@@ -6,7 +6,8 @@ export default function FeatureCard({
   icon,
   variant = 'light', // Por defecto será blanco/claro
   badgeText,
-  className = ''
+  className = '',
+  children
 }) {
   const isDark = variant === 'dark';
 
@@ -63,6 +64,9 @@ export default function FeatureCard({
           {badgeText}
         </span>
       )}
+
+      {/* Contenido adicional opcional (ej. CTA dentro de la tarjeta) */}
+      {children}
     </div>
   );
 }

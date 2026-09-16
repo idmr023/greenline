@@ -92,7 +92,7 @@ export default function Footer() {
         <div className="mt-6 flex flex-col items-center gap-2 text-center">
           <p className="text-xs text-gray-500">¿Tienes una queja o reclamo? Cuéntanoslo a través de nuestro</p>
           <Link
-            to="/libro-de-reclamaciones"
+            to="/libro-reclamaciones"
             className="inline-flex items-center gap-2 px-6 py-3 bg-brand hover:bg-brand-light text-white text-base font-bold rounded-xl shadow-lg transition-colors"
           >
             <FileText className="w-5 h-5" />

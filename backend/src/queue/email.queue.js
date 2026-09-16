@@ -2,6 +2,8 @@ import { Queue, Worker } from 'bullmq';
 import IORedis from 'ioredis';
 import { env } from '../config/env.js';
 import { sendEmail } from '../utils/email.js';
+import { trackPedidoEmail } from '../services/pedidos-email-track.service.js';
+import prisma from '../config/prisma.js';
 
 // ============================================================
 // Cola de envío de emails
@@ -33,8 +35,27 @@ async function flushMemoryQueue() {
     const job = memoryQueue.shift();
     try {
       await sendEmail(job);
+      await trackPedidoEmail(job.meta?.codigo, { ok: true });
+      await prisma.emailLog.create({
+        data: {
+          destinatario: job.to,
+          asunto: job.subject,
+          estado: 'ENVIADO',
+          meta: job.meta || {},
+        },
+      }).catch(() => {});
     } catch (err) {
       console.error('[email-queue] error enviando email (memoria):', err);
+      await trackPedidoEmail(job.meta?.codigo, { ok: false, error: err.message });
+      await prisma.emailLog.create({
+        data: {
+          destinatario: job.to,
+          asunto: job.subject,
+          estado: 'ERROR',
+          error: err.message,
+          meta: job.meta || {},
+        },
+      }).catch(() => {});
     }
   }
   memoryProcessing = false;
@@ -118,8 +139,32 @@ export function initEmailWorker() {
   worker = new Worker(
     'greenline-emails',
     async (job) => {
-      const { to, subject, html, priority } = job.data;
-      await sendEmail({ to, subject, html, priority });
+      const { to, subject, html, priority, auth, from, meta } = job.data;
+      try {
+        await sendEmail({ to, subject, html, priority, auth, from });
+        await trackPedidoEmail(meta?.codigo, { ok: true });
+        await prisma.emailLog.create({
+          data: {
+            destinatario: to,
+            asunto: subject,
+            estado: 'ENVIADO',
+            meta: meta || {},
+          },
+        }).catch(() => {});
+      } catch (err) {
+        console.error(`[email-queue] job ${job?.id} falló entregando:`, err.message);
+        await trackPedidoEmail(meta?.codigo, { ok: false, error: err.message });
+        await prisma.emailLog.create({
+          data: {
+            destinatario: to,
+            asunto: subject,
+            estado: 'ERROR',
+            error: err.message,
+            meta: meta || {},
+          },
+        }).catch(() => {});
+        throw err;
+      }
     },
     {
       connection: getConnection(),
@@ -138,7 +183,8 @@ export function initEmailWorker() {
 
 /**
  * Encola un email para envío en segundo plano.
- * @param {{to: string, subject: string, html: string, priority?: string}} payload
+ * @param {{to: string, subject: string, html: string, priority?: string, meta?: object}} payload
+ *   `meta.codigo` (opcional) vincula el resultado del envío a la fila del pedido.
  */
 export async function enqueueEmail(payload) {
   if (!env.REDIS_URL || !redisAvailable) {
