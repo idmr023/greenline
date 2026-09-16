@@ -77,15 +77,17 @@ export default function EcommerceStrip({ variant = 'full' }) {
           Encuentra nuestros productos en las plataformas de e-commerce que prefieras.
         </p>
 
-        <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
-          {stores.map((store) => (
-            <EcommerceCard
-              key={store.name}
-              store={store}
-              variant="full"
-            />
-          ))}
-
+        <div>
+          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
+            {stores.map((store) => (
+              <EcommerceCard
+                key={store.name}
+                store={store}
+                variant="full"
+              />
+            ))}
+          </div>
+          
           <p className="text-xs text-gray-400 mt-8">
             * Precios y disponibilidad pueden variar según la plataforma.
           </p>

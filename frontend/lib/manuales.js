@@ -24,7 +24,7 @@ const MANUAL_POR_SLUG = {
   'greenline-vmp-p01': 'Manual-de-uso-VMP-P01.pdf',
   'greenline-vmp-s4-pro': 'Manual-de-uso-VMP-S4-26-06-23-.pdf',
   'greenline-vmp-s6-pro': 'Manual-S6-PRO.pdf',
-  'greenline-vmp-s9': 'Manual-de-uso-VMP-S9 (1).pdf',
+  'greenline-vmp-s9': 'Manual-de-uso-VMP-S9.pdf',
   'greenline-vmp-t4': 'Manual-de-uso-VMPT4.pdf',
   'greenline-y5': 'Manual-modelo-Y5-05-03-25_comp.pdf',
   'trimoto-greenline-tm6-pro': 'Manual-de-uso-TM6PRO1.pdf',

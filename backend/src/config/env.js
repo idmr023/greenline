@@ -35,6 +35,13 @@ const envSchema = z.object({
   /** Bandeja destino (RRHH) de las notificaciones del Libro de Reclamaciones */
   RRHH_MAIL_TO: z.string().email().default('pe_asistente@migreenline.com'),
 
+  /** Credenciales SMTP dedicadas a las notificaciones del Libro de Reclamaciones.
+   * Opcionales: si no se definen, se usan SMTP_USER / SMTP_PASS / EMAIL_FROM globales
+   * (los testimonios, pedidos y OTP siguen usando SOLO esas, nunca estas). */
+  RECLAMACIONES_SMTP_USER: z.string().email().optional().or(z.literal('')),
+  RECLAMACIONES_SMTP_PASS: z.string().optional(),
+  RECLAMACIONES_EMAIL_FROM: z.string().optional(),
+
   TOTP_ISSUER: z.string().default('GreenLine'),
 
   FRONTEND_URL: z.string().url(),

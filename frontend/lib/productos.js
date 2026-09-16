@@ -6,6 +6,7 @@
 
 import { supabase } from './supabase';
 import { versionarImagen, versionarImagenAltaResolucion } from './images';
+import { normalizeColorName } from './colores';
 
 const supabaseConfigured = !!(
   import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -51,16 +52,20 @@ export function clearCache() {
 // ============================================================
 
 async function fetchFromSupabase() {
-  const { data, error } = await supabase
-    .from('vista_productos_web')
-    .select('*')
-    .order('created_at', { ascending: false });
+  const [{ data, error }, coloresRes] = await Promise.all([
+    supabase
+      .from('vista_productos_web')
+      .select('*')
+      .order('created_at', { ascending: false }),
+    supabase.from('colores').select('id, nombre, hex_code'),
+  ]);
 
   if (error) throw error;
-  return data.map(adaptarVista);
+  const catalogo = coloresRes?.data || [];
+  return data.map((vista) => adaptarVista(vista, catalogo));
 }
 
-function adaptarVista(vista) {
+function adaptarVista(vista, catalogo = []) {
   // Los colores/imágenes/ficha ya vienen resueltos y ordenados desde
   // la vista DB (vista_productos_web). Aquí solo se moldea a la forma
   // que consume la UI y se aplica el versionado de imágenes.
@@ -80,6 +85,27 @@ function adaptarVista(vista) {
     hex_code: c.hex_code,
     stock: c.stock,
   }));
+
+  // `colores_detalle` sólo incluye lo vinculado en `prod_color_rel`. Para que
+  // los puntitos de color muestren siempre el hex correcto, completamos con el
+  // catálogo global `colores` cualquier color usado en las imágenes que falte.
+  const catalogoPorNombre = new Map(
+    catalogo.map((c) => [normalizeColorName(c.nombre), c]),
+  );
+  const presentes = new Set(coloresDetalle.map((c) => normalizeColorName(c.nombre)));
+  for (const img of imagenes) {
+    if (!img.color) continue;
+    const key = normalizeColorName(img.color);
+    if (presentes.has(key)) continue;
+    const cat = catalogoPorNombre.get(key);
+    coloresDetalle.push({
+      id: cat?.id ?? null,
+      nombre: img.color,
+      hex_code: cat?.hex_code ?? null,
+      stock: null,
+    });
+    presentes.add(key);
+  }
 
   return {
     id: vista.id,

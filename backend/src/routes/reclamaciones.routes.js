@@ -5,6 +5,8 @@ import { reclamacionesLimiter } from '../middleware/rateLimiter.js';
 import { getNextClaimNumber, appendReclamo } from '../services/sheets.service.js';
 import { enqueueEmail } from '../queue/email.queue.js';
 import { env } from '../config/env.js';
+import prisma from '../config/prisma.js';
+import crypto from 'node:crypto';
 
 const router = Router();
 
@@ -30,8 +32,9 @@ const reclamoSchema = z.object({
     departamento: z.string().trim().max(100).optional().default(''),
     servicio: z.string().trim().max(100).optional().default(''),
     producto: z.string().trim().max(200).optional().default(''),
-    descripcionServicio: z.string().trim().max(500).optional().default(''),
+    descripcionServicio: z.string().trim().max(7000).optional().default(''),
     tienda: z.string().trim().max(200).optional().default(''),
+    distribuidor: z.string().trim().max(200).optional().default(''),
     monto: z.string().max(20).optional().default(''),
     lugarCompra: z.string().trim().max(200).optional().default(''),
     fechaCompra: z.string().max(20).optional().default(''),
@@ -40,9 +43,9 @@ const reclamoSchema = z.object({
     numeroMotor: z.string().trim().max(50).optional().default(''),
     placa: z.string().trim().max(20).optional().default(''),
     tipoQueja: z.string().trim().max(50).optional().default(''),
-    detalle: z.string().trim().max(5000).optional().default(''),
+    detalle: z.string().trim().max(7000).optional().default(''),
     pedido: z.string().trim().max(500).optional().default(''),
-    observaciones: z.string().trim().max(5000).optional().default(''),
+    observaciones: z.string().trim().max(7000).optional().default(''),
     /** Honeypot: los bots llenan este campo oculto */
     empresa: z.string().optional(),
   }),
@@ -63,20 +66,79 @@ router.post('/', reclamacionesLimiter, validate(reclamoSchema), async (req, res)
     // Escribir primero; si falla no se consume número ni se envían emails.
     await appendReclamo(buildReclamoRow(d, numeroReclamo));
 
-    // 1) Notificación interna (equipo RRHH) con todos los datos.
-    await enqueueEmail({
-      to: env.RRHH_MAIL_TO,
-      subject: `Nuevo Reclamo #${numeroReclamo} — ${d.nombre} ${d.apellidos}`,
-      html: buildInternalEmailHTML(numeroReclamo, d),
-      priority: 'high',
-    });
+    const anio = new Date().getFullYear();
+    await prisma.libroReclamacion.create({
+      data: {
+        token: crypto.randomUUID(),
+        correlativoAnio: anio,
+        correlativoNumero: numeroReclamo,
+        correlativo: `REC-${anio}-${String(numeroReclamo).padStart(4, '0')}`,
+        estado: 'PENDIENTE',
+        nombre: d.nombre,
+        apellidos: d.apellidos,
+        email: d.email,
+        telefono: d.telefono || '',
+        tipoDoc: d.tipoDoc || 'DNI',
+        numDoc: d.numDoc || '',
+        direccion: d.direccion || '',
+        distrito: d.distrito || '',
+        ciudad: d.ciudad || '',
+        departamento: d.departamento || '',
+        producto: d.producto || '',
+        descripcionServicio: d.descripcionServicio || '',
+        monto: d.monto || '',
+        lugarCompra: d.lugarCompra || '',
+        fechaCompra: d.fechaCompra || '',
+        modelo: d.modelo || '',
+        color: d.color || '',
+        vin: '',
+        numeroMotor: d.numeroMotor || '',
+        placa: d.placa || '',
+        tipo: d.tipoQueja || 'QUEJA',
+        detalle: d.detalle || '',
+        pedido: d.pedido || '',
+        observaciones: d.observaciones || '',
+        area: d.servicio || 'Atención al Cliente',
+        areaDepartamento: d.departamento || '',
+        areaDistrito: d.distrito || '',
+        areaEntidadNombre: d.tienda || d.distribuidor || 'GreenLine',
+      },
+    }).catch((err) => console.error('Error guardando reclamo en DB:', err));
 
-    // 2) Confirmación al consumidor.
-    await enqueueEmail({
-      to: d.email,
-      subject: `GreenLine — Reclamo registrado #${numeroReclamo}`,
-      html: buildClaimantEmailHTML(numeroReclamo),
-    });
+    // Credenciales/remitente dedicados del Libro de Reclamaciones (opcional).
+    // Si no están configurados en .env, se usa el envío global (SMTP_USER/EMAIL_FROM).
+    const reclamacionesAuth =
+      env.RECLAMACIONES_SMTP_USER && env.RECLAMACIONES_SMTP_PASS
+        ? { user: env.RECLAMACIONES_SMTP_USER, pass: env.RECLAMACIONES_SMTP_PASS }
+        : undefined;
+    const reclamacionesFrom = env.RECLAMACIONES_EMAIL_FROM || undefined;
+
+    // Límite anti-spam: máximo 3 notificaciones por reclamo (RRHH + sede y/o
+    // confirmación al consumidor), para no saturar la cuenta SMTP ni caer en spam.
+    const MAX_EMAILS_POR_RECLAMO = 3;
+    const emails = [
+      // 1) Notificación interna (equipo RRHH) con todos los datos.
+      {
+        to: env.RRHH_MAIL_TO,
+        subject: `Nuevo Reclamo #${numeroReclamo} — ${d.nombre} ${d.apellidos}`,
+        html: buildInternalEmailHTML(numeroReclamo, d),
+        priority: 'high',
+        auth: reclamacionesAuth,
+        from: reclamacionesFrom,
+      },
+      // 2) Confirmación al consumidor.
+      {
+        to: d.email,
+        subject: `GreenLine — Reclamo registrado #${numeroReclamo}`,
+        html: buildClaimantEmailHTML(numeroReclamo),
+        auth: reclamacionesAuth,
+        from: reclamacionesFrom,
+      },
+    ];
+
+    for (const job of emails.slice(0, MAX_EMAILS_POR_RECLAMO)) {
+      await enqueueEmail(job);
+    }
 
     res.status(200).json({ ok: true, numeroReclamo });
   } catch (error) {
@@ -107,7 +169,7 @@ export function buildReclamoRow(d, numeroReclamo) {
     area,                // ÁREA
     motivo,              // MOTIVO DE RECLAMO
     'Web',               // POR DONDE SE CONTACTÓ
-    d.tienda,            // SEDE
+    d.tienda || d.distribuidor || '', // SEDE
     d.telefono,          // CO (teléfono de contacto)
     d.email,             // CORREO
     '',                  // SEGUIMIENTO
@@ -134,6 +196,7 @@ const CAMPO_LABELS = [
   ['Producto', 'producto'],
   ['Descripción del bien/servicio', 'descripcionServicio'],
   ['Tienda', 'tienda'],
+  ['Distribuidor', 'distribuidor'],
   ['Monto', 'monto'],
   ['Lugar de compra', 'lugarCompra'],
   ['Fecha de compra', 'fechaCompra'],
@@ -221,7 +284,7 @@ function buildClaimantEmailHTML(numeroReclamo) {
           <div class="mensaje">
             ${saludoPeru()},
             <br><br>
-            Su reclamo ha sido registrado con éxito y en los próximos días hábiles nos
+            Su reclamo ha sido registrado con éxito y en máximo 15 días hábiles nos
             estaremos comunicando con usted para resolver su caso.
             <br><br>
             ¡Muchas gracias por su tiempo!

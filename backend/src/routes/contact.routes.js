@@ -4,6 +4,7 @@ import { validate } from '../middleware/validate.js';
 import { contactLimiter } from '../middleware/rateLimiter.js';
 import { enqueueEmail } from '../queue/email.queue.js';
 import { env } from '../config/env.js';
+import prisma from '../config/prisma.js';
 
 const router = Router();
 
@@ -31,6 +32,15 @@ router.post('/', contactLimiter, validate(contactSchema), async (req, res) => {
     if (empresa) {
       return res.status(200).json({ ok: true });
     }
+
+    await prisma.contact.create({
+      data: {
+        nombre: nombre.trim(),
+        email: email.trim(),
+        asunto: asunto.trim(),
+        mensaje: mensaje.trim(),
+      },
+    }).catch((err) => console.error('Error guardando contacto en DB:', err));
 
     const html = `
       <!DOCTYPE html>

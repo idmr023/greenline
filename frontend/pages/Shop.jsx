@@ -69,10 +69,10 @@ export default function Shop() {
     <div>
       <SEOHead
         title="Tienda de Vehículos Eléctricos"
-        description="Explora la tienda Green Line: scooters, motos, trimotos, bicicletas y más vehículos de movilidad eléctrica. Filtra por categoría, batería y precio."
+        description="Explora la tienda GreenLine: scooters, motos, trimotos, bicicletas y más vehículos de movilidad eléctrica. Filtra por categoría, batería y precio."
         url="/tienda"
         image={banner?.img || undefined}
-        keywords={['tienda vehículos eléctricos', 'comprar scooter eléctrico', 'moto eléctrica precios', 'Green Line tienda']}
+        keywords={['tienda vehículos eléctricos', 'comprar scooter eléctrico', 'moto eléctrica precios', 'GreenLine tienda']}
         jsonLd={[breadcrumbSchema([
           { name: 'Inicio', url: '/' },
           { name: 'Tienda', url: '/tienda' },
@@ -249,7 +249,7 @@ export default function Shop() {
                     left: 0,
                     top: 0,
                   }}
-                  src="https://online.fliphtml5.com/egwbp/lsve/"
+                  src="https://online.fliphtml5.com/egwbp/ajvk/"
                   title="CATÁLOGO SEPTIEMBRE"
                   seamless="seamless"
                   scrolling="no"

@@ -4,6 +4,7 @@ export default function PageBanner({
   title,
   subtitle,
   image = BANNER_DEFAULT,
+  className = '',
 }) {
   return (
     <section className="relative w-full h-[200px] sm:h-[300px] overflow-hidden flex items-center bg-gradient-to-br from-brand to-brand-dark">
@@ -32,12 +33,12 @@ export default function PageBanner({
 
       {/* Contenido */}
       <div className="relative z-10 mx-auto px-4 sm:px-6 lg:px-8 w-full h-full flex items-center justify-center text-center">
-        <div className="text-white">
+        <div className="text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)]">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">
             {title}
           </h1>
 
-          <p className="text-sm sm:text-base text-gray-100">
+          <p className={`text-sm sm:text-base text-gray-100/90 `}>
             {subtitle}
           </p>
         </div>

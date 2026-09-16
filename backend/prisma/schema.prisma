@@ -527,3 +527,27 @@ model LibroReclamacion {
   @@index([estado])
   @@map("libro_reclamaciones")
 }
+
+model Contact {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  email     String
+  asunto    String
+  mensaje   String
+  leido     Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("contactos")
+}
+
+model EmailLog {
+  id           Int      @id @default(autoincrement())
+  destinatario String   @map("destinatario")
+  asunto       String   @map("asunto")
+  estado       String   @default("ENVIADO")
+  error        String?  @map("error")
+  meta         Json?    @default("{}") @map("meta")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("email_logs")
+}

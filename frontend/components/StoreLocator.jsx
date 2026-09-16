@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import {
-  MapPin, Clock, Navigation, MessageCircle, Wrench, Store,
-  Loader2, ChevronRight, Phone, MapPinned, Building2,
-} from '../lib/icons';
+import { MapPin, Clock, Navigation, MessageCircle, Wrench, Store, Loader2, ChevronRight, Phone, MapPinned, Building2, } from '../lib/icons';
 import { fetchStores, fetchDistributors, fetchProvinceSales } from '../lib/locations';
+import { isOpenAt, formatMinutes, nextOpenLabel } from '../lib/openHours';
 import { TIENDAS } from '../lib/images';
 
 const CENTRO_PERU = [-9.19, -75.015];
@@ -72,12 +70,36 @@ function StoreCard({ store, activa, onClick }) {
         <MapPin className="w-4 h-4 mt-0.5 text-brand shrink-0" />
         <span>{store.address}, {store.district}</span>
       </p>
-      {store.schedule && (
-        <p className="flex items-center gap-1.5 text-sm text-gray-600 mt-1">
-          <Clock className="w-4 h-4 text-brand shrink-0" />
-          <span>{store.schedule}</span>
-        </p>
-      )}
+      {(() => {
+        const openStatus = isOpenAt(store.schedule);
+        if (openStatus && openStatus.state === 'open') {
+          return (
+            <p className="flex items-center gap-1.5 text-sm mt-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-emerald-600 font-semibold">Abierto ahora</span>
+              <span className="text-gray-500">· cierra {formatMinutes(openStatus.closeMin)}</span>
+            </p>
+          );
+        }
+        if (openStatus && openStatus.state === 'closed') {
+          return (
+            <p className="flex items-center gap-1.5 text-sm mt-1">
+              <span className="w-2 h-2 rounded-full bg-gray-300" />
+              <span className="text-gray-500 font-semibold">Cerrado</span>
+              <span className="text-gray-500">· abre {nextOpenLabel(openStatus)}</span>
+            </p>
+          );
+        }
+        if (store.schedule) {
+          return (
+            <p className="flex items-center gap-1.5 text-sm text-gray-600 mt-1">
+              <Clock className="w-4 h-4 text-brand shrink-0" />
+              <span>{store.schedule}</span>
+            </p>
+          );
+        }
+        return null;
+      })()}
       {store.technical_service && store.technical_whatsapp_url && (
         <div className="mt-2 pt-2 border-t border-gray-100">
           <p className="text-xs text-gray-500 font-medium mb-1">Servicio técnico</p>

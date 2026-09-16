@@ -294,33 +294,31 @@ export default function NovedadesPage() {
 
         {/* DESTACADO */}
         {!loading && !error && featuredPost && (
-          <article className="group mb-14 grid overflow-hidden rounded-[2rem] bg-neutral-950 lg:grid-cols-2">
+          <article className="group mb-14 grid overflow-hidden rounded-[2rem] bg-white border border-neutral-200/60 shadow-sm lg:grid-cols-[480px_minmax(0,1fr)]">
             <a
               href={getArticleUrl(featuredPost)}
-              className="relative block min-h-[320px] overflow-hidden lg:min-h-[520px]"
+              className="relative block min-h-[320px] overflow-hidden lg:min-h-[460px] bg-neutral-100"
             >
               <NovedadImagen
                 src={getImage(featuredPost)}
                 alt={cleanAlt(featuredPost.image_alt) ?? featuredPost.title}
-                className="absolute inset-0 w-full h-full object-contain bg-white transition"
+                className="absolute inset-0 w-full h-full object-cover"
               />
 
-              <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent h-full" />
-
-              <span className="absolute left-6 top-6 rounded-full bg-white px-4 py-2 text-xs font-semibold text-neutral-950">
+              <span className="absolute left-6 top-6 rounded-full bg-white/90 backdrop-blur-sm px-4 py-2 text-xs font-semibold text-neutral-950 shadow-sm">
                 Destacado
               </span>
             </a>
 
             <div className="flex flex-col justify-center p-8 sm:p-10 lg:p-14">
               <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-wider">
-                <span className="text-brand-light">
+                <span className="text-brand">
                   {featuredPost.category}
                 </span>
 
                 {featuredPost.published_at && (
                   <>
-                    <span className="h-1 w-1 rounded-full bg-neutral-600" />
+                    <span className="h-1 w-1 rounded-full bg-neutral-300" />
                     <span className="text-neutral-500">
                       {formatDate(featuredPost.published_at)}
                     </span>
@@ -329,20 +327,20 @@ export default function NovedadesPage() {
               </div>
 
               <a href={getArticleUrl(featuredPost)}>
-                <h2 className="mt-5 text-3xl font-semibold leading-tight text-white transition hover:text-brand-light sm:text-4xl">
+                <h2 className="mt-5 text-3xl font-semibold leading-tight text-neutral-950 transition hover:text-brand sm:text-4xl">
                   {featuredPost.title}
                 </h2>
               </a>
 
               {cleanText(featuredPost.excerpt) && (
-                <p className="mt-5 line-clamp-4 text-base leading-7 text-neutral-400">
+                <p className="mt-5 line-clamp-4 text-base leading-7 text-neutral-600">
                   {cleanText(featuredPost.excerpt)}
                 </p>
               )}
 
               <a
                 href={getArticleUrl(featuredPost)}
-                className="mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-brand-light px-6 py-3 text-sm font-semibold text-neutral-950 transition hover:bg-brand"
+                className="mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-neutral-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand"
               >
                 Leer artículo
                 <span aria-hidden="true">→</span>
@@ -358,12 +356,12 @@ export default function NovedadesPage() {
               <article key={post.id} className="group">
                 <a
                   href={getArticleUrl(post)}
-                  className="relative block overflow-hidden rounded-3xl bg-neutral-100"
+                  className="relative block aspect-[16/10] overflow-hidden rounded-3xl bg-neutral-100"
                 >
                   <NovedadImagen
                     src={getImage(post)}
                     alt={cleanAlt(post.image_alt) ?? post.title}
-                    className="h-full w-full object-contain bg-neutral-100"
+                    className="h-full w-full object-contain transition duration-300 group-hover:scale-105"
                   />
                 </a>
 
