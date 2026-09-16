@@ -3,6 +3,8 @@ import { supabase } from '../../lib/supabase';
 import { formatPrice } from '../../lib/utils';
 import { Package, ChevronDown, Phone, Mail, RefreshCw } from '../../lib/icons';
 import { CONTACT } from '../../lib/config';
+import { pedidosAPI } from '../../lib/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const ESTADOS = [
   { value: 'NUEVO', label: 'Nuevo', dot: 'bg-blue-500', badge: 'bg-blue-50 text-blue-700', next: ['EN_PROCESO'] },
@@ -28,11 +30,13 @@ function formatFecha(iso) {
 }
 
 export default function AdminPedidos() {
+  const { accessToken } = useAuth();
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [expanded, setExpanded] = useState(null);
   const [savingId, setSavingId] = useState(null);
+  const [sendingId, setSendingId] = useState(null);
 
   useEffect(() => {
     load();
@@ -71,6 +75,29 @@ export default function AdminPedidos() {
     `${CONTACT.whatsappUrl}?text=${encodeURIComponent(
       `Hola ${p.cliente?.nombre || ''}, sobre tu pedido ${p.codigo} en GreenLine...`,
     )}`;
+
+  async function reenviarCorreo(p) {
+    if (!accessToken) {
+      alert('Sesión no disponible. Vuelve a iniciar sesión.');
+      return;
+    }
+    setSendingId(p.id);
+    try {
+      const res = await pedidosAPI.reenviarEmail({ codigo: p.codigo }, accessToken);
+      if (res?.ok) {
+        // El envío ocurre en la cola del backend; refrescamos ahora y un poco
+        // después para capturar email_enviado/email_error cuando el worker termine.
+        load();
+        setTimeout(load, 2500);
+      } else {
+        alert(res?.error || 'No se pudo encolar el correo.');
+      }
+    } catch (err) {
+      alert(err?.error || 'No se pudo enviar el correo.');
+    } finally {
+      setSendingId(null);
+    }
+  }
 
   return (
     <div className="p-8 max-w-4xl">
@@ -138,6 +165,19 @@ export default function AdminPedidos() {
                     <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${st.badge}`}>
                       {st.label}
                     </span>
+                    {p.email_enviado === true && (
+                      <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-green-50 text-green-700">
+                        Correo ✓
+                      </span>
+                    )}
+                    {p.email_enviado !== true && (
+                      <span
+                        title={p.email_error || 'Correo de notificación no confirmado'}
+                        className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700"
+                      >
+                        Sin correo
+                      </span>
+                    )}
                     <span className="text-sm font-bold text-gray-900">
                       {formatPrice(p.total)}
                     </span>
@@ -195,6 +235,31 @@ export default function AdminPedidos() {
                           {p.cliente.email}
                         </a>
                       )}
+                    </div>
+
+                    {/* Correo de notificación */}
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                          Correo de notificación
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5 truncate">
+                          {p.email_enviado === true
+                            ? `Enviado${p.email_enviado_at ? ` ${formatFecha(p.email_enviado_at)}` : ''}`
+                            : p.email_error
+                              ? `Error: ${p.email_error}`
+                              : 'Aún no enviado'}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={sendingId === p.id}
+                        onClick={() => reenviarCorreo(p)}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-brand/10 text-brand text-sm font-semibold hover:bg-brand/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Mail className="w-4 h-4" />
+                        {sendingId === p.id ? 'Enviando...' : 'Enviar correo'}
+                      </button>
                     </div>
 
                     {/* Cambio de estado */}

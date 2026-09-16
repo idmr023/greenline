@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpenCheck, MapPin, Phone, Mail, CheckCircle2, FileSignature } from '../lib/icons';
+import { BookOpenCheck, MapPin, Phone, Mail, CheckCircle2, Search, X, Loader2 } from '../lib/icons';
 import PageBanner from '../components/PageBanner';
 import SEOHead, { breadcrumbSchema } from '../components/SEOHead';
 import { CONTACT, BRAND } from '../lib/config';
-import { fetchStores } from '../lib/locations';
+import { fetchStores, fetchDistributors } from '../lib/locations';
 import { fetchProductos } from '../lib/productos';
 import { API_URL } from '../lib/api';
-import COLOR_DOT_CLASS, { colorDotClassFor } from '../lib/colores';
+import COLOR_DOT_CLASS, { colorDotClassFor, colorDotStyle } from '../lib/colores';
+import confetti from 'canvas-confetti';
 import { libro_doc_types as DOC_TYPES, libro_servicio_opciones as SERVICIO_OPCIONES, libro_tipo_opciones as TIPO_OPCIONES } from '../../src/data_json.jsx';
+import ubigeo from '../data/ubigeo.json';
 
 const emptyForm = {
   nombre: '',
@@ -18,15 +20,15 @@ const emptyForm = {
   tipoDoc: 'DNI',
   numDoc: '',
   direccion: '',
+  departamento: '',
+  provincia: '',
   distrito: '',
   ciudad: '',
-  departamento: '',
   servicio: '',
   producto: '',
   modeloEspecifico: '',
   descripcionServicio: '',
-  monto: '',
-  lugarCompra: '',
+  precio: '',
   fechaCompra: '',
   modelo: '',
   color: '',
@@ -38,6 +40,7 @@ const emptyForm = {
   pedido: '',
   observaciones: '',
   tienda: '',
+  distribuidor: '',
   empresa: '',
 };
 
@@ -51,13 +54,55 @@ export default function LibroReclamaciones() {
   const [stores, setStores] = useState([]);
   const [techStores, setTechStores] = useState([]);
   const [productos, setProductos] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
+  const [distributors, setDistributors] = useState([]);
+  const [buscarDistribuidor, setBuscarDistribuidor] = useState('');
+
+  const provinciasDe = (depto) => Object.keys(ubigeo[depto] || {});
+  const distritosDe = (depto, prov) => Object.keys(ubigeo[depto]?.[prov] || {});
+
+  const elegirDepartamento = (e) => {
+    const depto = e.target.value;
+    setForm((f) => ({ ...f, departamento: depto, provincia: '', distrito: '', ciudad: '' }));
+    setErrors((er) => ({ ...er, departamento: undefined, provincia: undefined, distrito: undefined, ciudad: undefined }));
+  };
+
+  const elegirProvincia = (e) => {
+    const prov = e.target.value;
+    setForm((f) => ({ ...f, provincia: prov, distrito: '', ciudad: prov }));
+    setErrors((er) => ({ ...er, provincia: undefined, distrito: undefined, ciudad: undefined }));
+  };
+
+  const elegirDistrito = (e) => {
+    const dist = e.target.value;
+    setForm((f) => ({ ...f, distrito: dist }));
+    setErrors((er) => ({ ...er, distrito: undefined }));
+  };
+
+  const elegirDistribuidor = (nombre) => {
+    setForm((f) => ({ ...f, distribuidor: nombre }));
+    setBuscarDistribuidor('');
+  };
+
+  const distribuidoresFiltrados = buscarDistribuidor.trim()
+    ? distributors.filter((d) =>
+        String(d.name || '').toLowerCase().includes(buscarDistribuidor.toLowerCase().trim())
+      )
+    : distributors;
+
+  const etiquetaComprobante =
+    form.servicio === 'Servicio técnico' ? 'Ficha de salida' : 'Orden de compra';
+  const selectedProduct = productos.find((p) => p.nombre === form.producto);
+  const availableColors = selectedProduct
+    ? [...new Set(selectedProduct.imagenes.map((img) => img.color).filter(Boolean))]
+    : [];
 
   useEffect(() => {
-    Promise.all([fetchStores(), fetchProductos()])
-      .then(([storesData, prodsData]) => {
+    Promise.all([fetchStores(), fetchDistributors(), fetchProductos()])
+      .then(([storesData, distributorsData, prodsData]) => {
         setStores(storesData);
         setTechStores(storesData.filter((s) => s.technical_service));
+        setDistributors(distributorsData);
         setProductos(prodsData);
       })
       .catch((err) => {
@@ -85,19 +130,15 @@ export default function LibroReclamaciones() {
     'numDoc',
     'direccion',
     'distrito',
-    'ciudad',
     'departamento',
     'servicio',
     'producto',
     ...(form.producto === 'Otros' ? ['modeloEspecifico'] : []),
-    'descripcionServicio',
-    'monto',
-    'lugarCompra',
+    'precio',
     'fechaCompra',
-    'numeroMotor',
     'tipo',
     'detalle',
-    'tienda',
+    ...(form.servicio === 'Distribución' ? ['distribuidor'] : ['tienda']),
   ];
 
   const handleSubmit = async (e) => {
@@ -136,9 +177,9 @@ export default function LibroReclamaciones() {
           servicio: form.servicio,
           producto: productoFinal,
           descripcionServicio: form.descripcionServicio,
-          tienda: form.tienda,
-          monto: form.monto,
-          lugarCompra: form.lugarCompra,
+          tienda: form.servicio === 'Distribución' ? form.distribuidor : form.tienda,
+          distribuidor: form.distribuidor,
+          precio: form.precio,
           fechaCompra: form.fechaCompra,
           modelo: form.modelo,
           color: form.color,
@@ -160,6 +201,14 @@ export default function LibroReclamaciones() {
       const data = await res.json();
       setClaimNumber(data.numeroReclamo);
       setSent(true);
+      confetti({
+        particleCount: 160,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: ['#009000', '#ffd700', '#ff6a00', '#ffffff', '#00b0ff'],
+      });
+      confetti({ particleCount: 60, angle: 60, spread: 60, origin: { x: 0, y: 0.7 } });
+      confetti({ particleCount: 60, angle: 120, spread: 60, origin: { x: 1, y: 0.7 } });
     } catch (err) {
       setSubmitError(err.message);
     } finally {
@@ -179,11 +228,11 @@ export default function LibroReclamaciones() {
       <SEOHead
         title="Libro de Reclamaciones"
         description="Presenta tu queja o reclamo en el Libro de Reclamaciones de Green Line conforme al Código de Protección y Defensa del Consumidor."
-        url="/libro-de-reclamaciones"
+        url="/libro-reclamaciones"
         keywords={['libro de reclamaciones', 'quejas', 'reclamos', 'Green Line']}
         jsonLd={[breadcrumbSchema([
           { name: 'Inicio', url: '/' },
-          { name: 'Libro de Reclamaciones', url: '/libro-de-reclamaciones' },
+          { name: 'Libro de Reclamaciones', url: '/libro-reclamaciones' },
         ])]}
       />
       <PageBanner
@@ -268,7 +317,7 @@ export default function LibroReclamaciones() {
                 <Field label="Tu correo electrónico" required err={errors.email}>
                   <input type="email" className={inputCls('email')} placeholder="nombre@email.com" value={form.email} onChange={set('email')} />
                 </Field>
-                <Field label="Teléfono"err={errors.telefono}>
+                <Field label="Teléfono" required err={errors.telefono}>
                   <input className={inputCls('telefono')} placeholder="999 999 999" value={form.telefono} onChange={set('telefono')} />
                 </Field>
                 <Field label="Tipo documento">
@@ -282,14 +331,29 @@ export default function LibroReclamaciones() {
                 <Field label="Dirección" required err={errors.direccion}>
                   <input className={inputCls('direccion')} placeholder="Tu dirección" value={form.direccion} onChange={set('direccion')} />
                 </Field>
-                <Field label="Distrito" required err={errors.distrito}>
-                  <input className={inputCls('distrito')} placeholder="Tu distrito" value={form.distrito} onChange={set('distrito')} />
-                </Field>
-                <Field label="Ciudad" required err={errors.ciudad}>
-                  <input className={inputCls('ciudad')} placeholder="Tu ciudad" value={form.ciudad} onChange={set('ciudad')} />
-                </Field>
                 <Field label="Departamento" required err={errors.departamento}>
-                  <input className={inputCls('departamento')} placeholder="Tu departamento" value={form.departamento} onChange={set('departamento')} />
+                  <select className={inputCls('departamento')} value={form.departamento} onChange={elegirDepartamento}>
+                    <option value="">—Selecciona un departamento—</option>
+                    {Object.keys(ubigeo).sort((a, b) => a.localeCompare(b, 'es')).map((dep) => (
+                      <option key={dep} value={dep}>{dep}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Provincia" err={errors.provincia}>
+                  <select className={inputCls('provincia')} value={form.provincia} onChange={elegirProvincia} disabled={!form.departamento}>
+                    <option value="">—Selecciona una provincia—</option>
+                    {provinciasDe(form.departamento).sort((a, b) => a.localeCompare(b, 'es')).map((prov) => (
+                      <option key={prov} value={prov}>{prov}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Distrito" required err={errors.distrito}>
+                  <select className={inputCls('distrito')} value={form.distrito} onChange={elegirDistrito} disabled={!form.provincia}>
+                    <option value="">—Selecciona un distrito—</option>
+                    {distritosDe(form.departamento, form.provincia).sort((a, b) => a.localeCompare(b, 'es')).map((dist) => (
+                      <option key={dist} value={dist}>{dist}</option>
+                    ))}
+                  </select>
                 </Field>
               </div>
             </section>
@@ -327,48 +391,110 @@ export default function LibroReclamaciones() {
                   </Field>
                 )}
 
-                <Field label="Tienda" required err={errors.tienda}>
-                  <select 
-                    className={inputCls('tienda')} 
-                    value={form.tienda} 
-                    onChange={set('tienda')}
-                  >
-                    <option value="">Selecciona una tienda...</option>
-                    {(form.servicio === 'Servicio técnico' ? techStores : stores).map((store) => (
-                      <option key={store.id} value={store.name}>
-                        {store.name} {store.district ? `(${store.district})` : ''}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
+                {form.servicio === "Servicio técnico" || form.servicio?.startsWith("Atención al cliente") ? (
+                    <Field label="Tienda" required err={errors.tienda}>
+                      <select 
+                        className={inputCls('tienda')} 
+                        value={form.tienda} 
+                        onChange={set('tienda')}
+                      >
+                        <option value="">Selecciona una tienda...</option>
+                        {(form.servicio === 'Servicio técnico' ? techStores : stores).map((store) => (
+                          <option key={store.id} value={store.name}>
+                            {store.name} {store.district ? `(${store.district})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                ) : 
+                  form.servicio === 'Distribución' && (
+                    <Field label="Buscar Distribuidor" required err={errors.distribuidor}>
+                      {form.distribuidor ? (
+                        <div className="flex items-center justify-between rounded-lg border border-brand/30 bg-brand/5 px-3 py-2">
+                          <span className="text-sm text-gray-800 font-medium">{form.distribuidor}</span>
+                          <button
+                            type="button"
+                            onClick={() => { setForm((f) => ({ ...f, distribuidor: '' })); setBuscarDistribuidor(''); }}
+                            className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                            aria-label="Quitar distribuidor"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="relative">
+                          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <input
+                            className={inputCls('distribuidor')}
+                            placeholder="Busca tu distribuidor..."
+                            value={buscarDistribuidor}
+                            onChange={(e) => setBuscarDistribuidor(e.target.value)}
+                          />
+                          {buscarDistribuidor.trim() && (
+                            <ul className="absolute z-20 mt-1 w-full max-h-52 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
+                              {distribuidoresFiltrados.length === 0 ? (
+                                <li className="px-3 py-2.5 text-xs text-gray-400">No se encontraron distribuidores</li>
+                              ) : (
+                                distribuidoresFiltrados.map((distributor) => (
+                                  <li key={distributor.id}>
+                                    <button
+                                      type="button"
+                                      onClick={() => elegirDistribuidor(distributor.name)}
+                                      className="w-full text-left px-3 py-2.5 text-sm text-gray-700 hover:bg-brand/5 transition-colors"
+                                    >
+                                      {distributor.name}
+                                    </button>
+                                  </li>
+                                ))
+                              )}
+                            </ul>
+                          )}
+                        </div>
+                      )}
+                    </Field>
+                  )
+                }
 
-                <Field label="Monto" required err={errors.monto}>
-                  <input type="number" step="0.01" min="0" className={inputCls('monto')} placeholder="00.00" value={form.monto} onChange={set('monto')} />
+                <Field label="Precio del producto" required err={errors.precio}>
+                  <input type="number" step="0.01" min="0" className={inputCls('precio')} placeholder="00.00" value={form.precio} onChange={set('precio')} />
                 </Field>
                 <Field label="Fecha de compra" required err={errors.fechaCompra}>
                   <input type="date" className={inputCls('fechaCompra')} value={form.fechaCompra} onChange={set('fechaCompra')} />
                 </Field>
                 <Field label="Color">
-                  <input className={inputCls('color')} placeholder="Color (o elige un punto)" value={form.color} onChange={set('color')} />
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {Object.entries(COLOR_DOT_CLASS).map(([nombre]) => {
-                      const selected = form.color === nombre;
-                      return (
-                        <button
-                          type="button"
-                          key={nombre}
-                          title={nombre}
-                          aria-label={`Color ${nombre}`}
-                          aria-pressed={selected}
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => selectColor(nombre)}
-                          className={`w-5 h-5 rounded-full border border-gray-200 ${colorDotClassFor(nombre)} transition ${
-                            selected ? 'ring-2 ring-brand ring-offset-1' : 'hover:scale-110'
-                          }`}
-                        />
-                      );
-                    })}
-                  </div>
+                  {availableColors.length > 0 ? (
+                    // Tiene colores → muestra los puntitos
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {Object.entries(COLOR_DOT_CLASS)
+                        .filter(([nombre]) => availableColors.some((c) => c.toLowerCase() === nombre.toLowerCase()))
+                        .map(([nombre]) => {
+                          const selected = form.color === nombre;
+                          return (
+                            <button
+                              type="button"
+                              key={nombre}
+                              title={nombre}
+                              aria-label={`Color ${nombre}`}
+                              aria-pressed={selected}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => selectColor(nombre)}
+                              style={colorDotStyle(selectedProduct?.colores_detalle, nombre)}
+                              className={`w-5 h-5 rounded-full border border-gray-200 ${colorDotClassFor(nombre)} transition ${
+                                selected ? 'ring-2 ring-brand ring-offset-1' : 'hover:scale-110'
+                              }`}
+                            />
+                          );
+                        })}
+                    </div>
+                  ) : (
+                    // No tiene colores → muestra input de texto
+                    <input
+                      className={inputCls('color')}
+                      placeholder="Color (o elige un punto)"
+                      value={form.color}
+                      onChange={set('color')}
+                    />
+                  )}
                 </Field>
               </div>
             </section>
@@ -392,22 +518,49 @@ export default function LibroReclamaciones() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="Queja / Reclamo" required err={errors.tipo}>
                   <select className={inputCls('tipo')} value={form.tipo} onChange={set('tipo')}>
-                    {TIPO_OPCIONES.map((o) => <option key={o} value={o}>{o}</option>)}
+                    {TIPO_OPCIONES.map((o) => (
+                      <option key={o} value={o === TIPO_OPCIONES[0] ? '' : o}>{o}</option>
+                    ))}
                   </select>
                 </Field>
               </div>
               <div className="mt-4">
                 <Field label="Detalle" required err={errors.detalle}>
-                  <textarea className={inputCls('detalle')} rows={4} placeholder="Describe la queja o reclamo" value={form.detalle} onChange={set('detalle')} />
+                  <textarea className={inputCls('detalle')} rows={4} maxLength={7000} placeholder="Describe la queja o reclamo" value={form.detalle} onChange={set('detalle')} />
+                  <div className="mt-1 text-right text-[11px] text-gray-400">
+                    {form.detalle.length} / 7000
+                  </div>
                 </Field>
               </div>
               <div className="mt-4">
-                <Field label="Pedido">
-                  <input className={inputCls('pedido')} placeholder="Pedido" value={form.pedido} onChange={set('pedido')} />
+                <Field label={etiquetaComprobante}>
+                  <input className={inputCls('pedido')} maxLength={200} placeholder={`N° de ${etiquetaComprobante.toLowerCase()} (opcional)`} value={form.pedido} onChange={set('pedido')} />
                 </Field>
               </div>
+              <p className='p-2 text-xs'>Los campos marcados como obligatorios (*) son necesarios para procesar su solicitud y contactarnos.</p>
             </section>
 
+            {submitError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {submitError}
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-4 pt-2">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="inline-flex items-center gap-2 bg-brand text-white px-8 py-3 rounded-lg font-semibold hover:bg-brand-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" /> Enviando...
+                  </>
+                ) : (
+                  'Enviar reclamación'
+                )}
+              </button>
+            </div>
           </form>
         ) : (
           <div className="bg-white border border-gray-100 rounded-2xl p-10 text-center">

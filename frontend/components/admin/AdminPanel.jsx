@@ -11,6 +11,9 @@ import AdminPedidos from './AdminPedidos';
 import AdminBlog from './AdminBlog';
 import AdminMetrics from './AdminMetrics';
 import AdminDistribuidores from './AdminDistribuidores';
+import AdminContactos from './AdminContactos';
+import AdminReclamaciones from './AdminReclamaciones';
+import AdminEmails from './AdminEmails';
 import { LayoutDashboard, Package, Palette, MessageSquareQuote, ShoppingCart, LogOut, ShieldCheck, Lock, Mail, Loader2, AlertCircle, Activity, FileText, Gift, MapPin } from '../../lib/icons';
 import { toggleTemaAniversario, temaAniversarioActivo } from '../../lib/aniversario';
 
@@ -24,6 +27,9 @@ const VIEWS = {
   METRICAS: 'metricas',
   BLOG: 'blog',
   DISTRIBUIDORES: 'distribuidores',
+  CONTACTOS: 'contactos',
+  RECLAMACIONES: 'reclamaciones',
+  EMAILS: 'emails',
 };
 
 const NAV_ITEMS = [
@@ -34,6 +40,9 @@ const NAV_ITEMS = [
   { key: VIEWS.DISTRIBUIDORES, label: 'Distribuidores', icon: MapPin },
   { key: VIEWS.TESTIMONIOS, label: 'Testimonios', icon: MessageSquareQuote },
   { key: VIEWS.PEDIDOS, label: 'Pedidos', icon: ShoppingCart },
+  { key: VIEWS.CONTACTOS, label: 'Contactos', icon: Mail },
+  { key: VIEWS.RECLAMACIONES, label: 'Reclamaciones', icon: FileText },
+  { key: VIEWS.EMAILS, label: 'Email Logs', icon: Activity },
   { key: VIEWS.METRICAS, label: 'Métricas', icon: Activity },
 ];
 
@@ -176,6 +185,9 @@ export default function AdminPanel() {
     if (path.includes('/admin/colores')) return VIEWS.COLORES;
     if (path.includes('/admin/testimonios')) return VIEWS.TESTIMONIOS;
     if (path.includes('/admin/pedidos')) return VIEWS.PEDIDOS;
+    if (path.includes('/admin/contactos')) return VIEWS.CONTACTOS;
+    if (path.includes('/admin/reclamaciones')) return VIEWS.RECLAMACIONES;
+    if (path.includes('/admin/emails')) return VIEWS.EMAILS;
     if (path.includes('/admin/metricas')) return VIEWS.METRICAS;
     if (path.includes('/admin/dashboard')) return VIEWS.DASHBOARD;
 
@@ -396,6 +408,9 @@ export default function AdminPanel() {
         {view === VIEWS.DISTRIBUIDORES && <AdminDistribuidores />}
         {view === VIEWS.TESTIMONIOS && <AdminTestimonios />}
         {view === VIEWS.PEDIDOS && <AdminPedidos />}
+        {view === VIEWS.CONTACTOS && <AdminContactos />}
+        {view === VIEWS.RECLAMACIONES && <AdminReclamaciones />}
+        {view === VIEWS.EMAILS && <AdminEmails />}
         {view === VIEWS.METRICAS && <AdminMetrics />}
       </main>
     </div>

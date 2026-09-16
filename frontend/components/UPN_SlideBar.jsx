@@ -21,12 +21,12 @@ const beneficios = [
     icon: Store,
     title: 'Tiendas participantes',
     description:
-      'Surco, La Molina, San Miguel, Lince, Comas, Ate y Miraflores.',
+      'Surco, La Molina, San Miguel, Lince, Comas, Salamanca y Miraflores.',
   },
   {
     icon: Gift,
     title: 'Beneficios por referidos*',
-    description: 'Disponibles únicamente en la tienda de La Molina.*',
+    description: 'Disponibles en nuestras tiendas principales.*',
   },
   {
     icon: CreditCard,
@@ -108,8 +108,7 @@ export default function UPN_SlideBar({ open, onClose }) {
           ))}
 
           <p className="text-[11px] text-gray-400 leading-relaxed">
-            * El beneficio por referidos es válido únicamente en la tienda de La
-            Molina.
+            * El beneficio por referidos es válido en nuestras tiendas principales.
           </p>
 
           <div className="pt-2 border-t border-gray-100">

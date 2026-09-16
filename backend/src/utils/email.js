@@ -31,10 +31,23 @@ function getTransporter() {
   return transporterPromise;
 }
 
-export async function sendEmail({ to, subject, html, priority }) {
-  const transporter = await getTransporter();
+export async function sendEmail({ to, subject, html, priority, auth, from }) {
+  // Si se pasan credenciales propias (p. ej. las de reclamaciones), se crea un
+  // transportador dedicado para ese envío; el resto de módulos sigue usando el
+  // transportador global (SMTP_USER / SMTP_PASS) y su `from` por defecto.
+  const transporter = auth
+    ? nodemailer.createTransport({
+        host: await resolveIPv4(env.SMTP_HOST),
+        port: env.SMTP_PORT,
+        secure: false,
+        requireTLS: true,
+        servername: env.SMTP_HOST,
+        auth,
+      })
+    : await getTransporter();
+
   const info = await transporter.sendMail({
-    from: env.EMAIL_FROM,
+    from: from || env.EMAIL_FROM,
     to,
     subject,
     html,

@@ -16,11 +16,15 @@ function agregarVersion(src) {
 
 export function versionarImagen(src) {
   if (!src) return src;
-  const esStorage = src.includes(STORAGE_PUBLIC);
-  const esLocal = LOCAL_ASSETS_RE.test(src);
-  if (!esStorage && !esLocal) return src;
-  if (VERSION_RE.test(src)) return src;
-  return agregarVersion(src);
+  let cleanSrc = src;
+  if (typeof cleanSrc === 'string') {
+    cleanSrc = cleanSrc.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, '');
+  }
+  const esStorage = cleanSrc.includes(STORAGE_PUBLIC);
+  const esLocal = LOCAL_ASSETS_RE.test(cleanSrc);
+  if (!esStorage && !esLocal) return cleanSrc;
+  if (VERSION_RE.test(cleanSrc)) return cleanSrc;
+  return agregarVersion(cleanSrc);
 }
 
 export function versionarImagenAltaResolucion(src) {
@@ -56,9 +60,10 @@ export const LOGO = v('/assets/imagenes/logos/logo_final.webp');
 // ----------------------------------------------------------------------------
 export const CARRUSEL = [
   v('/assets/imagenes/caroussel/1.png'),
-  v('/assets/imagenes/caroussel/2.png'),
+  v('/assets/imagenes/caroussel/2.jpeg'),
   v('/assets/imagenes/caroussel/3.png'),
-  v('/assets/imagenes/caroussel/4.png'),
+  v('/assets/imagenes/caroussel/4.jpeg'),
+  v('/assets/imagenes/caroussel/5.jpeg'),
 ];
 
 // ----------------------------------------------------------------------------
@@ -66,7 +71,7 @@ export const CARRUSEL = [
 // ----------------------------------------------------------------------------
 export const BANNERS = {
   default: {
-    title: 'Tienda Green Line',
+    title: 'Tienda GreenLine',
     subtitle: 'Encuentra tu vehículo eléctrico ideal.',
     image: '',
   },
@@ -107,7 +112,7 @@ export const BANNER_DEFAULT = v('/assets/imagenes/banner_categoria_producto/enca
 // ----------------------------------------------------------------------------
 export const TIENDAS = {
   Lince: v('/assets/imagenes/tiendas/tienda_lince.webp'),
-  Surco: v('/assets/imagenes/tiendas/tienda_surco.webp'),
+  Surco: v('/assets/imagenes/tiendas/tienda_surco.jpeg'),
   'San Miguel': v('/assets/imagenes/tiendas/tienda_san_miguel.webp'),
   Miraflores: v('/assets/imagenes/tiendas/tienda_miraflores.webp'),
   'La Molina': v('/assets/imagenes/tiendas/tienda_molina.webp'),
@@ -121,7 +126,7 @@ export const TIENDAS = {
 // Nosotros
 // ----------------------------------------------------------------------------
 export const NOSOTROS_HEADER = v('/assets/imagenes/paginas/nosotros/nosotros_header.webp');
-export const NOSOTROS_CARRUSEL = (n) => v(`/assets/imagenes/paginas/nosotros/nosotros_carrousel_${n}.webp`);
+export const NOSOTROS_CARRUSEL = (n) => v(`/assets/imagenes/paginas/nosotros/nosotros_carrousel_${n}.jpeg`);
 
 // ----------------------------------------------------------------------------
 // Social media grid / Videos

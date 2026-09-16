@@ -8,6 +8,7 @@ import {
 } from '../lib/icons';
 import ProductImage from '../components/product/ProductImage';
 import ProductGallery from '../components/product/ProductGallery';
+import ProductVideos from '../components/product/ProductVideos';
 import SEOHead, { productSchema, breadcrumbSchema } from '../components/SEOHead';
 import { BBVACard } from '../components/ui/general/BBVACard';
 import { costoRecargaDeProducto } from '../utils/batteryCalculator';
@@ -16,9 +17,10 @@ import { fetchProductos } from '../lib/productos';
 import { fetchTestimonios } from '../lib/testimonios';
 import { useCart } from '../contexts/CartContext';
 import { manualUrl } from '../lib/manuales';
+import { videosForProduct } from '../data/videosYT';
 import stripHtml, { cleanBateria } from '../utils/stripHtml';
 import { CONTACT } from '../lib/config';
-import { colorDotClassFor } from '../lib/colores';
+import { ColorDot } from '../components/ColorDot';
 import { capacidadCargaTexto, equivalentesDeCarga } from '../lib/capacidadCarga';
 import { product_tab_list as TAB_LIST, product_ficha_labels as FICHA_LABELS } from '../../src/data_json.jsx';
 
@@ -35,6 +37,7 @@ function normalizeText(text) {
 function formatFichaValue(key, value) {
   if (value == null || value === '' || (Array.isArray(value) && value.length === 0)) return null;
   if (key === 'bateria_extraible') return value ? 'Sí' : 'No';
+  if (key === 'requiere_placa_soat') return value ? 'Sí' : 'No';
   if (key === 'tiempo_carga_min') return `${value} horas`;
   if (key === 'velocidad_max_kmh') return `${value} km/h`;
   if (key === 'autonomia_km') {
@@ -398,7 +401,7 @@ function PanelInfoProducto({
       className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-base bg-[#25D366] text-white hover:bg-[#1eb355] transition-colors"
     >
       <WhatsAppIcon />
-      ¿Tienes alguna otra pregunta?
+      Te asesoramos
     </a>
   );
 
@@ -452,7 +455,7 @@ function PanelInfoProducto({
                     : 'border-gray-200 text-gray-600 hover:border-gray-400'
                 }`}
               >
-                <span className={`w-3 h-3 rounded-full border border-gray-200 ${colorDotClassFor(c)}`} />
+                <ColorDot nombre={c} coloresDetalle={product.colores_detalle} className="w-3 h-3" />
                 {c}
               </button>
             ))}
@@ -612,10 +615,11 @@ function SeccionTabs({
         {activeTab === 'capacidad' && <CapacidadCargaTab ficha={product.ficha_tecnica} />}
         {activeTab === 'info' && <InfoAdicionalTab info={product.info_adicional} />}
         {activeTab === 'manuales' && <ManualesTab producto={product} />}
+        {activeTab === 'videos' && <ProductVideos product={product} />}
 
         {activeTab === 'legal' && (
-          <div className="text-sm text-gray-500 space-y-3">
-            <p>Los precios indicados incluyen IGV. La disponibilidad y especificaciones están sujetas a cambios sin previo aviso.</p>
+          <div className="text-sm text-gray-500 space-y-3 text-justify">
+            <p>Los precios indicados incluyen IGV.</p>
             <p>Las imágenes son referenciales. El producto final puede variar ligeramente en color y acabado.</p>
             <p>Garantía según términos y condiciones de GreenLine. Consulte en tienda para más detalles.</p>
           </div>
@@ -703,8 +707,14 @@ export default function ProductPage() {
       const idx = list.findIndex((t) => t.key === 'ficha');
       list.splice(idx + 1, 0, { key: 'capacidad', label: 'Capacidad de Carga' });
     }
+    const tieneVideos =
+      product && (Boolean(product.videoId) || videosForProduct(product).length > 0);
+    if (tieneVideos) {
+      const idx = list.findIndex((t) => t.key === 'manuales');
+      list.splice(idx >= 0 ? idx : list.length, 0, { key: 'videos', label: 'Videos' });
+    }
     return list;
-  }, [product?.categoria]);
+  }, [product]);
 
   const availableColors = useMemo(() => {
     if (!product?.imagenes?.length) return [];

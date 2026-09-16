@@ -53,6 +53,9 @@ const PERMISSIONS = {
   'distribuidores:read': [Rol.ADMIN, Rol.DISTRIBUCION, Rol.DESARROLLADOR_WEB],
   'distribuidores:write': [Rol.ADMIN, Rol.DISTRIBUCION, Rol.DESARROLLADOR_WEB],
   'distribuidores:delete': [Rol.ADMIN, Rol.DISTRIBUCION, Rol.DESARROLLADOR_WEB],
+
+  // Pedidos (administración / reenvío de correos de notificación)
+  'pedidos:email': [Rol.ADMIN, Rol.DISTRIBUCION, Rol.DESARROLLADOR_WEB],
 };
 
 // Middleware factory: requiere uno o más permisos

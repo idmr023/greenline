@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Zap, Battery, Route } from '../../lib/icons';
 import ProductImage from './ProductImage';
 import { formatPrice } from '../../lib/utils';
-import { colorDotClassFor } from '../../lib/colores';
+import { colorDotClassFor, colorDotStyle } from '../../lib/colores';
 import { cleanWatts, cleanBateria } from '../../utils/stripHtml';
 
 // COMENTADO (temporal — "últimas unidades" por números. Se reactiva cuando
@@ -127,6 +127,7 @@ export default function ProductCard({ producto, featured = false }) {
                 type="button"
                 title={c}
                 onClick={(e) => { e.stopPropagation(); setSelectedColor(c); }}
+                style={colorDotStyle(producto.colores_detalle, c)}
                 className={`w-6 h-6 rounded-full border-2 transition-all ${
                   colorDotClassFor(c)
                 } ${

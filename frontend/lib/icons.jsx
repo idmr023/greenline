@@ -119,6 +119,8 @@ import {
   faAngleRight,
   faHelmetSafety,
   faShield,
+  faFolderOpen,
+  faLightbulb,
 } from '@fortawesome/free-solid-svg-icons';
 
 import { faInstagram, faTiktok } from '@fortawesome/free-brands-svg-icons';
@@ -137,6 +139,8 @@ export default function Icon({ icon, size = 24, className, color, ...rest }) {
   );
 }
 
+export const Lightbulb = (props) => <Icon icon={faLightbulb} {...props} />; 
+export const FolderOpen = (props) => <Icon icon={faFolderOpen} {...props} />;
 export const Shield_ = (props) => <Icon icon={faShield} {...props} />;
 export const HelmetSafety = (props) => <Icon icon={faHelmetSafety} {...props} />;
 export const Instagram = (props) => <Icon icon={faInstagram} {...props} />;

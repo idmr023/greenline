@@ -1,10 +1,13 @@
 import { CARRUSEL } from "../frontend/lib/images";
 import {
-  Zap, Gauge, BatteryCharging, Recycle,
+  Zap,
   Accessibility, ArrowLeftRight, ShieldCheck,
   Truck, Wrench, HelmetSafety, Shield_,
   BadgeCheck, Award, Package, Target, Users, Briefcase, Heart, TicketPercent,
-  Leaf
+  Leaf,
+  Lightbulb,
+  Gauge,
+  BatteryCharging
 } from '../frontend/lib/icons';
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -13,6 +16,10 @@ import {
 
 // Datos del carrousel del home (1er bloque)
 export const carrousel_slides = [
+  {
+    to: '/tiendas',
+    img: CARRUSEL[0],
+  }, 
   {
     to: '/tienda',
     img: CARRUSEL[1],
@@ -26,8 +33,8 @@ export const carrousel_slides = [
     img: CARRUSEL[3],
   },
   {
-    to: '/tiendas',
-    img: CARRUSEL[0],
+    to: 'https://docs.google.com/forms/d/e/1FAIpQLSdoHJmTM4v8FBXJmmCH9r5gf9AhYmGX4RLEcWe-qv78M59gzA/viewform',
+    img: CARRUSEL[4],
   },
   {
     title: 'Nueve años contigo',
@@ -44,11 +51,7 @@ export const carrousel_slides = [
 
 // Pilares del hero (Card: Calidad / Confianza / Garantía)
 export const pillars = [
-  {
-    icon: BadgeCheck,
-    title: 'Calidad',
-    text: 'Conduce en un vehículo de calidad, con repuestos originales y soporte técnico certificado por la marca.',
-  },
+  { icon: BadgeCheck, title: 'Calidad', text: 'Conduce en un vehículo de calidad, con repuestos originales y soporte técnico certificado por la marca.', },
   {
     icon: ShieldCheck,
     title: 'Confianza',
@@ -92,6 +95,11 @@ export const ecommerce_strip_data = [
     name: 'Coolbox',
     img: 'https://coolboxpe.vtexassets.com/assets/vtex/assets-builder/coolboxpe.store-theme/0.0.84/logo___6539742abaf840cb31bc3e646607adf5.svg',
     href: 'https://www.coolbox.pe/greenline',
+  },
+  {
+    name: 'UPN',
+    img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2rwE7vFcKtGYODXjpAzQtBclnf3sUV_6xFGCOsMfxMobziLUJKGb6qGM&s=10',
+    href: 'https://www.upn.edu.pe/vida-universitaria/promociones-con-id-card/greenline',
   },
 ];
 
@@ -155,30 +163,46 @@ export const objeciones = [
     text: 'Talleres propios en tiendas oficiales con técnicos capacitados por la marca.',
     highlight: 'Ocho tiendas propias',
   },
+  {
+    icon: Lightbulb,
+    title: 'GreenTips: consejos de movilidad eléctrica',
+    text: 'Descubre consejos prácticos para cargar tu vehículo en los horarios más económicos, optimizar su autonomía, cuidar las llantas y el motor, prolongar la vida útil de la batería y saber cómo disponer correctamente de ella cuando llegue al final de su ciclo.',
+    highlight: 'Tips de movilidad',
+    haveButton: true,
+    link: "/tips",
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Diseño universal, libertad sin límites',
+    text: 'Las M-CAR son vehículos eléctricos creados con diseño universal: pensados desde fábrica para que personas con capacidades diversas se desplacen conautonomía, comodidad y total acceso igualitario..',
+    highlight: 'Movilidad para todos',
+    haveButton: true,
+    link: "/tienda?categoria=Cuatrimotos",
+  },
 ];
 
 // Información de GreenTips, los consejos verdes que se muestran en la sección de tips del home
 export const green_tips = [
-  {
-    icon: Zap,
-    title: 'Carga de noche',
-    text: 'Las tarifas eléctricas suelen ser más bajas de madrugada. Carga tu batería a esas horas y aligeras la red.',
-  },
-  {
-    icon: Gauge,
-    title: 'Presión de llantas',
-    text: 'Revisa la presión una vez al mes: un neumático bien calibrado suma autonomía y alarga la vida de la cubierta.',
-  },
-  {
-    icon: BatteryCharging,
-    title: 'Cuida la batería',
-    text: 'Evita descargarla al 0% o dejarla bajo el sol directo. Cargarla entre el 20% y el 80% alarga su vida útil.',
-  },
-  {
-    icon: Recycle,
-    title: 'Recicla y dispón',
-    text: 'Lleva las baterías en desuso a un punto de acopio. GreenLine las gestiona de forma responsable.',
-  },
+  // {
+  //   icon: Zap,
+  //   title: 'Carga de noche',
+  //   text: 'Las tarifas eléctricas suelen ser más bajas de madrugada. Carga tu batería a esas horas y aligeras la red.',
+  // },
+  // {
+  //   icon: Gauge,
+  //   title: 'Presión de llantas',
+  //   text: 'Revisa la presión una vez al mes: un neumático bien calibrado suma autonomía y alarga la vida de la cubierta.',
+  // },
+  // {
+  //   icon: BatteryCharging,
+  //   title: 'Cuida la batería',
+  //   text: 'Evita descargarla al 0% o dejarla bajo el sol directo. Cargarla entre el 20% y el 80% alarga su vida útil.',
+  // },
+  // {
+  //   icon: Recycle,
+  //   title: 'Recicla y dispón',
+  //   text: 'Lleva las baterías en desuso a un punto de acopio. GreenLine las gestiona de forma responsable.',
+  // },
 ];
 
 
@@ -376,6 +400,7 @@ export const product_ficha_labels = {
   largo_cm: 'Largo',
   ancho_cm: 'Ancho',
   alto_cm: 'Alto',
+  requiere_placa_soat: 'Requiere Placa / SOAT',
 };
 
 
@@ -387,9 +412,11 @@ export const libro_doc_types = ['DNI', 'Carné de extranjería', 'Pasaporte', 'R
 
 export const libro_servicio_opciones = [
   '—Por favor, elige una opción—',
-  'Atención al cliente',
+  'Atención al cliente - Tiendas principales',
+  'Atención al cliente - Ecommerce / ventas online',
+  'Atención al cliente - Envíos',
   'Servicio técnico',
-  'Distribución'
+  'Distribución',
 ];
 
 export const libro_tipo_opciones = [
@@ -397,7 +424,6 @@ export const libro_tipo_opciones = [
   'Queja',
   'Reclamo',
 ];
-
 
 ///////////////////////////////////////////////////////////////////////////////
 ///               LOGIN PAGE (LoginPage.jsx)                             ////

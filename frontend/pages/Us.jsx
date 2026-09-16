@@ -23,6 +23,7 @@ export default function Nosotros() {
             title="Sobre Nosotros" 
             subtitle="Líderes en movilidad eléctrica en el Perú desde 2017"
             image={NOSOTROS_HEADER}
+            className="text-brand"
           />
       </div>
 

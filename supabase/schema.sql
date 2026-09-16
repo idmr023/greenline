@@ -244,8 +244,24 @@ CREATE TABLE IF NOT EXISTS pedidos (
   items JSONB NOT NULL,
   total DECIMAL(10,2) NOT NULL DEFAULT 0,
   estado TEXT NOT NULL DEFAULT 'NUEVO',
+  email_enviado BOOLEAN NOT NULL DEFAULT false,
+  email_enviado_at TIMESTAMPTZ,
+  email_error TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS reclamaciones (
+  id BIGSERIAL PRIMARY KEY,
+  numero_reclamo INTEGER NOT NULL UNIQUE,
+  fecha TEXT NOT NULL DEFAULT '',
+  nombre TEXT NOT NULL DEFAULT '',
+  email TEXT NOT NULL DEFAULT '',
+  telefono TEXT NOT NULL DEFAULT '',
+  tienda TEXT NOT NULL DEFAULT '',
+  motivo TEXT NOT NULL DEFAULT '',
+  data JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS testimonios (
@@ -259,6 +275,26 @@ CREATE TABLE IF NOT EXISTS testimonios (
   activo BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS contactos (
+  id BIGSERIAL PRIMARY KEY,
+  nombre TEXT NOT NULL DEFAULT '',
+  email TEXT NOT NULL DEFAULT '',
+  asunto TEXT NOT NULL DEFAULT '',
+  mensaje TEXT NOT NULL DEFAULT '',
+  leido BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS email_logs (
+  id BIGSERIAL PRIMARY KEY,
+  destinatario TEXT NOT NULL DEFAULT '',
+  asunto TEXT NOT NULL DEFAULT '',
+  estado TEXT NOT NULL DEFAULT 'ENVIADO',
+  error TEXT,
+  meta JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- ------------------------------------------------------------
@@ -553,6 +589,9 @@ ALTER TABLE ficha_tecnica ENABLE ROW LEVEL SECURITY;
 ALTER TABLE info_adicional ENABLE ROW LEVEL SECURITY;
 ALTER TABLE modelos_3d ENABLE ROW LEVEL SECURITY;
 ALTER TABLE testimonios ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contactos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE email_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE libro_reclamaciones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pedidos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE prod_color_stock ENABLE ROW LEVEL SECURITY;
 ALTER TABLE panel_acceso ENABLE ROW LEVEL SECURITY;
@@ -626,7 +665,8 @@ BEGIN
         'ficha_tecnica', 'info_adicional', 'modelos_3d', 'testimonios',
         'pedidos', 'prod_color_stock', 'greenline_stores',
         'greenline_distributors', 'greenline_province_sales',
-        'greenline_categories', 'greenline_posts', 'greenline_post_images'
+        'greenline_categories', 'greenline_posts', 'greenline_post_images',
+        'reclamaciones', 'contactos', 'email_logs', 'libro_reclamaciones'
       )
   LOOP
     EXECUTE format('DROP POLICY IF EXISTS %I ON %I.%I', p.policyname, p.schemaname, p.tablename);
@@ -642,6 +682,7 @@ CREATE POLICY "Lectura pública de ficha técnica" ON ficha_tecnica FOR SELECT U
 CREATE POLICY "Lectura pública de info adicional" ON info_adicional FOR SELECT USING (true);
 CREATE POLICY "Lectura pública de modelos 3D" ON modelos_3d FOR SELECT USING (true);
 CREATE POLICY "Lectura pública de testimonios" ON testimonios FOR SELECT USING (true);
+CREATE POLICY "Contacto: crear desde la web" ON contactos FOR INSERT TO anon, authenticated WITH CHECK (true);
 CREATE POLICY "Pedidos: crear desde la web" ON pedidos FOR INSERT TO anon, authenticated WITH CHECK (true);
 CREATE POLICY "Lectura pública de tiendas" ON greenline_stores FOR SELECT USING (active);
 CREATE POLICY "Lectura pública de distribuidores" ON greenline_distributors FOR SELECT USING (active);
@@ -668,6 +709,14 @@ CREATE POLICY "Panel gestiona info adicional" ON info_adicional FOR ALL TO authe
 CREATE POLICY "Panel gestiona modelos 3D" ON modelos_3d FOR ALL TO authenticated
   USING (es_admin_panel()) WITH CHECK (es_admin_panel());
 CREATE POLICY "Panel gestiona testimonios" ON testimonios FOR ALL TO authenticated
+  USING (es_admin_panel()) WITH CHECK (es_admin_panel());
+CREATE POLICY "Panel gestiona contactos" ON contactos FOR ALL TO authenticated
+  USING (es_admin_panel()) WITH CHECK (es_admin_panel());
+CREATE POLICY "Panel gestiona email_logs" ON email_logs FOR ALL TO authenticated
+  USING (es_admin_panel()) WITH CHECK (es_admin_panel());
+CREATE POLICY "Panel gestiona libro_reclamaciones" ON libro_reclamaciones FOR ALL TO authenticated
+  USING (es_admin_panel()) WITH CHECK (es_admin_panel());
+CREATE POLICY "Panel gestiona reclamaciones" ON reclamaciones FOR ALL TO authenticated
   USING (es_admin_panel()) WITH CHECK (es_admin_panel());
 CREATE POLICY "Panel gestiona manuales" ON greenline_manuales FOR ALL TO authenticated
   USING (es_admin_panel()) WITH CHECK (es_admin_panel());

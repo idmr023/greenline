@@ -4,6 +4,7 @@ import { Download, FileText, HelpCircle, BookOpen, Search, X, ExternalLink, File
 import PageBanner from '../components/PageBanner';
 import SEOHead, { breadcrumbSchema } from '../components/SEOHead';
 import { fetchManuales, MANUALES_LOCALES } from '../lib/manuales';
+import PdfFlipViewer from '../components/PdfFlipViewer';
 
 const BASE = '/assets/manuales_uso/';
 
@@ -235,32 +236,11 @@ export default function ManualesDeUso() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="flex-1 overflow-auto relative">
-              <div
-                style={{
-                  position: 'relative',
-                  paddingTop: 'max(60%, 324px)',
-                  width: '100%',
-                  height: 0,
-                }}
-              >
-                <iframe
-                  style={{
-                    position: 'absolute',
-                    border: 'none',
-                    width: '100%',
-                    height: '100%',
-                    left: 0,
-                    top: 0,
-                  }}
-                  src={BASE + selectedManual.file}
-                  title={selectedManual.name}
-                  allowFullScreen
-                />
-              </div>
+            <div className="flex-1 overflow-hidden relative p-4 bg-neutral-950">
+              <PdfFlipViewer fileUrl={BASE + selectedManual.file} title={selectedManual.name} />
             </div>
             <div className="flex items-center justify-between px-5 py-3 border-t border-gray-100 shrink-0 bg-gray-50">
-              <span className="text-xs text-gray-500">Usa la vista de dos páginas del navegador para experiencia tipo revista</span>
+              <span className="text-xs text-gray-500">Visor interactivo de manuales y revistas (PDF.js)</span>
               <a
                 href={BASE + selectedManual.file}
                 download

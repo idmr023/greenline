@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { clearCache } from '../../lib/productos';
 import { versionarImagen } from '../../lib/images';
-import { ArrowLeft, Save, Upload, X, GripVertical } from '../../lib/icons';
+import { imagenesAPI } from '../../lib/api';
+import { useAuth } from '../../contexts/AuthContext';
+import { ArrowLeft, ArrowUp, ArrowDown, Save, Upload, X, GripVertical, Search, FolderOpen, Loader2 } from '../../lib/icons';
 
 const EMPTY_PRODUCT = {
   nombre: '',
@@ -168,7 +170,10 @@ export default function AdminProductoForm({ productoId, onBack, onSaved }) {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(!!productoId);
   const [uploading, setUploading] = useState(false);
+  const [exploradorAbierto, setExploradorAbierto] = useState(false);
+  const [exploradorIndice, setExploradorIndice] = useState(null);
 
+  const { accessToken } = useAuth();
   const isEdit = !!productoId;
 
   useEffect(() => {
@@ -394,6 +399,18 @@ potencia_bateria: ft.potencia_bateria || '',
     setImagenes((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const moveImage = (index, direction) => {
+    const target = index + direction;
+    if (target < 0 || target >= imagenes.length) return;
+    setImagenes((prev) => {
+      const next = [...prev];
+      const tmp = next[index];
+      next[index] = next[target];
+      next[target] = tmp;
+      return next;
+    });
+  };
+
   const handleFileUpload = async (index, file) => {
     if (!file) return;
     setUploading(true);
@@ -418,6 +435,41 @@ potencia_bateria: ft.potencia_bateria || '',
     updateImage(index, 'url', urlData.publicUrl);
     setUploading(false);
   };
+
+  const getColorOptions = () => {
+    const opts = productoColores
+      .filter((cr) => cr.nombre)
+      .map((cr) => cr.nombre);
+    for (const img of imagenes) {
+      if (img.color && !opts.includes(img.color)) opts.push(img.color);
+    }
+    return opts;
+  };
+
+  const abrirExplorador = (index) => {
+    setExploradorIndice(index);
+    setExploradorAbierto(true);
+  };
+
+  const extraerRutaLocal = (url) => {
+    if (!url || typeof url !== 'string') return null;
+    const m = url.match(/\/assets\/imagenes\/(.+)$/);
+    if (!m) return null;
+    const parts = m[1].split('/');
+    parts.pop();
+    return parts.join('/');
+  };
+
+  const rutaProducto = (() => {
+    const conteo = {};
+    for (const img of imagenes) {
+      const dir = extraerRutaLocal(img.url);
+      if (dir) conteo[dir] = (conteo[dir] || 0) + 1;
+    }
+    const top = Object.entries(conteo).sort((a, b) => b[1] - a[1])[0];
+    if (top) return top[0];
+    return form.slug ? `productos/${form.slug}` : 'productos';
+  })();
 
   if (loading) return <div className="p-8 text-gray-400 text-sm">Cargando...</div>;
 
@@ -635,6 +687,26 @@ potencia_bateria: ft.potencia_bateria || '',
         <div className="space-y-3">
           {imagenes.map((img, i) => (
             <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+              <div className="flex flex-col items-center gap-0.5 mt-2">
+                <button
+                  type="button"
+                  onClick={() => moveImage(i, -1)}
+                  disabled={i === 0}
+                  className="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                  aria-label="Subir imagen"
+                >
+                  <ArrowUp className="w-4 h-4 text-gray-600" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => moveImage(i, 1)}
+                  disabled={i === imagenes.length - 1}
+                  className="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                  aria-label="Bajar imagen"
+                >
+                  <ArrowDown className="w-4 h-4 text-gray-600" />
+                </button>
+              </div>
               <GripVertical className="w-4 h-4 text-gray-300 mt-2" />
               <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-2">
                 <div className="md:col-span-2">
@@ -648,15 +720,27 @@ potencia_bateria: ft.potencia_bateria || '',
                 </div>
                 <div>
                   <label className="text-xs text-gray-500 mb-1 block">Color</label>
-                  <input
+                  <select
                     value={img.color}
                     onChange={(e) => updateImage(i, 'color', e.target.value)}
                     className="input text-xs"
-                    placeholder="Blanco"
-                  />
+                  >
+                    <option value="">General / Sin color</option>
+                    {getColorOptions().map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div className="flex flex-col items-center gap-1 mt-1">
+                <button
+                  type="button"
+                  onClick={() => abrirExplorador(i)}
+                  className="px-2 py-1 bg-white border border-gray-200 rounded text-xs text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  <FolderOpen className="w-3 h-3 inline mr-1" />
+                  Explorar
+                </button>
                 <label className="cursor-pointer px-2 py-1 bg-white border border-gray-200 rounded text-xs text-gray-600 hover:bg-gray-50 transition-colors">
                   <Upload className="w-3 h-3 inline mr-1" />
                   Subir
@@ -694,6 +778,14 @@ potencia_bateria: ft.potencia_bateria || '',
           {saving ? 'Guardando...' : 'Guardar Producto'}
         </button>
       </div>
+      {exploradorAbierto && (
+        <ExploradorImagenes
+          rutaInicial={rutaProducto}
+          accessToken={accessToken}
+          onSelect={(url) => updateImage(exploradorIndice, 'url', url)}
+          onClose={() => setExploradorAbierto(false)}
+        />
+      )}
     </div>
   );
 }
@@ -712,6 +804,157 @@ function Field({ label, children, full }) {
     <div className={full ? 'md:col-span-2 lg:col-span-3' : ''}>
       <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
       {children}
+    </div>
+  );
+}
+
+function ExploradorImagenes({ rutaInicial = '', accessToken, onSelect, onClose }) {
+  const [ruta, setRuta] = useState(rutaInicial);
+  const [carpetas, setCarpetas] = useState([]);
+  const [archivos, setArchivos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [filtro, setFiltro] = useState('');
+
+  useEffect(() => {
+    let activo = true;
+    setLoading(true);
+    setError('');
+    imagenesAPI.listar(ruta, accessToken)
+      .then((res) => {
+        if (!activo) return;
+        setCarpetas(res.carpetas || []);
+        setArchivos(res.archivos || []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (!activo) return;
+        setCarpetas([]);
+        setArchivos([]);
+        setError(err.error || err.message || 'No se pudo listar esta carpeta');
+        setLoading(false);
+      });
+    return () => { activo = false; };
+  }, [ruta, accessToken]);
+
+  const partesRuta = ruta ? ruta.split('/').filter(Boolean) : [];
+  const archivosFiltrados = archivos.filter((a) =>
+    !filtro || a.nombre.toLowerCase().includes(filtro.toLowerCase())
+  );
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[80vh] flex flex-col overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-3 min-w-0">
+            <FolderOpen className="w-5 h-5 text-brand shrink-0" />
+            <h3 className="font-bold text-gray-900 text-sm">Explorador de imágenes</h3>
+          </div>
+          <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-700 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2 px-5 py-3 bg-gray-50 border-b border-gray-100 text-xs">
+          <button
+            onClick={() => setRuta('')}
+            className="text-brand font-semibold hover:underline shrink-0"
+          >
+            Inicio
+          </button>
+          {partesRuta.map((p, idx) => (
+            <span key={idx} className="flex items-center gap-2 shrink-0">
+              <span className="text-gray-300">/</span>
+              <button
+                onClick={() => setRuta(partesRuta.slice(0, idx + 1).join('/'))}
+                className="text-brand font-semibold hover:underline"
+              >
+                {p}
+              </button>
+            </span>
+          ))}
+          <div className="flex-1" />
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={filtro}
+              onChange={(e) => setFiltro(e.target.value)}
+              placeholder="Buscar..."
+              className="pl-8 pr-3 py-1.5 border border-gray-200 rounded-lg text-xs bg-white w-48 focus:outline-none focus:ring-2 focus:ring-brand/30"
+            />
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5">
+          {loading ? (
+            <div className="flex items-center justify-center py-12 text-gray-400 text-sm gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" /> Cargando...
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-sm text-gray-600 mb-2">{error}</p>
+              <button onClick={onClose} className="text-sm text-brand font-semibold hover:underline">
+                Cerrar
+              </button>
+            </div>
+          ) : carpetas.length === 0 && archivos.length === 0 ? (
+            <p className="text-center text-gray-400 text-sm py-12">Carpeta vacía</p>
+          ) : (
+            <>
+              {carpetas.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Carpetas</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                    {carpetas.map((carp) => (
+                      <button
+                        key={carp}
+                        onClick={() => setRuta((prev) => `${prev ? `${prev}/` : ''}${carp}`)}
+                        className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-gray-100 hover:border-brand/30 hover:bg-brand/5 text-left text-sm transition-colors"
+                      >
+                        <FolderOpen className="w-4 h-4 text-brand shrink-0" />
+                        <span className="truncate text-gray-700">{carp}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {archivosFiltrados.length > 0 && (
+                <div>
+                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                    Imágenes ({archivosFiltrados.length})
+                  </p>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                    {archivosFiltrados.map((archivo) => (
+                      <button
+                        key={archivo.nombre}
+                        onClick={() => { onSelect(archivo.url); onClose(); }}
+                        className="group relative rounded-lg border border-gray-100 overflow-hidden hover:ring-2 hover:ring-brand/50 transition-all"
+                      >
+                        <img
+                          src={versionarImagen(archivo.url)}
+                          alt={archivo.nombre}
+                          className="w-full aspect-square object-cover"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-2 py-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <p className="text-white text-[10px] truncate">{archivo.nombre}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {(carpetas.length === 0 && archivosFiltrados.length === 0 && archivos.length > 0) && (
+                <p className="text-center text-gray-400 text-sm py-12">No se encontraron imágenes</p>
+              )}
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

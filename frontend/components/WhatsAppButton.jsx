@@ -27,8 +27,8 @@ export default function WhatsAppButton() {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Contactar por WhatsApp"
-      className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#009000] shadow-lg transition-transform hover:scale-110 animate-pulse"
+      aria-label="Te asesoramos por WhatsApp"
+      className="fixed bottom-6 right-6 z-50 flex h-14 items-center justify-center gap-2 rounded-full bg-[#009000] px-5 shadow-lg transition-transform hover:scale-105 animate-pulse"
     >
       <FontAwesomeIcon icon={faWhatsapp} className="text-2xl text-white"/>
     </a>
