@@ -29,6 +29,7 @@ const ROUTING_OVERRIDES = {
   'MiCuenta.jsx': { path: 'mi-cuenta', protected: true },
   'ExpoChina.tsx': 'expochina',
   'Tips.tsx': 'tips',
+  'PresentacionCEO.jsx': 'presentacion-ceo',
 };
 
 // Archivos con registro manual en App.jsx (excluidos del auto-scan)

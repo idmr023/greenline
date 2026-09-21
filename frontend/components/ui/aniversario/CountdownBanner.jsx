@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Clock, Gift } from '../../../lib/icons';
 import useCountdown from '../../../hooks/useCountdown';
 import { isAniversarioActivo, aniversarioNumero } from '../../../lib/aniversario';
-import AnniversaryPromo from './AniversaryPromo';
 
 const UNIDADES = [
   { key: 'dias', label: 'Días' },
@@ -42,10 +41,6 @@ export default function CountdownBanner() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="hidden xl:flex items-center gap-1.5 text-sm font-bold mr-1">
-              <Clock className="w-4 h-4" />
-              Ofertas terminan en
-            </span>
             {UNIDADES.map((u) => (
               <div
                 key={u.key}

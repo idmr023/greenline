@@ -4,7 +4,7 @@ import { Play, Square, Settings2, Volume2 } from '../lib/icons';
 export default function LectorFichaTecnica({texto}) {
   const [voces, setVoces] = useState([]);
   const [vozSeleccionada, setVozSeleccionada] = useState('');
-  const [velocidad, setVelocidad] = useState(1);
+  const [velocidad, setVelocidad] = useState(0.95);
   const [volumen, setVolumen] = useState(1);
   const [reproduciendo, setReproduciendo] = useState(false);
   const [mostrarAjustes, setMostrarAjustes] = useState(false);
@@ -22,7 +22,8 @@ export default function LectorFichaTecnica({texto}) {
     if (nombre.includes('good') || /google/i.test(nombre)) score += 20;
     if (/microsoft|azure/i.test(nombre)) score += 20;
     if (/apple/i.test(nombre)) score += 20;
-    if (/es-419|es-mx|es-us|es-pe|es-cl|es-ar|es-co/i.test(nombre)) score += 15;
+    if (/es-419/i.test(nombre)) score += 30;
+    if (/es-mx|es-us|es-pe|es-cl|es-ar|es-co/i.test(nombre)) score += 15;
     if (/es-us/i.test(nombre)) score += 5;
     return score;
   };
@@ -32,7 +33,7 @@ export default function LectorFichaTecnica({texto}) {
     const cargarVoces = () => {
       const vocesDisponibles = window.speechSynthesis.getVoices();
       // Filtramos para mostrar idealmente voces en español
-      const vocesEsp = vocesDisponibles.filter(voz => voz.lang.startsWith('es'));
+      const vocesEsp = vocesDisponibles.filter((voz) => /^es(?:-|$)/i.test(voz.lang));
       const vocesFinales = vocesEsp.length > 0 ? vocesEsp : vocesDisponibles;
       // Ordenamos de más natural a menos natural
       const ordenadas = [...vocesFinales].sort((a, b) => calidadDeVoz(b) - calidadDeVoz(a));
@@ -63,6 +64,7 @@ export default function LectorFichaTecnica({texto}) {
         locucion.lang = voces[0].lang;
       }
       locucion.rate = velocidad;
+      locucion.pitch = 1;
       locucion.volume = volumen;
 
       // Evento: cuando termine de hablar, apagamos el botón automáticamente

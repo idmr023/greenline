@@ -11,6 +11,7 @@ import { formatPrice } from '../lib/utils';
 import { CONTACT, BRAND } from '../lib/config';
 import PageBanner from '../components/PageBanner';
 import SEOHead from '../components/SEOHead';
+import ubigeo from '../data/ubigeo.json';
 
 function generarCodigo() {
   const stamp = Date.now().toString(36).toUpperCase().slice(-6);
@@ -39,6 +40,9 @@ const EMPTY_FORM = {
   telefono: '',
   email: '',
   direccion: '',
+  departamento: '',
+  provincia: '',
+  distrito: '',
 };
 
 const inputClass =
@@ -48,6 +52,14 @@ const inputErrorClass =
 
 function validarNombre(value) {
   return /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s']+$/.test(value);
+}
+
+function provinciasDe(departamento) {
+  return Object.keys(ubigeo[departamento] || {});
+}
+
+function distritosDe(departamento, provincia) {
+  return Object.keys(ubigeo[departamento]?.[provincia] || {});
 }
 
 export default function Checkout() {
@@ -70,6 +82,9 @@ export default function Checkout() {
     const telefono = form.telefono.trim();
     const email = form.email.trim();
     const direccion = form.direccion.trim();
+    const departamento = form.departamento.trim();
+    const provincia = form.provincia.trim();
+    const distrito = form.distrito.trim();
 
     if (nombre.length < 2) errs.nombre = 'Ingresa tu nombre completo.';
     else if (!validarNombre(nombre)) errs.nombre = 'El nombre solo debe contener letras.';
@@ -78,14 +93,17 @@ export default function Checkout() {
     else if (!/^\d{8}$/.test(dni)) errs.dni = 'El DNI debe tener 8 números.';
 
     if (telefono.length === 0) errs.telefono = 'Ingresa tu teléfono.';
-    else if (!/^\d{9}$/.test(telefono))
-      errs.telefono = 'El teléfono debe tener 9 números.';
+    else if (!/^9\d{8}$/.test(telefono))
+      errs.telefono = 'El teléfono debe tener 9 números y empezar por 9.';
 
     if (email.length === 0) errs.email = 'Ingresa tu correo electrónico.';
     else if (!email.includes('@'))
       errs.email = 'Ingresa un correo válido con @.';
 
     if (direccion.length < 5) errs.direccion = 'Ingresa tu dirección de facturación.';
+    if (!departamento) errs.departamento = 'Selecciona tu departamento.';
+    if (!provincia) errs.provincia = 'Selecciona tu provincia.';
+    if (!distrito) errs.distrito = 'Selecciona tu distrito.';
 
     return errs;
   }, [form]);
@@ -96,9 +114,12 @@ export default function Checkout() {
       form.nombre.trim().length >= 2 &&
       validarNombre(form.nombre.trim()) &&
       /^\d{8}$/.test(form.dni.trim()) &&
-      /^\d{9}$/.test(form.telefono.trim()) &&
+      /^9\d{8}$/.test(form.telefono.trim()) &&
       form.email.trim().includes('@') &&
-      form.direccion.trim().length >= 5,
+      form.direccion.trim().length >= 5 &&
+      form.departamento.trim() &&
+      form.provincia.trim() &&
+      form.distrito.trim(),
     [items, form],
   );
 
@@ -124,6 +145,9 @@ export default function Checkout() {
       telefono: form.telefono.trim(),
       email: form.email.trim() || null,
       direccion: form.direccion.trim(),
+      departamento: form.departamento.trim(),
+      provincia: form.provincia.trim(),
+      distrito: form.distrito.trim(),
     };
 
     const payload = {
@@ -372,6 +396,76 @@ export default function Checkout() {
                   <p className="mt-1 text-xs text-red-600">{errors.direccion}</p>
                 )}
               </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label htmlFor="departamento" className="block text-sm font-medium text-gray-700 mb-1">
+                    Departamento *
+                  </label>
+                  <select
+                    id="departamento"
+                    value={form.departamento}
+                    onChange={(e) =>
+                      setForm((current) => ({
+                        ...current,
+                        departamento: e.target.value,
+                        provincia: '',
+                        distrito: '',
+                      }))
+                    }
+                    className={showErrors && errors.departamento ? inputErrorClass : inputClass}
+                  >
+                    <option value="">Selecciona</option>
+                    {Object.keys(ubigeo).sort((a, b) => a.localeCompare(b, 'es')).map((departamento) => (
+                      <option key={departamento} value={departamento}>{departamento}</option>
+                    ))}
+                  </select>
+                  {showErrors && errors.departamento && (
+                    <p className="mt-1 text-xs text-red-600">{errors.departamento}</p>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="provincia" className="block text-sm font-medium text-gray-700 mb-1">
+                    Provincia *
+                  </label>
+                  <select
+                    id="provincia"
+                    value={form.provincia}
+                    disabled={!form.departamento}
+                    onChange={(e) =>
+                      setForm((current) => ({ ...current, provincia: e.target.value, distrito: '' }))
+                    }
+                    className={showErrors && errors.provincia ? inputErrorClass : inputClass}
+                  >
+                    <option value="">Selecciona</option>
+                    {provinciasDe(form.departamento).sort((a, b) => a.localeCompare(b, 'es')).map((provincia) => (
+                      <option key={provincia} value={provincia}>{provincia}</option>
+                    ))}
+                  </select>
+                  {showErrors && errors.provincia && (
+                    <p className="mt-1 text-xs text-red-600">{errors.provincia}</p>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="distrito" className="block text-sm font-medium text-gray-700 mb-1">
+                    Distrito *
+                  </label>
+                  <select
+                    id="distrito"
+                    value={form.distrito}
+                    disabled={!form.provincia}
+                    onChange={(e) => setField('distrito', e.target.value)}
+                    className={showErrors && errors.distrito ? inputErrorClass : inputClass}
+                  >
+                    <option value="">Selecciona</option>
+                    {distritosDe(form.departamento, form.provincia).sort((a, b) => a.localeCompare(b, 'es')).map((distrito) => (
+                      <option key={distrito} value={distrito}>{distrito}</option>
+                    ))}
+                  </select>
+                  {showErrors && errors.distrito && (
+                    <p className="mt-1 text-xs text-red-600">{errors.distrito}</p>
+                  )}
+                </div>
+              </div>
 
               {error && (
                 <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -379,6 +473,10 @@ export default function Checkout() {
                   {error}
                 </div>
               )}
+
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                Estos datos serán usados para contactarte. Por favor, verifica que estén bien escritos.
+              </div>
 
               <button
                 type="submit"
