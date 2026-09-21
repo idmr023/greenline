@@ -24,7 +24,7 @@ const itemSchema = z.object({
   color: z.string().trim().optional().nullable(),
   cantidad: z.number().int().positive(),
   precio_actual: z.number().nonnegative(),
-  imagen: z.string().url().optional().nullable(),
+  imagen: z.string().optional().nullable(),
 });
 
 const pedidoSchema = z.object({
