@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Download, FileText } from '../lib/icons';
 import SEOHead, { breadcrumbSchema } from '../components/SEOHead';
-import markdown from '../../docs/Fase 2 - Implementación.md?raw';
+import markdown from '../../docs/Sprint2/Fase 2 - Implementación.md?raw';
 
 function inlineMarkdown(value, keyPrefix) {
   const parts = value.split(/(\*\*[^*]+\*\*|__[^_]+__|`[^`]+`|\[[^\]]+\]\([^)]+\))/g);

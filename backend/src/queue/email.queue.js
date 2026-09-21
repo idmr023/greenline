@@ -24,47 +24,51 @@ import prisma from '../config/prisma.js';
 // pendientes; para el volumen de "pocos pedidos/día" es aceptable.
 // ============================================================
 
-// Fallback: cola en memoria con procesador en background.
+// Fallback: cola en memoria con reintentos.
 let memoryQueue = [];
 let memoryProcessing = false;
+const MEMORY_MAX_RETRIES = 2;
 
 async function flushMemoryQueue() {
   if (memoryProcessing) return;
   memoryProcessing = true;
   while (memoryQueue.length > 0) {
-    const job = memoryQueue.shift();
+    const entry = memoryQueue.shift();
     try {
-      await sendEmail(job);
-      await trackPedidoEmail(job.meta?.codigo, { ok: true });
+      await sendEmail(entry.job);
+      await trackPedidoEmail(entry.job.meta?.codigo, { ok: true });
       await prisma.emailLog.create({
         data: {
-          destinatario: job.to,
-          asunto: job.subject,
+          destinatario: entry.job.to,
+          asunto: entry.job.subject,
           estado: 'ENVIADO',
-          meta: job.meta || {},
+          meta: entry.job.meta || {},
         },
       }).catch(() => {});
     } catch (err) {
-      console.error('[email-queue] error enviando email (memoria):', err);
-      await trackPedidoEmail(job.meta?.codigo, { ok: false, error: err.message });
-      await prisma.emailLog.create({
-        data: {
-          destinatario: job.to,
-          asunto: job.subject,
-          estado: 'ERROR',
-          error: err.message,
-          meta: job.meta || {},
-        },
-      }).catch(() => {});
+      console.error(`[email-queue] error enviando email (memoria, intento ${entry.retries + 1}/${MEMORY_MAX_RETRIES + 1}):`, err.message);
+      if (entry.retries < MEMORY_MAX_RETRIES) {
+        memoryQueue.push({ job: entry.job, retries: entry.retries + 1 });
+      } else {
+        console.error('[email-queue] agotados reintentos en memoria, email perdido');
+        await trackPedidoEmail(entry.job.meta?.codigo, { ok: false, error: err.message });
+        await prisma.emailLog.create({
+          data: {
+            destinatario: entry.job.to,
+            asunto: entry.job.subject,
+            estado: 'ERROR',
+            error: err.message,
+            meta: entry.job.meta || {},
+          },
+        }).catch(() => {});
+      }
     }
   }
   memoryProcessing = false;
 }
 
 function enqueueMemory(job) {
-  memoryQueue.push(job);
-  // Procesar sin bloquear: el envío ocurre en un microtask/macrotask
-  // posterior, no dentro del handler del request actual.
+  memoryQueue.push({ job, retries: 0 });
   setImmediate(() => {
     flushMemoryQueue().catch(() => {});
   });
@@ -75,31 +79,44 @@ let connection;
 let queue;
 let worker;
 
-// Mientras Redis esté disponible, los emails van por BullMQ. Si la conexión
-// falla (caída, hostname interno inaccesible, error de red...), conmutamos a
-// la cola en memoria para no perder envíos y no spamear errores.
-let redisAvailable = true;
+// Estado de Redis: 'available' | 'unavailable' | 'reconnecting'
+let redisState = 'available';
+let redisReconnectTimer = null;
 
-function markRedisUnavailable(reason) {
-  if (!redisAvailable) return;
-  redisAvailable = false;
-  console.error(
-    `[email-queue] Redis no disponible (${reason}). Cambiando a cola en memoria: los emails se enviarán igual, pero sin persistencia entre reinicios.`,
-  );
-  // Cortar el ciclo de reintentos: cerrar worker y conexión (best-effort).
-  // NOTA: no quitar el listener 'error' de la conexión; un error de DNS tardío
-  // sin handler es "unhandled error event" y tumba el proceso. Mantenerlo
-  // (ya es no-op aquí) absorbe cualquier error residual tras desconectar.
-  try {
-    if (worker) worker.close();
-  } catch {
-    /* noop */
-  }
+const REDIS_RECONNECT_INTERVAL_MS = 5 * 60 * 1000; // 5 minutos
+
+function tryReconnectRedis() {
+  if (redisState === 'available') return; // ya reconectó
+  console.log('[email-queue] Intentando reconectar a Redis...');
   try {
     if (connection) connection.disconnect();
-  } catch {
-    /* noop */
-  }
+  } catch { /* noop */ }
+  connection = null;
+  worker = null;
+  redisState = 'available';
+  // La próxima llamada a getQueue()/initEmailWorker() creará conexión nueva
+  console.log('[email-queue] Redis reconectado (o se reintentará en el próximo job)');
+}
+
+function markRedisUnavailable(reason) {
+  if (redisState === 'unavailable') return;
+  redisState = 'unavailable';
+  console.error(
+    `[email-queue] Redis no disponible (${reason}). Cola en memoria activa. Reconexión automática en ${REDIS_RECONNECT_INTERVAL_MS / 1000}s.`,
+  );
+  try {
+    if (worker) worker.close();
+  } catch { /* noop */ }
+  try {
+    if (connection) connection.disconnect();
+  } catch { /* noop */ }
+
+  // Programar reconexión automática
+  if (redisReconnectTimer) clearTimeout(redisReconnectTimer);
+  redisReconnectTimer = setTimeout(() => {
+    redisReconnectTimer = null;
+    tryReconnectRedis();
+  }, REDIS_RECONNECT_INTERVAL_MS);
 }
 
 function getConnection() {
@@ -107,9 +124,10 @@ function getConnection() {
     connection = new IORedis(env.REDIS_URL, {
       maxRetriesPerRequest: null,
       enableReadyCheck: false,
-      // No reintentar indefinidamente: si el host no resuelve o cae, ioredis
-      // emitiría 'error' cada segundo. Un único intento basta para conmutar.
-      retryStrategy: () => null,
+      retryStrategy: (times) => {
+        if (times > 5) return null; // máx 5 reintentos, luego markRedisUnavailable
+        return Math.min(times * 200, 2000);
+      },
     });
     connection.on('error', (err) => {
       markRedisUnavailable(err.message);
@@ -187,7 +205,12 @@ export function initEmailWorker() {
  *   `meta.codigo` (opcional) vincula el resultado del envío a la fila del pedido.
  */
 export async function enqueueEmail(payload) {
-  if (!env.REDIS_URL || !redisAvailable) {
+  // Si Redis estuvo disponible pero falló, intentar reconectar antes de usar memoria
+  if (redisState === 'unavailable') {
+    tryReconnectRedis();
+  }
+
+  if (!env.REDIS_URL || redisState !== 'available') {
     enqueueMemory(payload);
     return;
   }
@@ -203,23 +226,21 @@ export async function enqueueEmail(payload) {
  * Cierre ordenado (para procesos/dev). Detiene worker y conexión.
  */
 export async function closeEmailQueue() {
+  if (redisReconnectTimer) {
+    clearTimeout(redisReconnectTimer);
+    redisReconnectTimer = null;
+  }
   try {
     if (worker) await worker.close();
-  } catch {
-    /* noop */
-  }
+  } catch { /* noop */ }
   try {
     if (queue) await queue.close();
-  } catch {
-    /* noop */
-  }
+  } catch { /* noop */ }
   try {
     if (connection && connection.status === 'ready') {
       await connection.quit();
     } else if (connection) {
       connection.disconnect();
     }
-  } catch {
-    /* noop */
-  }
+  } catch { /* noop */ }
 }
