@@ -32,7 +32,7 @@ const MANUAL_POR_SLUG = {
   'trimoto-greenline-tm9': 'Manual-de-uso-TM9.pdf',
   'greenline-m3-eco' : 'Manual-de-uso-M3-y-M3PRO.pdf',
   'greenline-gl3' : 'Manual-de-uso-GL2.pdf' ,
-  'greenline-gl4' : 'Manual-de-uso-GL2.pdf'
+  'greenline-gl4' : 'Manual-de-uso-GL2.pdf',
 };
 
 export function manualUrl(slug) {
