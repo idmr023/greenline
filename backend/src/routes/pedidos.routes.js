@@ -47,27 +47,41 @@ const pedidoSchema = z.object({
 
 router.post('/', pedidosLimiter, validate(pedidoSchema), async (req, res) => {
   const { codigo, cliente, items, total } = req.validated.body;
+  const sb = getSupabaseAdmin();
 
-  // Encolar el email y responder al instante (no bloquear con SMTP).
-  // Prioridad alta para que el equipo distinga pedidos de notificaciones.
-  // El estado del envío se registra en la fila del pedido (worker) para que el
-  // panel muestre qué pedidos quedaron sin correo en vez de "pudrirse" en silencio.
-  let emailOk = true;
-  try {
-    await enqueueEmail({
-      to: env.ORDERS_MAIL_TO,
-      subject: `Pedido ${codigo} — ${cliente.nombre}`,
-      html: generarEmailPedido({ codigo, cliente, items, total }),
-      priority: 'high',
-      meta: { codigo },
-    });
-  } catch (error) {
-    console.error('Error encolando notificación de pedido:', error);
-    emailOk = false;
-    await trackPedidoEmail(codigo, { ok: false, error: error.message });
+  if (!sb) {
+    console.error('Supabase Admin no está configurado para registrar pedidos.');
+    return res.status(503).json({ error: 'El sistema de pedidos no está disponible.' });
   }
 
-  res.status(200).json({ ok: true, emailOk });
+  const { error: insertError } = await sb.from('pedidos').insert({
+    codigo,
+    cliente,
+    items,
+    total: Math.round(total * 100) / 100,
+  });
+
+  if (insertError) {
+    console.error('Error registrando pedido en Supabase:', insertError.message);
+    return res.status(500).json({ error: 'No se pudo registrar el pedido.' });
+  }
+
+  // Encolar el email en background (NO bloquear la respuesta HTTP).
+  // Si Redis o el worker están lentos, el cliente no se queda colgado.
+  // El estado del envío se registra en la fila del pedido (worker) para que el
+  // panel muestre qué pedidos quedaron sin correo en vez de "pudrirse" en silencio.
+  enqueueEmail({
+    to: env.ORDERS_MAIL_TO,
+    subject: `Pedido ${codigo} — ${cliente.nombre}`,
+    html: generarEmailPedido({ codigo, cliente, items, total }),
+    priority: 'high',
+    meta: { codigo },
+  }).catch((error) => {
+    console.error('Error encolando notificación de pedido:', error);
+    trackPedidoEmail(codigo, { ok: false, error: error.message }).catch(() => {});
+  });
+
+  res.status(200).json({ ok: true });
 });
 
 // ============================================================

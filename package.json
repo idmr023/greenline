@@ -13,6 +13,7 @@
     "sync_image": "node scripts/sincronizar-imagenes-greenline.mjs --local",
     "sync_clean": "node scripts/sincronizar-imagenes-greenline.mjs --cleanup",
     "generate-manuales": "node scripts/generate-manuales.mjs",
+    "pdf:ceo": "node scripts/generar-pdf-ceo.mjs",
     "bench": "node scripts/bench.mjs 50",
     "sonar:report": "node scripts/fetch-sonar-issues.mjs",
     "all": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
@@ -57,7 +58,11 @@
     "concurrently": "^10.0.5",
     "dotenv": "^17.4.2",
     "oxlint": "^1.75.0",
+    "puppeteer": "^25.11.0",
     "terser": "^5.51.2",
     "vite": "^8.2.0"
+  },
+  "allowScripts": {
+    "puppeteer@25.11.0": true
   }
 }

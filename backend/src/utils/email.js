@@ -31,6 +31,17 @@ function getTransporter() {
   return transporterPromise;
 }
 
+const SMTP_TIMEOUT_MS = 30_000;
+
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`Timeout: ${label} no respondió en ${ms / 1000}s`)), ms),
+    ),
+  ]);
+}
+
 export async function sendEmail({ to, subject, html, priority, auth, from }) {
   // Si se pasan credenciales propias (p. ej. las de reclamaciones), se crea un
   // transportador dedicado para ese envío; el resto de módulos sigue usando el
@@ -46,13 +57,17 @@ export async function sendEmail({ to, subject, html, priority, auth, from }) {
       })
     : await getTransporter();
 
-  const info = await transporter.sendMail({
-    from: from || env.EMAIL_FROM,
-    to,
-    subject,
-    html,
-    ...(priority ? { priority } : {}),
-  });
+  const info = await withTimeout(
+    transporter.sendMail({
+      from: from || env.EMAIL_FROM,
+      to,
+      subject,
+      html,
+      ...(priority ? { priority } : {}),
+    }),
+    SMTP_TIMEOUT_MS,
+    'SMTP sendMail',
+  );
   return info;
 }
 

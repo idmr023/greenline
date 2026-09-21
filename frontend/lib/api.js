@@ -19,9 +19,12 @@ function emitColdStart(detail) {
 
 let slowTimer = null;
 
+const DEFAULT_TIMEOUT_MS = 30_000;
+
 async function request(path, options = {}) {
-  const { method, body, headers } = options;
+  const { method, body, headers, timeout } = options;
   const started = performance.now();
+  const timeoutMs = timeout ?? DEFAULT_TIMEOUT_MS;
 
   // Si tras el umbral la respuesta no ha llegado, asumimos Render dormido
   // y avisamos para mostrar banner + skeleton ("Despertando sistema...").
@@ -32,6 +35,9 @@ async function request(path, options = {}) {
     emitColdStart({ coldStart: true, latency: ms, path });
   }, COLD_START_THRESHOLD_MS);
 
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
   let res;
   let data;
   try {
@@ -39,9 +45,16 @@ async function request(path, options = {}) {
       method,
       headers: { 'Content-Type': 'application/json', ...headers },
       body,
+      signal: controller.signal,
     });
     data = await res.json();
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw { status: 408, message: 'El servidor tardó demasiado en responder. Intenta de nuevo.' };
+    }
+    throw err;
   } finally {
+    clearTimeout(timer);
     if (slowTimer) {
       clearTimeout(slowTimer);
       slowTimer = null;

@@ -6,6 +6,10 @@ La Fase 2 tiene como propósito consolidar en Greenline las mejores prácticas o
 
 Greenline debe evolucionar hacia un ERP especializado en movilidad eléctrica: una solución que conecte ventas, inventario, tiendas, distribución, comunidad, servicio técnico y atención posventa en una sola operación confiable.
 
+### Objetivos y resultados esperados
+- Definir claramente los objetivos del proyecto y los resultados esperados con cada implementación.
+- Aclarar qué se busca conseguir, cómo se medirán los resultados y cómo se presentarán ante la dirección.
+
 ---
 
 ## 2. Principios que guiarán la implementación
@@ -39,28 +43,39 @@ La implementación se dividirá en estos bloques:
 - Usuarios independientes por área y autenticación mediante QR
 - Comunidad, participación y fidelización
 - Sistema unificado de citas de servicio técnico, en alcance parcial
+- Réplica de la página de la DUA (definición de alcance y funcionalidades)
+- Arquitectura de microservicios para el ERP y separación de repositorios
 
 ### 3.1. Levantamiento de información sobre la Fase 2
 
 Antes de construir cada módulo se debe levantar y validar la información real de la operación. El levantamiento será un entregable de esta fase, no una actividad informal.
 
-#### Información organizacional
-
+#### Información organizacional e infraestructura
 - Áreas existentes y responsables de cada una.
 - Tiendas, almacenes, centros de distribución y puntos de servicio.
+- Vehículos contenedores: Contenedor 118 (Callao) y Contenedor 338 (Chancay).
+- Distribución de técnicos por sucursal: Considerar una distribución de referencia de 2 técnicos por sucursal (actualmente San Miguel cuenta con 1 técnico y La Molina cuenta con 1 técnico).
 - Horarios de atención y horarios de servicio técnico.
+- Infraestructura actual y hosting: La empresa cuenta con un servidor propio (pendiente determinar si es físico o virtual, así como identificar características, capacidad, configuración y uso actual).
+- Sustento para el cambio de hosting: Elaborar un documento que sustente la necesidad de cambiar de hosting, presentando razones, argumentos técnicos/operativos, riesgos de no realizar el cambio, métricas/evidencias y beneficios esperados para solicitar acceso al hosting.
 - Usuarios actuales, usuarios que deben crearse y usuarios que aún no tienen acceso.
 - Roles, permisos y alcance por ubicación.
 - Canales actuales de comunicación: correo, WhatsApp, teléfono, formularios y atención presencial.
 
 #### Información de procesos
-
 - Flujo completo de pedido, reserva, pago, despacho, entrega y postventa.
+- Capacidad operativa diaria: Estimada en 6 vehículos por día. Establecer rangos de horas para organizar las citas y la atención de los vehículos según la cantidad de técnicos disponibles en cada sucursal.
 - Flujo de inventario, transferencias, ajustes, pérdidas y garantías.
 - Flujo de reclamaciones y escalamiento.
-- Flujo de citas: solicitud, confirmación, reprogramación, atención, cancelación y cierre.
+- Flujo de citas: solicitud, confirmación, reprogramación, atención, cancelación y cierre (incluyendo procedimiento ante enfermedad o ausencia de un técnico para notificar al cliente y coordinar nueva fecha).
+- Gestión de ventas y ERP: Implementar o evaluar un ERP para la gestión de ventas, considerando conexión con SUNAT, integración con información relacionada con Haily, y transición del registro manual actual mediante Google Drive (revisando que cada campo aparezca individualmente para facilitar el ingreso y gestión).
+- Gestión de comisiones: Centralizar y automatizar el cálculo de comisiones (actualmente en Google Drive y con variaciones según la sucursal).
 - Puntos donde actualmente se usan hojas de cálculo, mensajes manuales o correos.
 - Reglas que no deben romperse durante la transición.
+
+#### Seguimiento y presentación de resultados
+- Informe mensual de actividades: Registrar mensualmente lo planificado versus lo ejecutado, documentando avances, resultados y pendientes al cierre de cada mes.
+- Informe anual: Consolidar los informes mensuales al finalizar el año, presentando un resumen de objetivos frente a resultados, logros, pendientes y oportunidades de mejora.
 
 #### Información que se debe documentar
 
@@ -83,7 +98,16 @@ Cada módulo deberá contar con:
 - Mapa de procesos actuales y procesos objetivo.
 - Catálogo inicial de estados de pedidos, stock, reclamaciones y citas.
 - Inventario de integraciones y canales existentes.
-- Lista de riesgos, dependencias y decisiones pendientes.
+- Lista de pendientes por investigar o definir:
+  - Determinar si el servidor propio de la empresa es físico o virtual.
+  - Identificar estadísticas adicionales para el dashboard operativo.
+  - Definir funcionamiento y restricciones de la vinculación de celulares mediante QR.
+  - Establecer objetivos y resultados medibles de cada propuesta.
+  - Recopilar cifras y evidencias para justificar el cambio de hosting.
+  - Definir integración ERP, SUNAT y Haily.
+  - Precisar alcance de la réplica de la página de la DUA.
+  - Definir rangos horarios de atención y capacidad real por sucursal.
+  - Establecer procedimiento de reprogramación de citas por ausencia/enfermedad de técnicos.
 - Backlog priorizado con tareas técnicas y funcionales.
 
 No se debe asumir que un rol o proceso existe solo porque aparece en una pantalla. Si aún no hay usuarios de tiendas ni personal de servicio técnico, el sistema debe dejar preparado el modelo, pero no habilitar operaciones que no puedan ser administradas responsablemente.
@@ -143,9 +167,12 @@ Cada usuario deberá contar como mínimo con:
 
 El correo con alias (`+usuario`) debe tratarse como una identidad individual y no como una cuenta compartida. La validación debe impedir duplicados por usuario, correo normalizado y proveedor de identidad.
 
-#### Autenticación por QR
+#### Autenticación por QR y gestión de accesos
 
-El QR debe servir como mecanismo de acceso controlado para el usuario o para el puesto de operación, sin sustituir la identidad ni los permisos del backend.
+- Envío de correo electrónico al crear usuarios permitiéndoles generar su propia contraseña (evitando compartir contraseñas mediante chats u otros canales inseguros).
+- Eliminación del método actual de doble verificación (ingresar contraseña de usuario y posteriormente una contraseña web), reemplazándolo por un sistema de autenticación mediante QR más seguro.
+- Vinculación de dispositivos: Añadir una funcionalidad que permita vincular un celular al QR, definiendo el comportamiento del sistema tras la vinculación y los controles de seguridad necesarios para evitar accesos no autorizados.
+- El QR debe servir como mecanismo de acceso controlado para el usuario o para el puesto de operación, sin sustituir la identidad ni los permisos del backend.
 
 Requisitos:
 
@@ -223,6 +250,7 @@ La solidez del ERP Greenline dependerá de la disciplina del stock: movimiento, 
 
 Greenline necesita una versión adaptada con:
 
+- Actualización de stock por las tiendas: dar prioridad a que cada sucursal pueda actualizar su propio stock desde el sistema, facilitando la gestión de su inventario y evaluando cómo se reflejarán esas actualizaciones en el sistema central.
 - `stock_general` para consulta global por inventario general.
 - `stock_by_store` para consulta por una tienda.
 - `stock_movements` para historial de movimientos.
@@ -302,6 +330,11 @@ Greenline necesita:
 - Filtros por fecha, tienda, usuario y estado
 - Permisos por alcance de usuario
 
+#### Indicadores adicionales a evaluar
+
+- Revisar qué indicadores adicionales pueden visualizarse estadísticamente e identificar la información relevante para la toma de decisiones operativas.
+- Evaluar la incorporación de indicadores relacionados con: ventas, stock, citas de servicio, técnicos (atención y capacidad por técnico) y sucursales.
+
 #### KPI de prioridad
 
 - total de ventas por fecha
@@ -370,6 +403,7 @@ La comunidad de Greenline no debe limitarse a una base de clientes o a seguidore
 - Permitir registro de interés en modelos, accesorios, baterías, servicios y ubicaciones.
 - Medir altas, participación, referidos, conversiones, retención, aperturas y bajas de comunicación.
 - Crear un calendario de campañas y responsables por área.
+- Correos electrónicos de marketing: implementar correos con recomendaciones dirigidas a los usuarios, relacionados con las campañas de marketing, evaluando cómo se seleccionarán las recomendaciones y a qué segmentos de usuarios se enviarán.
 - Integrar la comunidad con pedidos, garantías, reclamaciones y futuras citas de servicio.
 
 #### Reglas de privacidad y operación
@@ -438,6 +472,12 @@ Greenline debe estandarizar el concepto de cita para todas las tiendas y futuros
 - Mismos campos mínimos y criterios de cancelación.
 - Identificación de tienda y futura asignación de técnico.
 - Disponibilidad configurable por ubicación, sin crear calendarios independientes incompatibles.
+
+#### Gestión de capacidad y reprogramación por ausencia de técnicos
+
+- Distribución de referencia de 2 técnicos por sucursal (San Miguel y La Molina cuentan actualmente con 1 técnico cada una).
+- Capacidad estimada de 6 vehículos por día; definir rangos horarios por cita según los técnicos disponibles en cada sucursal.
+- Establecer un procedimiento para cuando un técnico se enferme y no pueda asistir: notificar al cliente que su cita deberá ser reprogramada, definir el mecanismo de comunicación y coordinar una nueva fecha.
 
 #### Lo que queda pendiente para una fase posterior
 
@@ -590,15 +630,15 @@ Greenline debe conservar y reforzar:
 ### 5.1. Modelo general
 
 ```text
-Greenline
-├── frontend/
+greenline-web (Repositorio 1 — Web comercial)
+├── frontend/                (landpage, e-commerce, flujos de cliente)
 │   ├── components/
 │   ├── contexts/
 │   ├── hooks/
 │   ├── lib/
 │   ├── pages/
 │   └── routes/
-├── backend/
+├── backend/                 (backend comercial: pedidos, contact, blog, tiktok)
 │   ├── src/
 │   │   ├── config/
 │   │   ├── middleware/
@@ -611,6 +651,18 @@ Greenline
 ├── scripts/
 ├── docs/
 └── tests/
+
+greenline-erp (Repositorio 2 — ERP interno, por microservicios)
+├── api-auth/                (identidad, QR, usuarios, roles)
+├── api-stock/               (inventario, movimientos, aprobaciones)
+├── api-pedidos/             (pedidos, entregas, distribución)
+├── api-comunidad/           (comunidad, campañas, fidelización)
+├── api-citas/               (citas de servicio técnico)
+├── api-dashboard/           (KPIs, estadísticas)
+├── api-audit/               (auditoría y trazabilidad)
+├── web-admin/               (panel administrativo)
+├── packages/                (contratos API, schemas Zod, utils compartidos)
+└── docs/
 ```
 
 ### 5.2. Estructura funcional recomendada
@@ -649,6 +701,65 @@ Greenline
 - `pages/dashboard/`
 - `pages/configuracion/`
 
+### 5.3. Pipeline de desarrollo y despliegue
+
+#### Flujo de trabajo actual
+
+```mermaid
+flowchart TD
+    A["Desarrollo de cambios"] --> B["Subir cambios a GitHub"]
+    B --> C["Rama Develop"]
+    C --> D["Deploy de prueba en Vercel"]
+    C --> E["Deploy de prueba en Render"]
+    D --> F{"¿Se detectan errores?"}
+    E --> F
+    F -->|Sí| G["Generar log del error"]
+    G --> H["Corregir los problemas"]
+    H --> C
+    F -->|No| I["Merge a la rama principal"]
+    I --> J["Deploy automático"]
+```
+
+#### Consideraciones del pipeline
+
+- Los cambios se suben inicialmente a GitHub, a la rama `Develop`.
+- Se realizan despliegues de prueba en Vercel (frontend) y Render (backend).
+- Si se detectan errores, no se realiza el merge con la rama principal.
+- Cuando ocurre un error, se genera un log que registra el fallo.
+- Una vez corregidos los problemas y validados los cambios, se integran en la rama principal.
+- Después del merge, se realiza el despliegue automático.
+
+### 5.4. Arquitectura de microservicios y separación de repositorios
+
+A partir de la Fase 2, el ERP se desarrollará usando **microservicios** y con una **separación clara de repositorios**, para evitar mezclar en un mismo código base la web comercial y el sistema interno de gestión.
+
+#### Separación de repositorios
+
+**Repositorio 1 — Web (Greenline):**
+
+- Landpage, e-commerce, frontend comercial y su backend actual (pedidos, contacto, blog, catálogo público).
+- Enfocado al cliente final y a la conversión.
+- Continúa su pipeline actual (Git + Vercel/Render).
+
+**Repositorio 2 — ERP (Greenline):**
+
+- El ERP como tal: panel administrativo, operaciones internas y lógica de negocio.
+- Desarrollado con arquitectura de microservicios, un servicio por dominio: auth/usuarios (identidad y QR), stock (inventario, movimientos, aprobaciones), pedidos/entregas, comunidad, citas, dashboard y auditoría.
+- Cada microservicio con su despliegue y datos independientes (base de datos o schema separado por servicio).
+- `packages/` compartido para contratos API, schemas y utilidades comunes entre servicios.
+
+#### Justificación
+
+- Evitar la mezcla entre lo comercial y lo interno: la web pública y el ERP tienen ciclos de vida, riesgos, usuarios y exigencias de seguridad distintas.
+- Despliegues independientes: un cambio en el ERP no compromete la web de ventas, y viceversa.
+- Permisos y auditoría aislados: los microservicios del ERP pueden aplicar RBAC y trazabilidad de forma aislada y coherente por dominio.
+- Escalado por servicio: solo los dominios con mayor carga (stock, dashboard) escalan de forma independiente.
+
+#### Transición desde el monolito modular actual
+
+- Los dominios ya están delimitados (`routes/` + `services/` por negocio), lo que facilitará la extracción progresiva hacia el repositorio ERP.
+- La migración será gradual: primero se define el repositorio ERP y sus servicios base (auth, stock, pedidos), y luego se migran los dominios restantes sin romper la operación.
+
 ---
 
 ## 6. Roadmap de implementación por módulos
@@ -657,6 +768,7 @@ Greenline
 
 - levantamiento de información por área
 - matriz de usuarios, roles, tiendas y responsables
+- definir separación de repositorios (web comercial vs ERP) y descomposición en microservicios del ERP
 - auditoría central
 - permisos y scopes
 - endpoints estandarizados
@@ -730,6 +842,7 @@ Greenline
 - Aprobar / rechazar movimientos
 - Ver stock crítico
 - Generar transferencias entre sedes
+- Permitir que la tienda actualice su propio stock (con reflejo en el sistema central)
 - Exportar / consultar historial
 
 ### 7.2. Módulo de pedidos
@@ -757,6 +870,7 @@ Greenline
 - top modelos con riesgo
 - entregas pendientes
 - ingresos por tienda
+- indicadores de citas y capacidad por técnico y sucursal
 - alertas y notificaciones
 
 ### 7.5. Módulo de notificaciones
@@ -769,9 +883,11 @@ Greenline
 ### 7.6. Módulo de usuarios por área
 
 - crear usuarios individuales con alias de correo
+- enviar correo para que cada usuario genere su propia contraseña
 - asignar área, rol y ubicación
 - activar, suspender y revocar accesos
 - emitir, renovar y revocar QR
+- vincular y desvincular dispositivos (celulares) al QR
 - consultar historial de accesos
 - exigir segundo factor en operaciones críticas
 
@@ -781,6 +897,7 @@ Greenline
 - registrar consentimiento y preferencias
 - segmentar contactos
 - crear campañas y beneficios
+- enviar correos de marketing con recomendaciones según campaña y segmento
 - registrar eventos, referidos y participación
 - medir conversión y retención
 
@@ -790,6 +907,8 @@ Greenline
 - consultar cita desde administración central
 - cambiar estados normalizados
 - reprogramar o cancelar con motivo
+- gestionar capacidad por sucursal (6 vehículos/día, rangos horarios según técnicos disponibles)
+- notificar reprogramación al cliente ante ausencia o enfermedad del técnico
 - asociar cliente, vehículo, tienda y servicio
 - notificar cambios
 - auditar toda modificación
@@ -821,7 +940,7 @@ Greenline
 ### 8.4. Operatividad
 
 - la administración no necesita recurrir a Excel para decidir stock o entregas
-- la herramienta responde a “qué está pendiente, qué bloqueado y por qué”
+- la herramienta responde a "qué está pendiente, qué bloqueado y por qué"
 - un gerente puede operar en menos de 3 clics desde la vista de alertas al detalle
 
 ### 8.5. Usuarios y autenticación
@@ -899,9 +1018,191 @@ Mitigación:
 - registrar consentimiento
 - conectar comunidad con postcompra, servicio y referidos
 
+### Riesgo 8: fragmentación prematura en microservicios antes de tener la operación clara
+
+Mitigación:
+- definir los bordes de cada microservicio a partir de los dominios ya identificados (auth, stock, pedidos, comunidad, citas, dashboard, auditoría)
+- migrar progresivamente desde el monolito modular actual, empezando por los servicios base (auth, stock, pedidos)
+- mantener contratos API compartidos (`packages/`) para evitar divergencia entre servicios
+- no extraer un dominio a microservicio hasta contar con su levantamiento de información validado
+
 ---
 
-## 10. Recomendación final de implementación
+## 10. Análisis del sistema actual de citas (Apps Script → ERP)
+
+### 10.1. Situación actual
+
+Actualmente las citas de recepción de vehículos se gestionan mediante:
+
+- **Google Forms** → formulario de solicitud del cliente
+- **Google Sheets** → registro de respuestas
+- **Google Apps Script** → procesamiento automático (validación + asignación de slot)
+- **Google Calendar** → control de disponibilidad y eventos
+
+### 10.2. Análisis del script actual
+
+El script `procesarRecepciones()` ejecuta el siguiente flujo:
+
+| Paso | Función | Lógica |
+|------|---------|--------|
+| 1 | Duplicado | Mismo nombre + misma fecha → rechaza |
+| 2 | Fin de semana | Sábado/Domingo → rechaza |
+| 3 | Anticipación | Menos de 12 horas → rechaza |
+| 4 | Cupos | Máximo 6 eventos en el día (Google Calendar) |
+| 5 | Asignación de slot | Busca el primero libre entre 6 slots fijos |
+| 6 | Creación de evento | Crea evento en Google Calendar |
+| 7 | Notificación | Envía email de confirmación o rechazo |
+
+#### Configuración actual
+
+```
+CALENDAR_ID = 'primary'
+MAX_CUPOS = 6
+ANTICIPACION_HORAS = 12
+```
+
+#### Slots disponibles (fijos)
+
+| Slot | Hora inicio | Hora fin |
+|------|-------------|----------|
+| 1 | 9:30 | 9:45 |
+| 2 | 9:45 | 10:00 |
+| 3 | 10:00 | 10:15 |
+| 4 | 10:15 | 10:30 |
+| 5 | 10:30 | 10:45 |
+| 6 | 10:45 | 11:00 |
+
+#### Emails enviados
+
+| Tipo | Subject | Contexto |
+|------|---------|----------|
+| Confirmación | "Cita técnica confirmada" | Slot asignado correctamente |
+| Fin de semana | "Cita no registrada" | Día no laborable + días disponibles |
+| Anticipación | "Cita no registrada" | Menos de 12h + días disponibles |
+| Sin cupos | "Cita no registrada" | Día lleno + días disponibles |
+| Duplicado | "Solicitud duplicada" | Ya tiene cita el mismo día |
+
+### 10.3. Limitaciones del sistema actual
+
+| Problema | Impacto |
+|----------|---------|
+| **Dependencia de Google** | Forms + Sheets + Calendar + Apps Script = 4 servicios externalizados |
+| **Sin trazabilidad centralizada** | Los logs quedan en Apps Script, no en el ERP |
+| **Sin integración con el ERP** | No hay conexión con clientes, pedidos o inventario |
+| **Sin control de roles** | Cualquiera con acceso al Sheet puede modificar |
+| **Sin auditoría** | No se registra quién cambió qué y cuándo |
+| **Email transaccional limitado** | Gmail tiene límites de envío diario |
+| **Sin escalamiento** | Si crece el volumen, Google limita el uso |
+
+### 10.4. Migración: Apps Script → ERP Greenline
+
+#### Equivalencias
+
+| Apps Script | Equivalente ERP |
+|-------------|-----------------|
+| Google Forms | `BookingForm.jsx` (formulario React público) |
+| Google Sheets | Tabla `citas` en Supabase |
+| Google Calendar | Tabla `citas` (ya no se necesita Calendar externo) |
+| `MailApp.sendEmail()` | `enqueueEmail()` (BullMQ + Nodemailer existente) |
+| `procesarRecepciones()` | Ruta Express `POST /api/citas` o Edge Function |
+| `obtenerDiasDisponiblesSemana()` | `GET /api/citas/disponibilidad?fecha=YYYY-MM-DD` |
+
+### 10.5. Tabla Supabase propuesta: `citas`
+
+```sql
+CREATE TABLE citas (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  cliente_nombre TEXT NOT NULL,
+  cliente_email TEXT,
+  cliente_telefono TEXT,
+  vehiculo TEXT NOT NULL,
+  servicio TEXT NOT NULL,
+  tienda_id UUID REFERENCES tiendas(id),
+  fecha DATE NOT NULL,
+  hora_inicio TIME NOT NULL,
+  hora_fin TIME NOT NULL,
+  estado TEXT DEFAULT 'pendiente'
+    CHECK (estado IN ('pendiente','confirmada','completada','cancelada','rechazada')),
+  motivo_rechazo TEXT,
+  notas_admin TEXT,
+  user_id UUID REFERENCES users(id),
+  canal_origen TEXT DEFAULT 'web',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Índices
+CREATE INDEX idx_citas_fecha ON citas(fecha);
+CREATE INDEX idx_citas_estado ON citas(estado);
+CREATE INDEX idx_citas_tienda ON citas(tienda_id);
+
+-- Slot único: no se puede agendar el mismo slot si no está cancelado/rechazado
+CREATE UNIQUE INDEX idx_citas_slot_unico
+  ON citas(fecha, hora_inicio)
+  WHERE estado NOT IN ('cancelada', 'rechazada');
+```
+
+### 10.6. Reglas de negocio a implementar
+
+| Regla | Implementación | Fuente |
+|-------|----------------|--------|
+| **Duplicado** | UNIQUE INDEX en (fecha, hora_inicio) excluyendo canceladas/rechazadas | Apps Script |
+| **Fin de semana** | CHECK constraint: `EXTRACT(DOW FROM fecha) NOT IN (0, 6)` | Apps Script |
+| **Anticipación 12h** | Validación en la ruta antes de insertar | Apps Script |
+| **Máximo 6 por día** | COUNT de citas activas por fecha < 6 (en la ruta o RLS) | Apps Script |
+| **Slots fijos** | 9:30, 9:45, 10:00, 10:15, 10:30, 10:45 (configurable) | Apps Script |
+| **Reprogramación** | Cambiar estado a REPROGRAMAR + crear nueva cita | Nuevo (Fase 2) |
+| **Ausencia de técnico** | Notificar al cliente + reprogramar automáticamente | Nuevo (Fase 2) |
+
+### 10.7. Endpoints propuestos
+
+```
+POST   /api/citas                    → Crear cita (cliente o admin)
+GET    /api/citas/disponibilidad     → Slots libres para una fecha
+GET    /api/citas                    → Listar citas (admin, con filtros)
+GET    /api/citas/:id                → Detalle de una cita
+PATCH  /api/citas/:id                → Cambiar estado (admin)
+DELETE /api/citas/:id                → Cancelar cita (admin)
+```
+
+### 10.8. Componentes React a crear
+
+| Componente | Ubicación | Función |
+|------------|-----------|---------|
+| `BookingForm.jsx` | `frontend/pages/` | Formulario público: seleccionar fecha → ver slots → reservar |
+| `AdminCitas.jsx` | `frontend/components/admin/` | Vista admin: lista, filtro por fecha/estado, gestionar |
+| `useCitas.js` | `frontend/hooks/` | Hook para disponibilidad de slots y CRUD |
+
+### 10.9. Flujo de integración
+
+```
+Cliente                  Supabase                 Backend                 Admin
+  │                         │                        │                      │
+  │─ Selecciona fecha ─────→│─ COUNT citas por fecha→│                      │
+  │← Slots disponibles ────│                        │                      │
+  │─ Elige slot + llena form│                        │                      │
+  │── POST /api/citas ──────┼───────────────────────→│                      │
+  │                         │  Validar: duplicado,   │                      │
+  │                         │  fin semana, 12h,      │                      │
+  │                         │  cupos                 │                      │
+  │                         │← INSERT cita ──────────│                      │
+  │                         │← Encolar email ────────│                      │
+  │← Confirmación ──────────│                        │─ Email confirmación→│
+  │                         │                        │                      │
+  │                         │                        │─ LIST /api/citas ──→│
+```
+
+### 10.10. Preguntas abiertas antes de implementar
+
+1. **¿Los slots siguen siendo 9:30-10:45 (6 slots de 15 min)?** ¿O cambia la configuración?
+2. **¿El servicio es solo "Recepción de vehículo"?** ¿O hay múltiples tipos de cita?
+3. **¿Quién ve las citas?** ¿Solo admin? ¿O el cliente también puede ver/cancelar su cita?
+4. **¿Se necesita integración con Google Calendar aún?** ¿O todo queda en Supabase?
+5. **¿El email de confirmación se envía desde la misma cuenta de Gmail/SMTP que usa el resto del ERP?**
+
+---
+
+## 11. Recomendación final de implementación
 
 La Fase 2 debe centrarse en los patrones que mejor aprovechan Greenline:
 
@@ -924,7 +1225,7 @@ En otras palabras: Greenline debe construir una identidad tecnológica propia, t
 
 ---
 
-## 11. Resumen ejecutivo
+## 12. Resumen ejecutivo
 
 La Fase 2 transforma Greenline de un portal moderno con capacidades e-commerce y administración básica a una plataforma operativa completa, con:
 

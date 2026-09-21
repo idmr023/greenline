@@ -5,7 +5,6 @@ import {
   CheckCircle2, Phone, AlertCircle,
 } from '../lib/icons';
 import { useCart } from '../contexts/CartContext';
-import { supabase } from '../lib/supabase';
 import { pedidosAPI } from '../lib/api';
 import { formatPrice } from '../lib/utils';
 import { CONTACT, BRAND } from '../lib/config';
@@ -168,29 +167,21 @@ export default function Checkout() {
     const snapshotTotal = payload.total;
 
     try {
-      const { error: insertErr } = await supabase.from('pedidos').insert(payload);
-      if (insertErr) throw new Error('supabase');
-
-      try {
-        const res = await pedidosAPI.send({
-          codigo,
-          cliente,
-          items: snapshotItems,
-          total: snapshotTotal,
-        });
-        setEmailNotice(res?.emailOk === false);
-      } catch (mailErr) {
-        console.error('No se pudo enviar el correo del pedido:', mailErr);
-        setEmailNotice(true);
-      }
+      const res = await pedidosAPI.send({
+        codigo,
+        cliente,
+        items: snapshotItems,
+        total: snapshotTotal,
+      });
+      setEmailNotice(res?.emailOk === false);
 
       setSuccess({ codigo, items: snapshotItems, total: snapshotTotal });
       clear();
     } catch (err) {
       setError(
-        err.message === 'supabase'
-          ? 'No se pudo registrar el pedido. Intenta nuevamente o escríbenos por WhatsApp.'
-          : 'No se pudo registrar el pedido. Intenta nuevamente.',
+        err?.error === 'El sistema de pedidos no está disponible.'
+          ? err.error
+          : 'No se pudo registrar el pedido. Intenta nuevamente o escríbenos por WhatsApp.',
       );
     } finally {
       setSending(false);
