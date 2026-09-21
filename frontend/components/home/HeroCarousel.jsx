@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import AnniversaryBanner from '../aniversario/AnniversaryBanner';
+import ExpoChinaBanner from '../ExpoChinaBanner';
 import TikTokSlide from '../TikTokSlide';
 import { BBVACard } from '../ui/general/BBVACard';
 import { carrousel_slides } from '../../../src/data_json';
@@ -25,57 +26,43 @@ export default function HeroCarousel() {
     <BBVACard isBanner={true} />
 
     <div className="relative aspect-1920/600 overflow-hidden bg-gradient-to-b from-[#064e3b] to-black">
-      <div
-        className="pointer-events-none absolute inset-0 z-10"
-        style={{
-          background:
-            'radial-gradient(120% 80% at 50% -10%, rgba(6,162,87,0.55) 0%, rgba(6,162,87,0.25) 28%, rgba(6,162,87,0.08) 55%, transparent 78%), linear-gradient(180deg, rgba(6,162,87,0.35) 0%, rgba(6,162,87,0.05) 40%, rgba(0,0,0,0.55) 100%)',
-        }}
-      />
-      {carrousel_slides.map((slide, index) => (
-        <div
-          key={index}
-          className={`absolute inset-0 w-full h-full transition-opacity duration-700 ${
-            index === current ? 'opacity-100 z-10' : 'opacity-0 z-0'
-          }`}
-        >
-          {slide.reactBanner ? (
-            slide.tiktokBanner ? (
-              <TikTokSlide />
-            ) : (
-              <a href={slide.to} className="block w-full h-full">
-                <AnniversaryBanner />
-              </a>
-            )
-          ) : (
+      <div className="pointer-events-none absolute inset-0 z-10" />
+        {carrousel_slides.map((slide, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 w-full h-full transition-opacity duration-700 ${
+              index === current ? 'opacity-100 z-10' : 'opacity-0 z-0'
+            }`}
+          >
+
+          {slide.expoBanner ? (
             <a href={slide.to} className="block w-full h-full">
-              <img
-                src={slide.img}
-                alt={slide.title}
-                className="w-full h-full object-cover opacity-70"
-                style={{ filter: 'brightness(0.92) saturate(1.05) hue-rotate(-8deg)' }}
-              />
+              <ExpoChinaBanner />
             </a>
-          )}
-
-          {!slide.reactBanner && (
-            <div className="absolute inset-0 flex items-center pointer-events-none">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-                {/* Restauramos los eventos de clic solo para el texto por si hay botones */}
-                <div className="max-w-xl text-white pointer-events-auto">
-                  
-                  <h2 className="text-[clamp(1.5rem,3.5vw,3rem)] font-bold mb-[clamp(0.75rem,1.5vw,1rem)] leading-tight">
-                    {slide.title}
-                  </h2>
-
-                  <p className="text-[clamp(0.875rem,1.5vw,1.125rem)] mb-[clamp(1rem,2vw,1.5rem)] text-gray-100">
-                    {slide.subtitle}
-                  </p>
-
+          ) : (
+              <>
+                <a href={slide.to} className="block w-full h-full">
+                  <img
+                    src={slide.img}
+                    alt={slide.title}
+                    className="w-full h-full object-cover opacity-70"
+                    style={{ filter: 'brightness(0.92) saturate(1.05) hue-rotate(-8deg)' }}
+                  />
+                </a>
+                <div className="absolute inset-0 flex items-center pointer-events-none">
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                    <div className="max-w-xl text-white pointer-events-auto">
+                      <h2 className="text-[clamp(1.5rem,3.5vw,3rem)] font-bold mb-[clamp(0.75rem,1.5vw,1rem)] leading-tight">
+                        {slide.title}
+                      </h2>
+                      <p className="text-[clamp(0.875rem,1.5vw,1.125rem)] mb-[clamp(1rem,2vw,1.5rem)] text-gray-100">
+                        {slide.subtitle}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
+              </>
+            )}
           
         </div>
       ))}

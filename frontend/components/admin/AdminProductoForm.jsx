@@ -4,7 +4,7 @@ import { clearCache } from '../../lib/productos';
 import { versionarImagen } from '../../lib/images';
 import { imagenesAPI } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
-import { ArrowLeft, ArrowUp, ArrowDown, Save, Upload, X, GripVertical, Search, FolderOpen, Loader2 } from '../../lib/icons';
+import { ArrowLeft, ArrowUp, ArrowDown, Save, Upload, X, GripVertical, Search, FolderOpen, Loader2, Eye, EyeOff } from '../../lib/icons';
 
 const EMPTY_PRODUCT = {
   nombre: '',
@@ -115,6 +115,7 @@ async function guardarColores(isEdit, prodId, productoColores) {
       producto_id: prodId,
       color_id: Number(cr.color_id),
       stock: 0,
+      visible: cr.visible !== false,
     });
     if (error) return error;
   }
@@ -132,7 +133,7 @@ async function guardarImagenes(isEdit, prodId, imagenes) {
     const { error } = await supabase.from('imagenes').insert({
       producto_id: prodId,
       url: img.url,
-      color: img.color || null,
+      color: img.color,
       es_principal: i === 0,
       orden: i,
     });
@@ -250,6 +251,7 @@ potencia_bateria: ft.potencia_bateria || '',
         setProductoColores((pcr || []).map((r) => ({
           color_id: r.color_id,
           nombre: r.color?.nombre || '',
+          visible: r.visible !== false,
           porUbicacion: {},
         })));
 
@@ -307,6 +309,24 @@ potencia_bateria: ft.potencia_bateria || '',
       return;
     }
 
+    const opcionesColor = productoColores.filter((cr) => cr.nombre).map((cr) => cr.nombre);
+    const imgSinColor = imagenes.some((img) => img.url && !img.color);
+    const imgColorNoRegistrado = imagenes.some(
+      (img) => img.url && img.color && !opcionesColor.includes(img.color),
+    );
+    if (imgSinColor) {
+      alert('Todas las imágenes deben tener un color asignado (no existe "General / Sin color").');
+      return;
+    }
+    if (imgColorNoRegistrado) {
+      alert('Hay imágenes con un color que no está registrado en la sección Colores. Regístralo o reasigna la imagen.');
+      return;
+    }
+    if (imagenes.some((img) => img.url) && !opcionesColor.length) {
+      alert('El producto tiene imágenes pero ningún color registrado. Agrega los colores en la sección Colores.');
+      return;
+    }
+
     setSaving(true);
 
     const fallo = await guardarProductoCompleto({
@@ -340,22 +360,46 @@ potencia_bateria: ft.potencia_bateria || '',
   };
 
   const addColor = () => {
-    setProductoColores((prev) => [...prev, { color_id: '', nombre: '', porUbicacion: {} }]);
+    setProductoColores((prev) => [...prev, { color_id: '', nombre: '', visible: true, porUbicacion: {} }]);
   };
 
   const updateColorRel = (index, field, value) => {
+    if (field === 'color_id') {
+      const viejo = productoColores[index]?.nombre;
+      const found = colores.find((c) => c.id === Number(value));
+      const nuevo = found?.nombre || '';
+      setProductoColores((prev) => {
+        const next = [...prev];
+        next[index] = { ...next[index], color_id: value, nombre: nuevo };
+        return next;
+      });
+      // Reasignar las imágenes que usaban el color anterior
+      if (viejo && viejo !== nuevo) {
+        setImagenes((prev) => prev.map((img) => (img.color === viejo ? { ...img, color: nuevo } : img)));
+      }
+      return;
+    }
     setProductoColores((prev) => {
       const next = [...prev];
       next[index] = { ...next[index], [field]: value };
-      if (field === 'color_id') {
-        const found = colores.find((c) => c.id === Number(value));
-        next[index].nombre = found?.nombre || '';
-      }
+      return next;
+    });
+  };
+
+  const toggleColorVisible = (index) => {
+    setProductoColores((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], visible: !(next[index].visible !== false) };
       return next;
     });
   };
 
   const removeColor = (index) => {
+    const nombre = productoColores[index]?.nombre;
+    if (nombre && imagenes.some((img) => img.url && img.color === nombre)) {
+      alert(`Hay imágenes asignadas al color "${nombre}". Reasígnalas u oculta el color con el icono de ojo en vez de eliminarlo.`);
+      return;
+    }
     setProductoColores((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -436,15 +480,8 @@ potencia_bateria: ft.potencia_bateria || '',
     setUploading(false);
   };
 
-  const getColorOptions = () => {
-    const opts = productoColores
-      .filter((cr) => cr.nombre)
-      .map((cr) => cr.nombre);
-    for (const img of imagenes) {
-      if (img.color && !opts.includes(img.color)) opts.push(img.color);
-    }
-    return opts;
-  };
+  const getColorOptions = () =>
+    productoColores.filter((cr) => cr.nombre).map((cr) => cr.nombre);
 
   const abrirExplorador = (index) => {
     setExploradorIndice(index);
@@ -648,10 +685,28 @@ potencia_bateria: ft.potencia_bateria || '',
                   {colores.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                 </select>
                 {/* COMENTADO (temporal): <span>Total: {colorTotal(cr)}</span> */}
+                <button
+                  type="button"
+                  onClick={() => toggleColorVisible(i)}
+                  disabled={!cr.nombre}
+                  title={cr.visible !== false ? 'Ocultar color (sus imágenes se ocultan en la web)' : 'Mostrar color'}
+                  className={`p-1.5 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
+                    cr.visible !== false
+                      ? 'text-brand hover:bg-brand/10'
+                      : 'text-gray-400 hover:bg-gray-100'
+                  }`}
+                >
+                  {cr.visible !== false ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                </button>
                 <button onClick={() => removeColor(i)} className="p-1.5 text-gray-400 hover:text-red-500 transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               </div>
+              {cr.visible === false && (
+                <p className="text-xs text-amber-600 mt-1.5 pl-7">
+                  Color oculto: sus imágenes no se muestran en la web (siguen guardadas).
+                </p>
+              )}
               {/* COMENTADO (temporal — stock por sucursal):
               <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-3 gap-x-3 gap-y-2 pl-7">
                 {sucursales.map((t) => (
@@ -719,17 +774,22 @@ potencia_bateria: ft.potencia_bateria || '',
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500 mb-1 block">Color</label>
+                  <label className="text-xs text-gray-500 mb-1 block">Color *</label>
                   <select
                     value={img.color}
                     onChange={(e) => updateImage(i, 'color', e.target.value)}
-                    className="input text-xs"
+                    className={`input text-xs ${img.url && !img.color ? 'border-red-400' : ''}`}
                   >
-                    <option value="">General / Sin color</option>
+                    <option value="">Seleccionar color...</option>
                     {getColorOptions().map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
+                  {img.url && !getColorOptions().includes(img.color) && (
+                    <p className="text-[11px] text-red-500 mt-1">
+                      Registra primero el color en la sección Colores.
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex flex-col items-center gap-1 mt-1">

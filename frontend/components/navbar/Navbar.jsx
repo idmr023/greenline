@@ -39,6 +39,8 @@ const NAVIGATION = {
   },
 
   direct: [
+    { label: 'GreenTips', to: '/tips' },
+    // { label: 'ExpoChina', to: '/expochina' },
     { label: 'Nosotros', to: '/nosotros' },
     { label: 'Blog', to: '/blog' },
     { label: 'Preguntas frecuentes', to: '/preguntas-frecuentes' },

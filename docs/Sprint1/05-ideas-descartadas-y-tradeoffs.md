@@ -36,3 +36,18 @@ Durante el desarrollo del Sprint 1 se evaluaron diversas propuestas y caracterí
 - **Autenticación y Roles Estrictos (RLS):**
   - *Trade-off:* Implementar permisos personalizados requería mayor complejidad en las políticas de seguridad de Supabase.
   - *Decisión:* Se estructuraron roles claros (`ADMIN` y `DESARROLLADOR_WEB`) mediante Row Level Security, asegurando que la gestión de inventario y blogs esté protegida ante accesos no autorizados.
+
+---
+
+## 3. Decisiones y Trade-offs de la Iteración Posterior (Setiembre 2026)
+
+- **"Conviértete en distribuidor" (público):**
+  - *Estado:* Pendiente. Existe la gestión interna de distribuidores (`AdminDistribuidores`) y el directorio anónimo en `StoreLocator`, pero aún no hay banner/formulario público de captación de distribuidores (homepage, banners o mapas).
+- **Visibilidad de distribuidores sin canibalizar la venta directa:**
+  - *Debate:* ¿Página web propia por distribuidor o exposición pública? Se priorizó **mantener el anonimato parcial** del distribuidor en el Store Locator (solo razón social/dirección) para evitar hacerse competencia con la venta directa; el modelo definitivo sigue en diseño.
+- **Aviso "La disponibilidad y especificaciones están sujetas a cambios sin previo aviso":**
+  - *Decisión:* Eliminado por riesgo de imagen y por el enfoque de transparencia en fichas técnicas reales; se mantienen rangos honestos de autonomía y motores con valores puntuales.
+- **SOAT/Placa como Sí/No:**
+  - *Decisión:* Reemplazar valores booleanos crudos (`true`/`false`) por etiquetas "Sí"/"No"/"Consultar" en la vista cliente.
+- **Unificación de botones flotantes (subir / WhatsApp):**
+  - *Decisión técnica:* Consolidar los estilos duplicados en un único `FloatingActionButton` reutilizable y centralizar la construcción de enlaces `wa.me` en `buildWhatsAppLink` (DRY).

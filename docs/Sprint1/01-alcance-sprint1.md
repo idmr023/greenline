@@ -37,3 +37,17 @@
 - **Backend / Base de Datos:** Supabase (PostgreSQL con Row Level Security - RLS).
 - **Herramientas de Automatización y Scripts (Node.js):** Sharp (procesamiento de imágenes), scripts de sincronización (`sincronizar-imagenes-greenline.mjs`, `generate-manuales.mjs`, `security-smoke.mjs`).
 - **Control de Versiones y Despliegue:** Git / GitHub, Vercel / Render.
+
+---
+
+## 4. Actualización Posterior al Sprint 1 (Setiembre 2026)
+
+Iteración de perfeccionamiento y contenido ejecutada después del cierre del Sprint 1. Documentada en `03-tareas-completadas.md` (sección 8) y en el Product Backlog (Módulo 8).
+
+**Objetivos cubiertos:**
+- Integración de la **comunidad Green Line** dentro de la web (canal de Instagram + canal de WhatsApp) con sección dedicada en el homepage y botón flotante unificado.
+- Ampliación del **catálogo de setiembre** (campaña de aniversario con el nuevo producto **GreenLine X6**, mapeo de vídeos y manuales por modelo).
+- **Manuales en modo revista/libro** (visor flipbook de doble página).
+- **Página ExpoChina** "Próximamente" con pre-inscripción de interesados.
+- **Libro de Reclamaciones**: almacenamiento en base de datos, vista desde `/admin`, remitente dedicado (correo de Mayra) y aviso legal de respuesta en **máximo 15 días hábiles**.
+- Refinamientos de UX (SOAT en Sí/No, colores por producto, FAQ con paleta verde/blanco/negro, subtítulo legible en Sobre Nosotros) y exclusión del efecto festivo solo en `/libro-reclamaciones`.

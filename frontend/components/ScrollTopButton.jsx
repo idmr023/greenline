@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ArrowUp } from '../lib/icons';
+import FloatingActionButton from './ui/general/FloatingActionButton';
 
 export default function ScrollTopButton() {
   const [visible, setVisible] = useState(false);
@@ -11,15 +12,12 @@ export default function ScrollTopButton() {
   }, []);
 
   return (
-    <button
-      type="button"
+    <FloatingActionButton
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      className={`fixed bottom-24 right-6 z-40 p-3 rounded-full bg-brand text-white shadow-lg hover:bg-brand-dark transition-all ${
-        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
-      }`}
-      aria-label="Volver arriba"
-    >
-      <ArrowUp className="w-6 h-6" />
-    </button>
+      icon={<ArrowUp className="w-6 h-6" />}
+      ariaLabel="Volver arriba"
+      visible={visible}
+      className="bottom-24 z-40"
+    />
   );
 }
