@@ -67,3 +67,29 @@ services:
     envVars:
       - key: KEEPALIVE_URL
         sync: false
+  # Recovery de emails perdidos: reenvía pedidos con email_enviado=false de las últimas 72h.
+  # Corre cada 30 min para cubrir gaps del fin de semana cuando el worker no estuvo activo.
+  - type: cron
+    name: greenline-email-recovery
+    runtime: node
+    rootDir: backend
+    schedule: */30 * * * *
+    buildCommand: npm install --omit=dev
+    startCommand: node scripts/recover-pending-emails.mjs
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: ORDERS_MAIL_TO
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false

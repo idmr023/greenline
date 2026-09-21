@@ -20,9 +20,14 @@ export default function AdminColores() {
   }
 
   const handleAdd = async () => {
-    if (!newColor.nombre.trim()) return;
+    const nombre = newColor.nombre.trim();
+    if (!nombre) return;
+    if (colores.some((c) => c.nombre.toLowerCase() === nombre.toLowerCase())) {
+      alert('Ya existe un color con ese nombre');
+      return;
+    }
     const { error } = await supabase.from('colores').insert({
-      nombre: newColor.nombre.trim(),
+      nombre,
       hex_code: newColor.hex_code || null,
     });
     if (error) {
@@ -34,11 +39,20 @@ export default function AdminColores() {
   };
 
   const handleUpdate = async (id) => {
-    if (!editForm.nombre.trim()) return;
-    await supabase.from('colores').update({
-      nombre: editForm.nombre.trim(),
+    const nombre = editForm.nombre.trim();
+    if (!nombre) return;
+    if (colores.some((c) => c.id !== id && c.nombre.toLowerCase() === nombre.toLowerCase())) {
+      alert('Ya existe otro color con ese nombre');
+      return;
+    }
+    const { error } = await supabase.from('colores').update({
+      nombre,
       hex_code: editForm.hex_code || null,
     }).eq('id', id);
+    if (error) {
+      alert(error.message.includes('duplicate') ? 'Ya existe otro color con ese nombre' : error.message);
+      return;
+    }
     setEditingId(null);
     load();
   };
@@ -47,7 +61,11 @@ export default function AdminColores() {
     if (!confirm(`¿Eliminar el color "${nombre}"?`)) return;
     const { error } = await supabase.from('colores').delete().eq('id', id);
     if (error) {
-      alert('No se puede eliminar: está en uso por productos');
+      if (error.message?.includes('foreign key') || error.message?.includes('violates')) {
+        alert('No se puede eliminar: está en uso por productos');
+      } else {
+        alert(error.message);
+      }
       return;
     }
     load();

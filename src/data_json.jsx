@@ -37,12 +37,8 @@ export const carrousel_slides = [
     img: CARRUSEL[4],
   },
   {
-    title: 'Próximamente en ExpoChina',
-    subtitle: 'Acompáñanos en la feria de innovación y movilidad eléctrica. Pre-inscríbete y accede a beneficios exclusivos.',
-    cta: 'Inscribirme en ExpoChina',
-    to: '/expochina',
-    reactBanner: true,
-    expoBanner: true,
+    to: '#',
+    img: CARRUSEL[5],
   },
 ];
 
