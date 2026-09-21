@@ -12,11 +12,9 @@ import { CATEGORIAS, sortProducts, fetchProductos } from '../lib/productos';
 import { isAniversarioActivo } from '../lib/aniversario'; // 1. Importación añadida para fechas
 import AnniversaryPromo from '../components/ui/aniversario/AniversaryPromo';
 import EcommerceStrip from '../components/EcommerceStrip';
-import FeatureCard from '../components/ui/general/FeaturedCard';
-import { inclusive_vehicles } from '../../src/data_json.jsx'; // 2. Ruta de importación estandarizada
-import { Beneficios } from '../components/home/Beneficios.jsx';
 import { LinkButton } from '../components/ui/general/LinkButton.jsx';
 import OficialDistributors from '../components/home/OficialDistributors.jsx';
+import CommunitySection from '../components/home/CommunitySection.jsx';
 
 
 export default function Home() {
@@ -153,49 +151,12 @@ export default function Home() {
           </div>
         </section>
       )} */}
- 
-
-      {/* M-CAR — Inclusive Line */}
-      {/* <section className="py-14 bg-[#F3F7F3] text-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"> */}
-          {/* <div className="text-center mb-10">
-            <span className="inline-block px-3 py-1 bg-brand text-white rounded-full text-sm font-semibold mb-4">
-              M-CAR — Movilidad para todos
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-bold mb-3">
-              Diseño universal, libertad sin límites
-            </h2>
-            <p className="text-gray-600 mx-auto">
-              Las M-CAR son vehículos eléctricos creados con diseño universal: pensados
-              desde fábrica para que personas con capacidades diversas se desplacen con
-              autonomía, comodidad y total acceso igualitario.
-            </p>
-          </div> */}
-
-          {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {inclusive_vehicles.map(({ id, title, desc, icon}) => (
-              <FeatureCard
-                key={id}
-                title={title}
-                text={desc}
-                icon={icon}
-              />
-            ))}
-          </div>
-
-          <LinkButton to="/tienda?categoria=Cuatrimotos" text="Explorar opciones" />
-        </div>
-      </section> */}
-
 
       <Objecciones />
 
-      {/* <Beneficios /> */}
-      
-      
-      {/* <GreenTipsSection /> */}
-
       <EcommerceStrip /> 
+      
+      <CommunitySection />
       
       <Testimonials />
     </>

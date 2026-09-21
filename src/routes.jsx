@@ -27,10 +27,18 @@ const ROUTING_OVERRIDES = {
   'NovedadDetalle.tsx': 'novedades/:slug',
   'ProductPage.jsx': 'producto/:slug',
   'MiCuenta.jsx': { path: 'mi-cuenta', protected: true },
+  'ExpoChina.tsx': 'expochina',
+  'Tips.tsx': 'tips',
 };
 
 // Archivos con registro manual en App.jsx (excluidos del auto-scan)
-const RESERVED = new Set(['Home.jsx', 'NotFoundPage.jsx', 'LoginPage.jsx', 'StubPage.jsx']);
+const RESERVED = new Set([
+  'Home.jsx',
+  'NotFoundPage.jsx',
+  'LoginPage.jsx',
+  'StubPage.jsx',
+  'Fase2Implementacion.jsx',
+]);
 
 // PoliticaPrivacidad.jsx → 'politica-privacidad'
 function deriveSegment(filename) {

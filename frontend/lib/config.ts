@@ -22,6 +22,10 @@ export const CONTACT = {
   city: 'Lima, Perú',
 };
 
+/** Construye un enlace de WhatsApp con mensaje prellenado */
+export const buildWhatsAppLink = (message) =>
+  `${CONTACT.whatsappUrl}?text=${encodeURIComponent(message)}`;
+
 export const SOCIAL = {
   facebook: 'https://www.facebook.com/GreenLinePeru/',
   instagram: 'https://www.instagram.com/greenline_peru/',
@@ -31,6 +35,8 @@ export const SOCIAL = {
   tiktok_aniversario: 'https://www.tiktok.com/@greenline_peru/video/7680709590303919381?is_from_webapp=1&sender_device=pc',
   instagram_aniversario: 'https://www.instagram.com/reel/DcoNbZmDS7S/?utm_source=ig_web_copy_link&igsi=NTc4MTIwNjQ2YQ==',
   instagram_greentips: 'https://www.instagram.com/reel/Dc6PB-FAXxE/?utm_source=ig_web_copy_link&stkn=MzRlODBiNWFlZA==',
+  instagram_comunidad: 'https://www.instagram.com/channel/uYoQ8IghNwmaQ3cw/',
+  whatsapp_comunidad: 'https://whatsapp.com/channel/0029Va1WNsKEawdkZ43obV1f'
 };
 
 export const BRAND = {

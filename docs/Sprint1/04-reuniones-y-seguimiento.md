@@ -37,3 +37,20 @@ Este documento registra la cadencia de reuniones, alineaciones semanales, sesion
 
 ## 3. Conclusiones del Sprint 1
 El Sprint 1 cerró de manera exitosa cumpliendo con el 100% de los entregables críticos planteados en el alcance de 4 semanas, logrando un producto web moderno, rápido, seguro y adaptado a las necesidades comerciales de Greenline.
+
+---
+
+## 4. Bitácora de la Iteración Posterior (Setiembre 2026)
+
+### Registro de Feedback y Acuerdos
+- **Mayumi (Ack):** Se aprueba incluir en el Libro de Reclamaciones el aviso de respuesta en **máximo 15 días hábiles**. Se coordina con Jenifer la operativa de respuesta.
+- **Dirección / Mayra:** El **remitente** de los correos del Libro de Reclamaciones debe ser el **correo de Mayra** (configurado vía `.env` → `EMAIL_FROM` / `RECLAMACIONES_EMAIL_FROM`) para que cualquier consulta llegue a ella.
+- **Marketing / Contenido:** Se pide integrar la **comunidad** (canal Instagram + WhatsApp) en la web y priorizar **TikTok** en la galería de publicaciones por producto. Quedan pendientes de contenido: fotos 2026 para contacto, foto de Surco, fotos del Y5 plateado y posts faltantes por producto.
+- **Legal (en revisión):** Definir si el Libro de Reclamaciones debe tener un **límite de caracteres** en el campo de detalle.
+
+### Seguimiento de Pendientes
+- Banner/formulario público **"Conviértete en distribuidor"** (homepage, banners o mapas).
+- **Revisión de stock** de productos.
+- Verificar que **el motor no figure como rango** en las fichas técnicas.
+- Uniformizar los **bordes blancos del artículo destacado** del blog.
+- Validar texto de las **áreas de atención** del Libro de Reclamaciones (tiendas profesionales, ecommerce, envíos, tienda Green Line).

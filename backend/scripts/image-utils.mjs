@@ -48,7 +48,7 @@ export function formatearTamano(bytes) {
 // ── Procesamiento de imagen (sharp pipeline) ────────────────
 
 /**
- * Procesa una imagen: flatten → trim → resize → webp.
+ * Procesa una imagen: auto-orientación EXIF → flatten → webp.
  * @param {string|Buffer} input - Ruta de archivo o Buffer con los bytes
  * @param {object} opts
  * @param {string} opts.rutaRelativa - Ruta relativa (para detectar banners)
@@ -57,33 +57,13 @@ export function formatearTamano(bytes) {
  * @returns {Promise<Buffer>} Buffer WebP
  */
 export async function procesarImagen(input, opts = {}) {
-  const { rutaRelativa = '', original = false, targetSize = TARGET_SIZE } = opts;
+  const { rutaRelativa = '', original = true, targetSize = TARGET_SIZE } = opts;
 
   const pipeline = sharp(input, { failOn: 'none' })
+    .rotate()
     .flatten({ background: '#ffffff' });
 
-  if (original) {
-    return pipeline.webp({ quality: WEBP_QUALITY }).toBuffer();
-  }
-
-  if (esBannerPanoramico(rutaRelativa)) {
-    return pipeline
-      .resize({ width: TARGET_BANNER_WIDTH, fit: 'inside', position: 'center' })
-      .webp({ quality: WEBP_QUALITY })
-      .toBuffer();
-  }
-
-  return pipeline
-    .trim({ background: '#ffffff', threshold: TRIM_THRESHOLD })
-    .resize({
-      width: targetSize,
-      height: targetSize,
-      fit: 'contain',
-      position: 'center',
-      background: '#ffffff',
-    })
-    .webp({ quality: WEBP_QUALITY })
-    .toBuffer();
+  return pipeline.webp({ quality: WEBP_QUALITY }).toBuffer();
 }
 
 // ── Inventario de Supabase Storage ──────────────────────────

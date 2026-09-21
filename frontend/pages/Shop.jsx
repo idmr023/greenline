@@ -6,8 +6,6 @@ import SEOHead, { breadcrumbSchema } from '../components/SEOHead';
 import ProductCard from '../components/product/ProductCard';
 import ProductViewer from '../components/product/ProductViewer';
 import EcommerceStrip from '../components/EcommerceStrip';
-import SocialGridCard from '../components/SocialGridCard';
-import { interleaveSocialGrid } from '../lib/socialGrid';
 import { CATEGORIAS, BATERIAS, sortProducts, fetchProductos } from '../lib/productos';
 import { formatPrice } from '../lib/utils';
 import { BANNERS } from '../lib/images';
@@ -60,8 +58,6 @@ export default function Shop() {
     return sortProducts(list, sortBy);
   }, [productos, selectedCategories, selectedBaterias, priceMax, sortBy]);
 
-  const gridCells = useMemo(() => interleaveSocialGrid(filtered), [filtered]);
-
   const banner =
     BANNERS[initialCat] ?? BANNERS.default;
 
@@ -78,6 +74,7 @@ export default function Shop() {
           { name: 'Tienda', url: '/tienda' },
         ])]}
       />
+
       <PageBanner {...banner} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
@@ -188,13 +185,9 @@ export default function Shop() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-              {gridCells.map((cell) =>
-                cell.type === 'social' ? (
-                  <SocialGridCard key={cell.key} item={cell.socialItem} />
-                ) : (
-                  <ProductCard key={cell.key} producto={cell.producto} />
-                ),
-              )}
+              {filtered.map((producto) => (
+                <ProductCard key={producto.id || producto.slug} producto={producto} />
+              ))}
             </div>
           )}
 

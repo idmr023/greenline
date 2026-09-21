@@ -351,7 +351,7 @@ export default function NovedadDetalle() {
     <img
       src={imageUrl}
       alt={imageAlt}
-      className="relative z-10 mx-auto h-full w-full object-contain bg-brand"
+      className="relative z-10 h-full w-full object-cover"
     />
 
     <Link

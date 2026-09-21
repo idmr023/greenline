@@ -1,4 +1,4 @@
-import { CARRUSEL } from "../frontend/lib/images";
+import { CARRUSEL, SOCIAL_MEDIA_GRID_IMAGENES } from "../frontend/lib/images";
 import {
   Zap,
   Accessibility, ArrowLeftRight, ShieldCheck,
@@ -25,7 +25,7 @@ export const carrousel_slides = [
     img: CARRUSEL[1],
   },
   {
-    to: '/aniversario',
+    to: 'https://www.tiktok.com/@greenline_peru',
     img: CARRUSEL[2],
   },
   {
@@ -37,15 +37,12 @@ export const carrousel_slides = [
     img: CARRUSEL[4],
   },
   {
-    title: 'Nueve años contigo',
-    subtitle: 'Mes de locura: celebramos nuestro aniversario con descuentos y promociones por nuestro 9no aniversario.',
-    cta: 'Acerca de los descuentos',
-    to: '/aniversario',
+    title: 'Próximamente en ExpoChina',
+    subtitle: 'Acompáñanos en la feria de innovación y movilidad eléctrica. Pre-inscríbete y accede a beneficios exclusivos.',
+    cta: 'Inscribirme en ExpoChina',
+    to: '/expochina',
     reactBanner: true,
-  },
-  {
-    reactBanner: true,
-    tiktokBanner: true,
+    expoBanner: true,
   },
 ];
 
@@ -181,31 +178,6 @@ export const objeciones = [
   },
 ];
 
-// Información de GreenTips, los consejos verdes que se muestran en la sección de tips del home
-export const green_tips = [
-  // {
-  //   icon: Zap,
-  //   title: 'Carga de noche',
-  //   text: 'Las tarifas eléctricas suelen ser más bajas de madrugada. Carga tu batería a esas horas y aligeras la red.',
-  // },
-  // {
-  //   icon: Gauge,
-  //   title: 'Presión de llantas',
-  //   text: 'Revisa la presión una vez al mes: un neumático bien calibrado suma autonomía y alarga la vida de la cubierta.',
-  // },
-  // {
-  //   icon: BatteryCharging,
-  //   title: 'Cuida la batería',
-  //   text: 'Evita descargarla al 0% o dejarla bajo el sol directo. Cargarla entre el 20% y el 80% alarga su vida útil.',
-  // },
-  // {
-  //   icon: Recycle,
-  //   title: 'Recicla y dispón',
-  //   text: 'Lleva las baterías en desuso a un punto de acopio. GreenLine las gestiona de forma responsable.',
-  // },
-];
-
-
 ///////////////////////////////////////////////////////////////////////////////
 ///               NOSOTROS (Us.jsx)                                      ////
 ///////////////////////////////////////////////////////////////////////////////
@@ -330,6 +302,272 @@ export const trabaja_areas = [
 
 
 ///////////////////////////////////////////////////////////////////////////////
+///               SOCIAL_CARD (Shop.tsx)         ////
+///////////////////////////////////////////////////////////////////////////////
+
+export const TIKTOK_LINK = 'https://www.tiktok.com/@greenline_peru';
+
+export const SOCIAL_GRID_ITEMS = [
+  {
+    id: 'fl2_tiktok',
+    modelo: 'FL2',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[0],
+    network: 'TikTok',
+    caption: 'FL2 en acción',
+    href: TIKTOK_LINK + '/7623553103710735636',
+  },
+  {
+    id: 't6_tiktok',
+    modelo: 'T6',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[2],
+    network: 'TikTok',
+    caption: 'T6 en acción',
+    href: TIKTOK_LINK + '/7652131725300043016',
+  },
+  {
+    id: 'sr_tiktok',
+    modelo: 'SR',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[3],
+    network: 'TikTok',
+    caption: 'SR en acción',
+    href: TIKTOK_LINK + '/7607596869321002260',
+  },
+  {
+    id: 'mx6_tiktok',
+    modelo: 'MX6',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[4],
+    network: 'TikTok',
+    caption: 'MX6 en acción',
+    href: TIKTOK_LINK + '/7652870935887858965',
+  },
+  {
+    id: 'tm9_tiktok',
+    modelo: 'TM9',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[5],
+    network: 'TikTok',
+    caption: 'TM9 en acción',
+    href: TIKTOK_LINK + '/7611655443374411028',
+  },
+  {
+    id: 'tm7_v2026_tiktok',
+    modelo: 'TM7 v2026',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[6],
+    network: 'TikTok',
+    caption: 'TM7 v2026 en acción',
+    href: TIKTOK_LINK + '/7653278433492897044',
+  },
+  {
+    id: 'h3_pro_tiktok',
+    modelo: 'H3 Pro',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[7],
+    network: 'TikTok',
+    caption: 'H3 Pro en acción',
+    href: TIKTOK_LINK + '/7659950348374641941',
+  },
+  {
+    id: 'v9_pro_tiktok',
+    modelo: 'V9 Pro',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[8],
+    network: 'TikTok',
+    caption: 'V9 Pro en acción',
+    href: TIKTOK_LINK + '/7627261537614449940',
+  },
+  {
+    id: 'm3_pro_tiktok',
+    modelo: 'M3 Pro',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[9],
+    network: 'TikTok',
+    caption: 'M3 Pro en acción',
+    href: TIKTOK_LINK + '/7619467712401657108',
+  },
+  {
+    id: 'tm6_pro_tiktok',
+    modelo: 'TM6 PRO',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[10],
+    network: 'TikTok',
+    caption: 'TM6 PRO en acción',
+    href: TIKTOK_LINK + '/7637697265486007572',
+  },
+  {
+    id: 'vmp_s9_tiktok',
+    modelo: 'VMP S9',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[11],
+    network: 'TikTok',
+    caption: 'VMP S9 en acción',
+    href: TIKTOK_LINK + '/7634727490824441108',
+  },
+  {
+    id: 'tc2_180a_tiktok',
+    modelo: 'TC2-180A',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[12],
+    network: 'TikTok',
+    caption: 'TC2-180A en acción',
+    href: '',
+  },
+  {
+    id: 'vmp_l3_pro_tiktok',
+    modelo: 'VMP L3 Pro',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[13],
+    network: 'TikTok',
+    caption: 'VMP L3 Pro en acción',
+    href: TIKTOK_LINK + '/7658481684840647957',
+  },
+  {
+    id: 'tc_bus_tiktok',
+    modelo: 'TC-BUS',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[14],
+    network: 'TikTok',
+    caption: 'TC-BUS en acción',
+    href: TIKTOK_LINK + '/7645084543929568533',
+  },
+  {
+    id: 'tc2_110a_tiktok',
+    modelo: 'TC2-110A',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[15],
+    network: 'TikTok',
+    caption: 'TC2-110A en acción',
+    href: TIKTOK_LINK + '/7643979651479522580',
+  },
+  {
+    id: 'f4_pro_tiktok',
+    modelo: 'F4 Pro',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[16],
+    network: 'TikTok',
+    caption: 'F4 Pro en acción',
+    href: TIKTOK_LINK + '/7678097081168366868',
+  },
+  {
+    id: 'gl3_tiktok',
+    modelo: 'GL3',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[17],
+    network: 'TikTok',
+    caption: 'GL3 en acción',
+    href: TIKTOK_LINK + '/7670323110121442581',
+  },
+  {
+    id: 'vmp_p01_tiktok',
+    modelo: 'VMP P01',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[18],
+    network: 'TikTok',
+    caption: 'VMP P01 en acción',
+    href: TIKTOK_LINK + '/7563825633701268792',
+  },
+  {
+    id: 'vmp_s6_pro_tiktok',
+    modelo: 'VMP S6 Pro',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[19],
+    network: 'TikTok',
+    caption: 'VMP S6 Pro en acción',
+    href: TIKTOK_LINK + '/7663704160361106709',
+  },
+  {
+    id: 'vmp_s4_pro_tiktok',
+    modelo: 'VMP S4 Pro',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[20],
+    network: 'TikTok',
+    caption: 'VMP S4 Pro en acción',
+    href: TIKTOK_LINK + '/7670732904653212948',
+  },
+  {
+    id: 'vmp_t4_tiktok',
+    modelo: 'VMP T4',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[21],
+    network: 'TikTok',
+    caption: 'VMP T4 en acción',
+    href: TIKTOK_LINK + '/7617988299616947477',
+  },
+  {
+    id: 'y5_tiktok',
+    modelo: 'Y5',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[22],
+    network: 'TikTok',
+    caption: 'Y5 en acción',
+    href: TIKTOK_LINK + '/7663274816421596436',
+  },
+  {
+    id: 'tc2_160a_tiktok',
+    modelo: 'TC2-160A',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[23],
+    network: 'TikTok',
+    caption: 'TC2-160A en acción',
+    href: TIKTOK_LINK + '/7569005157531372812',
+  },
+  {
+    id: 'tc2_160_con_techo_tiktok',
+    modelo: 'TC2-160 con Techo',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[24],
+    network: 'TikTok',
+    caption: 'TC2-160 con Techo en acción',
+    href: TIKTOK_LINK + '/7507028534876032262?lang=es',
+  },
+  {
+    id: 'm_car_1_tiktok',
+    modelo: 'M-CAR 1',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[25],
+    network: 'TikTok',
+    caption: 'M-CAR 1 en acción',
+    href: TIKTOK_LINK + '/7676254668829658388',
+  },
+  {
+    id: 'm_car_2_tiktok',
+    modelo: 'M-CAR 2',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[26],
+    network: 'TikTok',
+    caption: 'M-CAR 2 en acción',
+    href: TIKTOK_LINK + '/7676254668829658388',
+  },
+  {
+    id: 'm_car_3_tiktok',
+    modelo: 'M-CAR 3',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[27],
+    network: 'TikTok',
+    caption: 'M-CAR 3 en acción',
+    href: TIKTOK_LINK + '/7676254668829658388',
+  },
+  {
+    id: 'm_car_4_tiktok',
+    modelo: 'M-CAR 4',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[28],
+    network: 'TikTok',
+    caption: 'M-CAR 4 en acción',
+    href: TIKTOK_LINK + '/7676254668829658388',
+  },
+  {
+    id: 'm_car_5_tiktok',
+    modelo: 'M-CAR 5',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[29],
+    network: 'TikTok',
+    caption: 'M-CAR 5 en acción',
+    href: TIKTOK_LINK + '/7676254668829658388',
+  },
+  {
+    id: 'gl4_tiktok',
+    modelo: 'GL4',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[30],
+    network: 'TikTok',
+    caption: 'GL4 en acción',
+    href: TIKTOK_LINK + '/7684065232901147924',
+  },
+  {
+    id: 'h5_tiktok',
+    modelo: 'H5',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[31],
+    network: 'TikTok',
+    caption: 'H5 en acción',
+    href: TIKTOK_LINK + '/7608711278210714900',
+  },
+  {
+    // No hay en TikTok, solo en Instagram
+    id: 'tc2_160_power_pro_ig',
+    modelo: 'TC2-160 Power PRO',
+    image: SOCIAL_MEDIA_GRID_IMAGENES[32],
+    network: 'Instagram',
+    caption: 'TC2-160 Power PRO en acción',
+    href: "https://www.instagram.com/reel/DQXsamrDRTN/?hl=es",
+  },
+];
+
+///////////////////////////////////////////////////////////////////////////////
 ///               PREGUNTAS FRECUENTES (PreguntasFrecuentes.tsx)         ////
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -432,6 +670,30 @@ export const libro_tipo_opciones = [
 export const login_staff_roles = [
   'ADMIN', 'EDITORA_BLOG', 'DISTRIBUCION', 'GERENTE_TIENDA',
   'COLABORADOR_TIENDA', 'GERENTE_ALMACEN', 'COLABORADOR_ALMACEN', 'DESARROLLADOR_WEB',
+];
+
+
+export const green_tips = [
+  {
+    icon: '🔋',
+    title: 'Carga inteligente',
+    text: 'Evita dejar tu batería conectada toda la noche una vez que llegue al 100% para prolongar su vida útil.',
+  },
+  {
+    icon: '🛞',
+    title: 'Presión de neumáticos',
+    text: 'Revisa la presión de tus llantas cada 2 semanas; una presión adecuada mejora la autonomía y seguridad.',
+  },
+  {
+    icon: '🌧️',
+    title: 'Cuidado bajo lluvia',
+    text: 'Aunque nuestros vehículos son resistentes a salpicaduras, evita sumergirlos en pozos profundos de agua.',
+  },
+  {
+    icon: '🛠️',
+    title: 'Mantenimiento preventivo',
+    text: 'Realiza una revisión técnica periódica de frenos y conexiones cada 6 meses en nuestros talleres autorizados.',
+  },
 ];
 
 
