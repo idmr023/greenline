@@ -45,6 +45,40 @@ export function formatearTamano(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
 }
 
+async function recortarMargenesBlancos(pipeline) {
+  const { data, info } = await pipeline.clone().raw().toBuffer({ resolveWithObject: true });
+  const channels = info.channels;
+  const esContenido = (x, y) => {
+    const offset = (y * info.width + x) * channels;
+    return (
+      data[offset] < 245 ||
+      data[offset + 1] < 245 ||
+      data[offset + 2] < 245
+    );
+  };
+  const fraccionContenido = (x) => {
+    let pixelesConContenido = 0;
+    for (let y = 0; y < info.height; y += 1) {
+      if (esContenido(x, y)) pixelesConContenido += 1;
+    }
+    return pixelesConContenido / info.height;
+  };
+
+  let left = 0;
+  let right = info.width - 1;
+  while (left < info.width / 2 && fraccionContenido(left) < 0.05) left += 1;
+  while (right > info.width / 2 && fraccionContenido(right) < 0.05) right -= 1;
+
+  if (left === 0 && right === info.width - 1) return pipeline;
+
+  return pipeline.extract({
+    left,
+    top: 0,
+    width: right - left + 1,
+    height: info.height,
+  });
+}
+
 // ── Procesamiento de imagen (sharp pipeline) ────────────────
 
 /**
@@ -59,9 +93,11 @@ export function formatearTamano(bytes) {
 export async function procesarImagen(input, opts = {}) {
   const { rutaRelativa = '', original = true, targetSize = TARGET_SIZE } = opts;
 
-  const pipeline = sharp(input, { failOn: 'none' })
+  const pipeline = await recortarMargenesBlancos(
+    sharp(input, { failOn: 'none' })
     .rotate()
-    .flatten({ background: '#ffffff' });
+      .flatten({ background: '#ffffff' }),
+  );
 
   return pipeline.webp({ quality: WEBP_QUALITY }).toBuffer();
 }

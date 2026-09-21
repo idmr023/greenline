@@ -72,8 +72,8 @@ export default function Home() {
       <HeroCarousel />
 
       <Pillars /> 
-
-      { isAniversarioActivo() ? <AnniversaryPromo /> : <CountdownBanner /> }
+      
+      <CountdownBanner />
 
       <section className="py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
