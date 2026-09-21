@@ -8,7 +8,6 @@ import { fetchStores, fetchDistributors } from '../lib/locations';
 import { fetchProductos } from '../lib/productos';
 import { API_URL } from '../lib/api';
 import COLOR_DOT_CLASS, { colorDotClassFor, colorDotStyle } from '../lib/colores';
-import confetti from 'canvas-confetti';
 import { libro_doc_types as DOC_TYPES, libro_servicio_opciones as SERVICIO_OPCIONES, libro_tipo_opciones as TIPO_OPCIONES } from '../../src/data_json.jsx';
 import ubigeo from '../data/ubigeo.json';
 
@@ -201,14 +200,6 @@ export default function LibroReclamaciones() {
       const data = await res.json();
       setClaimNumber(data.numeroReclamo);
       setSent(true);
-      confetti({
-        particleCount: 160,
-        spread: 100,
-        origin: { y: 0.6 },
-        colors: ['#009000', '#ffd700', '#ff6a00', '#ffffff', '#00b0ff'],
-      });
-      confetti({ particleCount: 60, angle: 60, spread: 60, origin: { x: 0, y: 0.7 } });
-      confetti({ particleCount: 60, angle: 120, spread: 60, origin: { x: 1, y: 0.7 } });
     } catch (err) {
       setSubmitError(err.message);
     } finally {

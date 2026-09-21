@@ -138,7 +138,7 @@ router.post('/upload', requireAuth, (req, res, next) => {
     const original = req.file;
     const originalSize = original.buffer.length;
 
-    // Procesar con sharp: flatten → trim → resize 800x800 → webp
+    // Procesar con sharp: auto-orientación EXIF → flatten → webp
     const webpBuffer = await procesarImagen(original.buffer, {
       original: false,
     });

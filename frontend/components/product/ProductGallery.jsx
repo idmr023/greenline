@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { ChevronLeft, ChevronRight, Play } from '../../lib/icons';
 import { extractVideoId, youtubeThumbUrl, videosForProduct } from '../../data/videosYT';
+import { socialItemsForProduct, SocialPost } from '../../lib/socialGrid';
 import ImageZoom from '../ImageZoom';
 
 const LazyYouTube = lazy(() => import('../YouTubeEmbed'));
@@ -19,11 +20,15 @@ export default function ProductGallery({ images = [], product = {}, nombre = '' 
     }
   }
 
-  // Combinar elementos de la galería: imágenes + videos
-  // Cada item: { type: 'image', src, alt, index } o { type: 'video', url, videoId }
+  // Recoger tarjetas sociales del producto filtradas por modelo
+  const socialItems = socialItemsForProduct(product);
+
+  // Combinar elementos de la galería: imágenes + videos + social cards
+  // Cada item: { type: 'image', ... } | { type: 'video', ... } | { type: 'social', ... }
   const items = [
     ...images.map((img, i) => ({ type: 'image', src: img.src, srcAlta: img.src_alta_resolucion, alt: `${nombre} ${img.color || ''} ${i + 1}` })),
     ...videoUrls.map((url) => ({ type: 'video', url, videoId: extractVideoId(url) })),
+    ...socialItems.map((s) => ({ type: 'social', ...s })),
   ];
 
   const total = items.length;
@@ -87,7 +92,7 @@ export default function ProductGallery({ images = [], product = {}, nombre = '' 
             const isActive = i === activeIndex;
             return (
               <button
-                key={item.type === 'image' ? `${item.src}-${i}` : `vid-${item.videoId}`}
+                key={item.type === 'image' ? `${item.src}-${i}` : item.type === 'video' ? `vid-${item.videoId}` : `social-${item.id}`}
                 type="button"
                 onClick={() => setActiveIndex(i)}
                 className={`relative shrink-0 w-16 h-14 md:w-20 md:h-16 rounded-xl overflow-hidden border-2 transition-all ${
@@ -96,7 +101,7 @@ export default function ProductGallery({ images = [], product = {}, nombre = '' 
               >
                 {item.type === 'image' ? (
                   <img src={item.src} alt="" className="w-full h-full object-contain bg-gray-50" />
-                ) : (
+                ) : item.type === 'video' ? (
                   <div className="relative w-full h-full bg-gray-900">
                     <img
                       src={youtubeThumbUrl(item.videoId, 'mqdefault')}
@@ -107,6 +112,8 @@ export default function ProductGallery({ images = [], product = {}, nombre = '' 
                       <Play className="w-5 h-5 text-white fill-white" />
                     </div>
                   </div>
+                ) : (
+                  <SocialPost item={item} variant="thumbnail" />
                 )}
               </button>
             );
@@ -131,7 +138,7 @@ export default function ProductGallery({ images = [], product = {}, nombre = '' 
               imagenAltaResolucion={currentItem.srcAlta}
             />
           </div>
-        ) : (
+        ) : currentItem.type === 'video' ? (
           <div className="absolute inset-0 w-full h-full bg-black">
             <Suspense
               fallback={
@@ -143,6 +150,8 @@ export default function ProductGallery({ images = [], product = {}, nombre = '' 
               <LazyYouTube videoId={currentItem.videoId} />
             </Suspense>
           </div>
+        ) : (
+          <SocialPost item={currentItem} />
         )}
 
         {/* Botones de navegación lateral en desktop */}

@@ -2,6 +2,7 @@ import { Instagram } from '../../lib/icons';
 import { SOCIAL } from '../../lib/config';
 import { green_tips } from '../../../src/data_json';
 import FeatureCard from '../ui/general/FeaturedCard';
+import { LinkButton } from '../ui/general/LinkButton';
 
 export default function GreenTipsSection() {
   return (
@@ -30,6 +31,8 @@ export default function GreenTipsSection() {
             />
           ))}
         </div>
+
+        <LinkButton to="/tips" text="Ver todos los GreenTips" />
 
         <div className="mt-10 rounded-2xl bg-gradient-to-r from-brand to-green-700 text-white overflow-hidden">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6 px-8 py-8">

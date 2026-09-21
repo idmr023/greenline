@@ -61,3 +61,32 @@ Este Product Backlog recopila las historias de usuario y tareas priorizadas y ej
 | ID | Historia de Usuario / Requerimiento | Prioridad | Estado |
 |---|---|---|---|
 | HU-18 | Como administrador y desarrollador web, quiero contar con permisos exclusivos (`ADMIN` y `DESARROLLADOR_WEB`) validados por RLS en Supabase para gestionar productos, blogs y configuraciones de forma segura. | Alta | **Completado** |
+
+---
+
+## Módulo 8: Iteración posterior al Sprint 1 (Setiembre 2026)
+
+| ID | Historia de Usuario / Requerimiento | Prioridad | Estado |
+|---|---|---|---|
+| HU-19 | Como visitante, quiero encontrar la **comunidad Green Line** integrada en la web: sección "Únete a la comunidad" en el homepage con enlaces al canal de Instagram y al canal de WhatsApp. | Alta | **Completado** |
+| HU-20 | Como visitante, quiero ver el catálogo de setiembre actualizado (campaña de aniversario), incluyendo el nuevo producto **GreenLine X6**, con sus vídeos y manuales mapeados (seed + scripts). | Alta | **Completado** |
+| HU-21 | Como usuario, quiero leer los **manuales de uso en modo revista o libro** (visor flipbook de doble página) además de descargar el PDF. | Media | **Completado** |
+| HU-22 | Como usuario, quiero encontrar **UPN en "También nos encuentras en"** (ecommerce strip) y ver corregida la lista de tiendas de la **Comunidad UPN** (sin Ate, con Salamanca). | Alta | **Completado** |
+| HU-23 | Como usuario UPN, quiero que el **beneficio por referidos** sea válido en todas nuestras tiendas principales (no solo La Molina). | Media | **Completado** |
+| HU-24 | Como interesado en la feria, quiero una sección "Próximamente **ExpoChina**" donde pueda pre-inscribirme o contactar por WhatsApp. | Alta | **Completado** |
+| HU-25 | Como lector de **Preguntas Frecuentes**, quiero una paleta de colores armonizada en **verde, blanco y negro** (tonos brand + emerald). | Media | **Completado** |
+| HU-26 | Como visitante de **Sobre Nosotros**, quiero que el subtítulo "Líderes en movilidad eléctrica en el Perú desde 2017" sea legible (color brand sobre el banner). | Alta | **Completado** |
+| HU-27 | Como cliente, quiero ver **SOAT/Placa como "Sí"/"No"/"Consultar"** en las cards del producto (no valores booleanos crudos). | Media | **Completado** |
+| HU-28 | Como cliente, quiero que al listar un producto solo aparezcan **los colores correspondientes a ese modelo**. | Alta | **Completado** |
+| HU-29 | Como usuario, quiero botones flotantes consistentes (subir / **WhatsApp "Te asesoramos"**) con un único componente reutilizable. | Media | **Completado** |
+| HU-30 | Como administración, quiero **almacenar los reclamos en base de datos** y verlos administrados desde `/admin`, con **aviso de respuesta en máximo 15 días hábiles** y remitente dedicado (correo de Mayra). | Alta | **Completado** |
+| HU-31 | Como usuario, no quiero ver el texto "La disponibilidad y especificaciones están sujetas a cambios sin previo aviso" (eliminado y justificado). | Media | **Completado** |
+| HU-32 | Como usuario del **Libro de Reclamaciones**, quiero que esta sea la única página **sin efecto festivo** (confeti), mientras el resto de la web lo conserva. | Media | **Completado** |
+| HU-33 | Como interesado en la red de distribución, quiero un **banner/formulario "Conviértete en distribuidor"** en el homepage, banner o mapas. | Alta | **Pendiente** |
+| HU-34 | Como equipo de contenidos, quiero actualizar las **fotos de contacto (sesión de fotos 2026)** y la **foto de la tienda de Surco**. | Media | **Pendiente** |
+| HU-35 | Como administración, quiero **revisar el stock** de productos y completar **fotos faltantes (ej. Y5 en plateado)** y **posts de redes por cada producto** en la galería. | Alta | **Pendiente** |
+| HU-36 | Como administración, quiero definir (tema legal) si el **Libro de Reclamaciones** tiene un **límite de caracteres**. | Media | **En revisión** |
+| HU-37 | Como editora de contenidos, quiero **uniformizar el artículo destacado** (bordes en blanco) en el blog. | Media | **En revisión** |
+| HU-38 | Como equipo técnico, quiero **verificar que los vehículos no muestren el motor como rango** en sus fichas técnicas. | Media | **En revisión** |
+| HU-39 | Como cliente, quiero opciones de **área de atención en el Libro de Reclamaciones** ajustadas (tiendas profesionales, ecommerce, envíos y tienda Green Line). | Media | **En revisión** |
+| HU-40 | Como Dirección, quiero definir el modelo de **visibilidad para distribuidores** (página web propia vs. anonimato) sin canibalizar la venta directa. | Alta | **En diseño** |

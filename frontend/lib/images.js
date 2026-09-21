@@ -6,8 +6,6 @@ function buildVersion() {
 
 const VERSION = buildVersion();
 
-const STORAGE_PUBLIC = "/storage/v1/object/public/";
-const LOCAL_ASSETS_RE = /^\.?\/assets\//;
 const VERSION_RE = /[?&]v=([\w.-]+)/;
 
 function agregarVersion(src) {
@@ -16,15 +14,8 @@ function agregarVersion(src) {
 
 export function versionarImagen(src) {
   if (!src) return src;
-  let cleanSrc = src;
-  if (typeof cleanSrc === 'string') {
-    cleanSrc = cleanSrc.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, '');
-  }
-  const esStorage = cleanSrc.includes(STORAGE_PUBLIC);
-  const esLocal = LOCAL_ASSETS_RE.test(cleanSrc);
-  if (!esStorage && !esLocal) return cleanSrc;
-  if (VERSION_RE.test(cleanSrc)) return cleanSrc;
-  return agregarVersion(cleanSrc);
+  if (VERSION_RE.test(src)) return src;
+  return agregarVersion(src);
 }
 
 export function versionarImagenAltaResolucion(src) {
@@ -149,6 +140,45 @@ export const SOCIAL_MEDIA_GRID = {
   x3_post: v('/assets/imagenes/social_media_grid/x3_post.webp'),
   y5_video_tiktok: v('/assets/imagenes/social_media_grid/y5_video_tiktok.webp'),
 };
+
+// ----------------------------------------------------------------------------
+// Social media grid / Imagenes
+// ----------------------------------------------------------------------------
+export const SOCIAL_MEDIA_GRID_IMAGENES = [
+  v('/assets/imagenes/social_media_grid/fl2_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/fl2_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/t6_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/sr_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/mx6_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/tm9_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/tm7_v2026_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/h3_pro_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/v9_pro_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/m3_pro_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/tm6_pro_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/vmp_s9_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/tc2_160a_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/vmp_l3_pro_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/tc_bus_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/tc2_110a_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/f4_pro_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/gl3_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/vmp_p01_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/vmp_s6_pro_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/vmp_s4_pro_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/vmp_t4_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/y5_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/tc2_160a_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/tc2_160_con_techo_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/m_car_1_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/m_car_2_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/m_car_3_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/m_car_4_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/m_car_5_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/gl4_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/h5_tiktok.webp'),
+  v('/assets/imagenes/social_media_grid/tc2_160a_tiktok.webp'),
+];
 
 // ----------------------------------------------------------------------------
 // Aniversario

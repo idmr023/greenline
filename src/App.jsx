@@ -24,6 +24,7 @@ const LoginPage = lazy(() => import('../frontend/pages/LoginPage'));
 const NotFoundPage = lazy(() => import('../frontend/pages/NotFoundPage'));
 const StubPage = lazy(() => import('../frontend/pages/StubPage'));
 const AdminPanel = lazy(() => import('../frontend/components/admin/AdminPanel'));
+const Fase2Implementacion = lazy(() => import('../frontend/pages/Fase2Implementacion'));
 
 // Rutas generadas automáticamente desde frontend/pages/*
 const AUTO_ROUTES = buildRoutes();
@@ -33,6 +34,8 @@ function Layout() {
   const location = useLocation();
 
   useEffect(() => {
+    if (location.pathname === '/libro-reclamaciones') return;
+
     const duration = 2500;
     const end = Date.now() + duration;
 
@@ -113,6 +116,13 @@ export default function App() {
             <ProtectedRoute requiredRoles={ADMIN_ROLES}>
               <Suspense fallback={<PageLoader />}>
                 <AdminPanel />
+              </Suspense>
+            </ProtectedRoute>
+          } />
+          <Route path="/fase-2-implementacion" element={
+            <ProtectedRoute requiredRoles={ADMIN_ROLES}>
+              <Suspense fallback={<PageLoader />}>
+                <Fase2Implementacion />
               </Suspense>
             </ProtectedRoute>
           } />

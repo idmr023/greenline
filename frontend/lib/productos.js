@@ -84,7 +84,16 @@ function adaptarVista(vista, catalogo = []) {
     nombre: c.nombre,
     hex_code: c.hex_code,
     stock: c.stock,
+    visible: c.visible !== false,
   }));
+
+  // Colores ocultos por el admin (p. ej. agotados): sus imágenes no se muestran.
+  const ocultos = new Set(
+    coloresDetalle.filter((c) => !c.visible).map((c) => normalizeColorName(c.nombre)),
+  );
+  const imagenesVisibles = ocultos.size
+    ? imagenes.filter((img) => !img.color || !ocultos.has(normalizeColorName(img.color)))
+    : imagenes;
 
   // `colores_detalle` sólo incluye lo vinculado en `prod_color_rel`. Para que
   // los puntitos de color muestren siempre el hex correcto, completamos con el
@@ -93,7 +102,7 @@ function adaptarVista(vista, catalogo = []) {
     catalogo.map((c) => [normalizeColorName(c.nombre), c]),
   );
   const presentes = new Set(coloresDetalle.map((c) => normalizeColorName(c.nombre)));
-  for (const img of imagenes) {
+  for (const img of imagenesVisibles) {
     if (!img.color) continue;
     const key = normalizeColorName(img.color);
     if (presentes.has(key)) continue;
@@ -103,6 +112,7 @@ function adaptarVista(vista, catalogo = []) {
       nombre: img.color,
       hex_code: cat?.hex_code ?? null,
       stock: null,
+      visible: true,
     });
     presentes.add(key);
   }
@@ -121,7 +131,7 @@ function adaptarVista(vista, catalogo = []) {
 
     categoria: vista.categoria || null,
     categoria_id: vista.categoria_id || null,
-    colores: coloresDetalle.map((c) => c.nombre),
+    colores: coloresDetalle.filter((c) => c.visible).map((c) => c.nombre),
     colores_detalle: coloresDetalle,
     // COMENTADO (temporal — stock por números):
     // unidades: stockTotal,
@@ -130,7 +140,7 @@ function adaptarVista(vista, catalogo = []) {
     etiquetas: vista.etiquetas || [],
     bateria: ficha.tipo_bateria || null,
     motor: ficha.potencia_motor || null,
-    imagenes,
+    imagenes: imagenesVisibles,
 
     ficha_tecnica: {
       tipo_motor: ficha.tipo_motor || null,

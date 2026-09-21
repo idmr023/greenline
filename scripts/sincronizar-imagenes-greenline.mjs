@@ -373,12 +373,12 @@ async function gestionarSobrantes(sobrantes) {
 // ELEGIR QUÉ SUBIR
 // ============================================================
 
-async function decidirSubida(nuevos, existentes) {
-  console.log('\n¿Qué quieres subir?\n');
-  console.log('1. 🔄 Reemplazar todo (predeterminado): subir nuevas y sobrescribir existentes');
-  console.log('2. 🆕 Solo lo nuevo (no tocar existentes)');
-  console.log('3. 🖼️ Nuevas + elegir existentes a sobrescribir');
-  console.log('4. ❌ No subir imágenes\n');
+async function decidirSubidaNuevoFlujo(candidatosNoWebP) {
+  console.log('\n¿Qué deseas hacer con las imágenes?\n');
+  console.log('1. 🔄 Comprimir y subir todo (JPG/PNG pendientes de conversión y subida)');
+  console.log('2. 🆕 Comprimir y subir solo lo nuevo');
+  console.log('3. 📁 Comprimir y subir archivos específicos (por carpetas o uno por uno)');
+  console.log('4. ❌ Cancelar\n');
 
   let opcion = (await preguntar('👉 Opción [1-4, Enter = 1]: ')).trim();
   if (!opcion) opcion = '1';
@@ -386,38 +386,65 @@ async function decidirSubida(nuevos, existentes) {
   if (opcion === '4') return [];
 
   if (opcion === '2') {
+    const remotasRaw = await inventarioBucket(supabase, RUTA_SUPABASE);
+    const remotas = new Set(remotasRaw.map((r) => rutaRelativaStorage(r)));
+    const nuevos = candidatosNoWebP.filter(
+      (c) => !remotas.has(rutaRelativaStorage(c.rutaWebp))
+    );
     if (!nuevos.length) {
-      console.log('✅ No hay imágenes nuevas.');
+      console.log('✅ No hay imágenes nuevas para comprimir y subir.');
       return [];
     }
-    const confirmarNuevas = await confirmar(
-      `¿Confirmas subir ${nuevos.length} imágenes nuevas`
-    );
-    return confirmarNuevas ? nuevos : [];
+    const confirmarNuevas = await confirmar(`¿Confirmas comprimir y subir ${nuevos.length} imágenes nuevas`);
+    return confirmarNuevas ? nuevos.map(c => ({
+      rutaCompleta: c.rutaCompleta,
+      rutaRelativa: c.rutaRelativa,
+      rutaDestino: `${RUTA_SUPABASE}${c.rutaWebp}`
+    })) : [];
   }
 
   if (opcion === '3') {
-    const seleccionadas = await seleccionarExistentes(
-      existentes,
-      '¿Cuáles existentes quieres sobrescribir (además de las nuevas)?'
-    );
-    const total = [...nuevos, ...seleccionadas];
-    if (!total.length) return [];
-    const confirmarSeleccion = await confirmar(
-      `¿Confirmas subir ${total.length} imágenes`
-    );
-    return confirmarSeleccion ? total : [];
+    console.log('\n¿Cómo quieres seleccionar los archivos?');
+    console.log('1. 📁 Elegir por carpetas (ej. productos, banner, etc.)');
+    console.log('2. 🖼️ Elegir imágenes específicas uno por uno');
+    const subOpcion = (await preguntar('👉 Opción [1-2]: ')).trim();
+
+    let seleccion = candidatosNoWebP;
+    if (subOpcion === '1') {
+      const carpetas = [...new Set(candidatosNoWebP.map((c) => categoriaDeCandidato(c.rutaRelativa)))].sort();
+      console.log('\nCarpetas disponibles:');
+      carpetas.forEach((cat, idx) => console.log(`  ${String(idx + 1).padStart(3)}. ${cat}`));
+      const respCarpeta = await preguntar('\n👉 Escribe los números de las carpetas (ej. 1-3, 5): ');
+      const indicesC = parseSeleccion(respCarpeta, carpetas.length);
+      if (indicesC.length) {
+        const elegidas = new Set(indicesC.map(i => carpetas[i]));
+        seleccion = candidatosNoWebP.filter(c => elegidas.has(categoriaDeCandidato(c.rutaRelativa)));
+      }
+    }
+
+    const archivosFormateados = seleccion.map(c => ({
+      rutaCompleta: c.rutaCompleta,
+      rutaRelativa: c.rutaRelativa,
+      rutaDestino: `${RUTA_SUPABASE}${c.rutaWebp}`
+    }));
+
+    const elegidos = await seleccionarExistentes(archivosFormateados, 'Selecciona las imágenes a procesar y subir:');
+    if (!elegidos.length) return [];
+    const confirmarElegidos = await confirmar(`¿Confirmas procesar y subir ${elegidos.length} imágenes`);
+    return confirmarElegidos ? elegidos : [];
   }
 
-  const total = nuevos.length + existentes.length;
-  if (!total) {
-    console.log('✅ No hay nada que subir.');
+  const total = candidatosNoWebP.map(c => ({
+    rutaCompleta: c.rutaCompleta,
+    rutaRelativa: c.rutaRelativa,
+    rutaDestino: `${RUTA_SUPABASE}${c.rutaWebp}`
+  }));
+  if (!total.length) {
+    console.log('✅ No hay imágenes JPG/PNG pendientes de compresión.');
     return [];
   }
-  const confirmarTodo = await confirmar(
-    `¿Confirmas subir ${nuevos.length} nuevas y sobrescribir ${existentes.length} existentes`
-  );
-  return confirmarTodo ? [...nuevos, ...existentes] : [];
+  const confirmarTodo = await confirmar(`¿Confirmas comprimir y subir las ${total.length} imágenes encontradas`);
+  return confirmarTodo ? total : [];
 }
 
 
@@ -760,51 +787,60 @@ console.log(`📐 Resultado      : ${descripcionResultado()}`);
   }
 
 async function ejecutarSubida() {
-  console.log(`\n${modoLabelSubida()}`);
+  console.log(`\n🚀 Modo subida y compresión directa`);
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
   if (!fs.existsSync(CARPETA_LOCAL)) {
     throw new Error(`No existe la carpeta local:\n${CARPETA_LOCAL}`);
   }
 
-  console.log('🔍 Escaneando local...');
-  const locales = await filtrarLocalesModo(inventarioLocal());
-  const remotasRaw = await inventarioBucket(supabase, RUTA_SUPABASE);
-  const remotas = new Set(remotasRaw.map((ruta) => rutaRelativaStorage(ruta)));
-  console.log(`📁 ${locales.length} imágenes locales válidas.`);
-  console.log(`☁️ ${remotas.size} imágenes existentes en Supabase.`);
+  console.log('🔍 Escaneando imágenes locales JPG/PNG...');
+  const candidatosNoWebP = escaneaLocalNoWebP();
+  console.log(`📁 ${candidatosNoWebP.length} imágenes PNG/JPG encontradas en local.`);
 
-  const { nuevos, existentes, sobrantes } = calcularDelta(locales, remotas);
+  const paraSubir = await decidirSubidaNuevoFlujo(candidatosNoWebP);
+  if (!paraSubir.length) {
+    console.log('✅ Operación cancelada o sin archivos seleccionados.');
+    return;
+  }
 
-  // RESUMEN
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('📊 RESUMEN');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(`📁 Locales      : ${locales.length}`);
-  console.log(`🆕 Nuevas       : ${nuevos.length}`);
-  console.log(`♻️ A reemplazar  : ${existentes.length}`);
-  console.log(`⚠️ Sobrantes    : ${sobrantes.length}`);
+  console.log('☁️ PROCESANDO Y SUBIENDO A SUPABASE');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-  // GESTIONAR SOBRANTES + ELEGIR SUBIDA
-  const { paraSubir, paraEliminar, mensaje } = await planificarSubida(nuevos, existentes, sobrantes);
-  if (mensaje) console.log(mensaje);
-
-  // ELIMINAR
-  const { eliminados, erroresEliminacion } = await manejarEliminacionSubida(paraEliminar);
-
-  // PROCESAR Y SUBIR
   const stats = { subidos: 0, erroresSubida: 0 };
-  imprimirEncabezadoSubida();
-
   for (let i = 0; i < paraSubir.length; i++) {
     const archivo = paraSubir[i];
-    console.log(
-      `[${i + 1}/${paraSubir.length}] ⚙️ ${archivo.rutaRelativa}`
-    );
+    console.log(`[${i + 1}/${paraSubir.length}] ⚙️ ${archivo.rutaRelativa || archivo.rutaWebp}`);
     await subirUna(archivo, stats);
   }
 
-  imprimirResumenSubida(paraSubir, stats, eliminados, erroresEliminacion);
+  console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('🎉 PROCESO FINALIZADO');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log(`☁️ Subidas : ${stats.subidos}`);
+  console.log(`❌ Errores : ${stats.erroresSubida}`);
+
+  if (stats.subidos > 0 && process.stdin.isTTY) {
+    const eliminarOriginales = await confirmar('¿Deseas eliminar los originales JPG/PNG locales que ya fueron subidos', false);
+    if (eliminarOriginales) {
+      let borrados = 0;
+      for (const archivo of paraSubir) {
+        try {
+          if (fs.existsSync(archivo.rutaCompleta)) {
+            fs.unlinkSync(archivo.rutaCompleta);
+            borrados++;
+            console.log(`  🗑️ Original eliminado: ${archivo.rutaRelativa || archivo.rutaWebp}`);
+          }
+        } catch (err) {
+          console.error(`  ❌ Error eliminando original: ${err.message}`);
+        }
+      }
+      console.log(`\n✨ Originales eliminados: ${borrados}`);
+    } else {
+      console.log('\n💡 Se conservaron los originales locales.');
+    }
+  }
 }
 
 

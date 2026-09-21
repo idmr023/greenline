@@ -292,6 +292,7 @@ model ProdColorRel {
   productoId  Int     @map("producto_id")
   colorId     Int     @map("color_id")
   stock       Int?    @default(0)
+  visible     Boolean @default(true)
 
   producto    Producto  @relation(fields: [productoId], references: [id])
   color       Color     @relation(fields: [colorId], references: [id])
@@ -314,7 +315,7 @@ model Imagen {
   id          Int     @id @default(autoincrement())
   productoId  Int     @map("producto_id")
   url         String?
-  color       String?
+  color       String
   esPrincipal Boolean? @default(false) @map("es_principal")
   orden       Int?    @default(0)
 

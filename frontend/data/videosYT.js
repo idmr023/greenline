@@ -13,11 +13,6 @@ const VIDEOS_YT =[
     },
     {
         id: id(),
-        modelo_vehículo: 'Y5',
-        url: 'https://youtu.be/XMHwoozejJI?si=sGZvxJZ0X9Zxddor',
-    },
-    {
-        id: id(),
         modelo_vehículo: 'GL3',
         url: 'hhttps://youtu.be/-FC6WVJvIoo?si=xhUXRt7nO3Q1Czpo',
     },

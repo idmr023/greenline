@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS prod_color_rel (
   producto_id INT NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
   color_id INT NOT NULL REFERENCES colores(id) ON DELETE CASCADE,
   stock INT NOT NULL DEFAULT 0 CHECK (stock >= 0),
+  visible BOOLEAN NOT NULL DEFAULT TRUE,
   UNIQUE(producto_id, color_id)
 );
 
@@ -52,7 +53,7 @@ CREATE TABLE IF NOT EXISTS imagenes (
   id SERIAL PRIMARY KEY,
   producto_id INT NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
   url TEXT,
-  color TEXT,
+  color TEXT NOT NULL CHECK (btrim(color) <> ''),
   es_principal BOOLEAN NOT NULL DEFAULT false,
   orden INT NOT NULL DEFAULT 0
 );
@@ -535,7 +536,8 @@ SELECT p.id, p.nombre, p.slug, p.descripcion, p.precio_original, p.precio_actual
     'id', i.id, 'src', i.url, 'color', i.color, 'es_principal', i.es_principal
   ) ORDER BY i.orden, i.id) FROM imagenes i WHERE i.producto_id = p.id), '[]'::json) AS imagenes,
   COALESCE((SELECT json_agg(json_build_object(
-    'id', col.id, 'nombre', col.nombre, 'hex_code', col.hex_code, 'stock', pcr.stock
+    'id', col.id, 'nombre', col.nombre, 'hex_code', col.hex_code,
+    'stock', pcr.stock, 'visible', pcr.visible
   ) ORDER BY col.nombre)
   FROM prod_color_rel pcr JOIN colores col ON col.id = pcr.color_id
   WHERE pcr.producto_id = p.id), '[]'::json) AS colores_detalle,

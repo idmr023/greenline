@@ -16,7 +16,11 @@ export default function FeatureCard({
   if (typeof icon === 'function') {
     const IconComponent = icon;
     iconNode = <IconComponent {...iconProps} />;
-  } else if (typeof icon === 'object' && icon !== null) {
+  } else if (
+    typeof icon === 'object' &&
+    icon !== null &&
+    typeof icon.$$typeof === 'undefined'
+  ) {
     // Definición cruda de FontAwesome ({ prefix, iconName, ... })
     iconNode = <FontAwesomeIcon icon={icon} {...iconProps} strokeWidth={2.5} />;
   } else {

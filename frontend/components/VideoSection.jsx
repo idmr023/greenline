@@ -1,6 +1,9 @@
 import { Play } from '../lib/icons';
 import { useState } from 'react';
 import YouTubeEmbed from './YouTubeEmbed';
+import { versionarImagen } from '../lib/images';
+
+const VIDEO_PREVIEW = versionarImagen('/assets/imagenes/otros/vistaprevia_videoseccion.png');
 
 export default function VideoSection() {
   const [showVideo, setShowVideo] = useState(false);
@@ -28,7 +31,7 @@ export default function VideoSection() {
               className="relative aspect-video w-full cursor-pointer group bg-gray-900 flex items-center justify-center overflow-hidden"
             >
               <img
-                src="/assets/imagenes/otros/vistaprevia_videoseccion.png"
+                src={VIDEO_PREVIEW}
                 alt="Green Line en acción"
                 className="w-full h-full object-cover opacity-70 group-hover:scale-105 transition-transform duration-700"
               />
