@@ -32,10 +32,13 @@ const pedidoSchema = z.object({
     codigo: z.string().trim().min(3).max(40),
     cliente: z.object({
       nombre: z.string().trim().min(2).max(150),
-      telefono: z.string().trim().min(6).max(30),
+      telefono: z.string().trim().regex(/^9\d{8}$/, 'El teléfono debe tener 9 dígitos y empezar por 9'),
       email: z.string().email().optional().nullable(),
       direccion: z.string().trim().min(5).max(500),
-      dni: z.string().trim().min(7).max(12),
+      departamento: z.string().trim().min(1).max(100),
+      provincia: z.string().trim().min(1).max(100),
+      distrito: z.string().trim().min(1).max(100),
+      dni: z.string().trim().regex(/^\d{8}$/, 'El DNI debe tener 8 dígitos'),
     }),
     items: z.array(itemSchema).min(1),
     total: z.number().nonnegative(),
@@ -174,6 +177,9 @@ export function generarEmailPedido({ codigo, cliente, items, total }) {
   const camposCliente = [
     { etiqueta: 'Nombre del cliente', valor: cliente.nombre },
     { etiqueta: 'Dirección de facturación', valor: cliente.direccion },
+    { etiqueta: 'Departamento', valor: cliente.departamento },
+    { etiqueta: 'Provincia', valor: cliente.provincia },
+    { etiqueta: 'Distrito', valor: cliente.distrito },
     ...(cliente.email && String(cliente.email).trim()
       ? [{ etiqueta: 'Correo', valor: cliente.email }]
       : []),
