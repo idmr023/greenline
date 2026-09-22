@@ -72,6 +72,13 @@ function generarEmailPedido({ codigo, cliente, items, total }) {
 }
 
 async function main() {
+  // No-op en Preview Environments (IS_PULL_REQUEST): el preview hereda las
+  // env vars de producción y este cron reenviaría emails reales. Nunca correr aquí.
+  if (process.env.IS_PULL_REQUEST === 'true') {
+    console.log('[recover-pedidos] preview detectado (IS_PULL_REQUEST) — no hago nada.');
+    return;
+  }
+
   console.log(`[recover-pedidos] Buscando pedidos sin email enviado (últimas ${MAX_AGE_HOURS}h)...`);
 
   if (DRY_RUN) {

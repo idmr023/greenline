@@ -1,8 +1,18 @@
+# Preview Environments (opción B): cada Pull Request levanta una copia efímera
+# del backend con el código del PR. Se actualiza con cada push y se destruye
+# sola al cerrar/mergear el PR (más auto-limpieza por inactividad).
+# Cobro prorrateado por segundo; como la base es free, los previews son free.
+previews:
+  generation: automatic
+  expireAfterDays: 2
+
 services:
   - type: web
     name: greenline-backend
     runtime: node
     rootDir: backend
+    previews:
+      plan: free
     healthCheckPath: /health
     buildCommand: npm install; npm run build
     startCommand: node --max-old-space-size=400 src/index.js
@@ -13,8 +23,12 @@ services:
         value: 10000
       - key: DATABASE_URL
         sync: false
+        # TODO: apunta los previews a una DB de PRUEBA (nunca prod, se hereda si se omite).
+        # previewValue: postgresql://usuario:clave@host:5432/greenline_test
       - key: DIRECT_URL
         sync: false
+        # TODO: igual que DATABASE_URL, override de prueba para previews.
+        # previewValue: postgresql://usuario:clave@host:5432/greenline_test
       - key: JWT_SECRET
         sync: false
       - key: JWT_REFRESH_SECRET
@@ -61,7 +75,7 @@ services:
     name: greenline-keepalive
     runtime: node
     rootDir: backend
-    schedule: */5 * * * *
+    schedule: "*/5 * * * *"
     buildCommand: npm install --omit=dev
     startCommand: node scripts/keepalive.mjs
     envVars:
@@ -73,7 +87,7 @@ services:
     name: greenline-email-recovery
     runtime: node
     rootDir: backend
-    schedule: */30 * * * *
+    schedule: "*/30 * * * *"
     buildCommand: npm install --omit=dev
     startCommand: node scripts/recover-pending-emails.mjs
     envVars:

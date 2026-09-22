@@ -1,0 +1,54 @@
+name: Auto-PR develop -> main
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+concurrency:
+  group: auto-pr-develop-main
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check diff develop..main
+        id: diff
+        run: |
+          git fetch origin develop main
+          COUNT=$(git rev-list --count origin/main..origin/develop)
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "develop ahead of main by $COUNT commits"
+          if [ "$COUNT" -eq 0 ]; then
+            echo "No diff, skipping PR creation."
+          fi
+
+      - name: Create or reuse PR + enable auto-merge (squash)
+        if: steps.diff.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          EXISTING=$(gh pr list --base main --head develop --json number --jq '.[0].number // empty')
+          if [ -z "$EXISTING" ]; then
+            gh pr create \
+              --base main \
+              --head develop \
+              --title "Auto-PR: develop -> main" \
+              --body "PR automático develop -> main. Auto-merge con squash cuando el CI (verify) esté en verde. Creado por .github/workflows/auto-pr-develop-main.yml"
+            PR=$(gh pr list --base main --head develop --json number --jq '.[0].number')
+          else
+            PR="$EXISTING"
+            echo "Reusing existing PR #$PR"
+          fi
+          echo "Enabling auto-merge (squash) on PR #$PR"
+          gh pr merge --auto --squash "$PR"
