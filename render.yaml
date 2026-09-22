@@ -14,9 +14,10 @@ services:
     rootDir: backend
     previews:
       plan: free
-    # Deploy en cada push a main (B1). El CI sigue como quality gate en GitHub,
-    # pero el deploy no depende de checks (GITHUB_TOKEN no dispara CI en main).
-    autoDeployTrigger: 'commit'
+    
+    # Deploy solo cuando el CI de GitHub Actions (job CI/verify) esté en verde
+    # para el commit de main. Si el CI falla, Render no despliega.
+    autoDeployTrigger: 'checksPass'
     healthCheckPath: /health
     buildCommand: npm install; npm run build
     startCommand: node --max-old-space-size=400 src/index.js
