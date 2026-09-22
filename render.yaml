@@ -1,9 +1,10 @@
-# Preview Environments (opción B): cada Pull Request levanta una copia efímera
-# del backend con el código del PR. Se actualiza con cada push y se destruye
-# sola al cerrar/mergear el PR (más auto-limpieza por inactividad).
+# Service Previews (dashboard > greenline-backend > Previews > Manual):
+# solo se crea instancia preview para PRs con label `render-preview` o
+# título `[render preview]`. Se destruye al cerrar/mergear el PR.
 # Cobro prorrateado por segundo; como la base es free, los previews son free.
+# NOTA: Preview Environments a nivel Blueprint (clon de grupo) exigen workspace Pro.
 previews:
-  generation: automatic
+  generation: manual
   expireAfterDays: 2
 
 services:
