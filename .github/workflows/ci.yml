@@ -55,5 +55,8 @@ jobs:
       - name: Build frontend
         run: npm run build
 
+      - name: Generate Prisma client
+        run: cd backend && npm run build
+
       - name: Backend unit tests
         run: cd backend && npm run test -- --run tests/unit
