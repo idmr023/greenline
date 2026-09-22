@@ -15,6 +15,7 @@ import EcommerceStrip from '../components/EcommerceStrip';
 import { LinkButton } from '../components/ui/general/LinkButton.jsx';
 import OficialDistributors from '../components/home/OficialDistributors.jsx';
 import CommunitySection from '../components/home/CommunitySection.jsx';
+import { BBVACard } from '../components/ui/general/BBVACard.jsx';
 
 
 export default function Home() {
@@ -73,7 +74,10 @@ export default function Home() {
 
       <Pillars /> 
       
-      <CountdownBanner />
+
+      <div className='w-full'>
+        <BBVACard isBanner={true} />
+      </div>
 
       <section className="py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">

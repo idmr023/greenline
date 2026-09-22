@@ -55,7 +55,7 @@ export const CARRUSEL = [
   v('/assets/imagenes/caroussel/3.png'),
   v('/assets/imagenes/caroussel/4.jpeg'),
   v('/assets/imagenes/caroussel/5.jpeg'),
-  v('/assets/imagenes/caroussel/6.png'),
+  v('/assets/imagenes/caroussel/6.jpeg'),
 ];
 
 // ----------------------------------------------------------------------------

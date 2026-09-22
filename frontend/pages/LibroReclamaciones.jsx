@@ -50,6 +50,13 @@ export default function LibroReclamaciones() {
   const [claimNumber, setClaimNumber] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  // Modo prueba oculto: solo visible con ?modo=prueba. Envía a /validate,
+  // que nunca escribe en Sheet/DB ni envía correos.
+  const [isTestMode] = useState(
+    () => new URLSearchParams(window.location.search).get('modo') === 'prueba',
+  );
+  const [validating, setValidating] = useState(false);
+  const [preview, setPreview] = useState(null);
   const [stores, setStores] = useState([]);
   const [techStores, setTechStores] = useState([]);
   const [productos, setProductos] = useState([]);
@@ -140,9 +147,41 @@ export default function LibroReclamaciones() {
     ...(form.servicio === 'Distribución' ? ['distribuidor'] : ['tienda']),
   ];
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitError(null);
+  const buildPayload = () => {
+    const fechaHoy = new Intl.DateTimeFormat('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date());
+    const productoFinal = form.producto === 'Otros' ? form.modeloEspecifico : form.producto;
+    return {
+      fecha: fechaHoy,
+      nombre: form.nombre,
+      apellidos: form.apellidos,
+      email: form.email,
+      telefono: form.telefono,
+      tipoDoc: form.tipoDoc,
+      numDoc: form.numDoc,
+      direccion: form.direccion,
+      distrito: form.distrito,
+      ciudad: form.ciudad,
+      departamento: form.departamento,
+      servicio: form.servicio,
+      producto: productoFinal,
+      descripcionServicio: form.descripcionServicio,
+      tienda: form.servicio === 'Distribución' ? form.distribuidor : form.tienda,
+      distribuidor: form.distribuidor,
+      precio: form.precio,
+      fechaCompra: form.fechaCompra,
+      modelo: form.modelo,
+      color: form.color,
+      numeroMotor: form.numeroMotor,
+      placa: form.placa,
+      tipoQueja: form.tipo,
+      detalle: form.detalle,
+      pedido: form.pedido,
+      observaciones: form.observaciones,
+      empresa: form.empresa,
+    };
+  };
+
+  const validateClientSide = () => {
     const errs = {};
     required.forEach((k) => {
       if (!String(form[k] || '').trim()) errs[k] = 'Campo obligatorio';
@@ -150,46 +189,22 @@ export default function LibroReclamaciones() {
     setErrors(errs);
     if (Object.keys(errs).length > 0) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
+      return false;
     }
+    return true;
+  };
 
-    const fechaHoy = new Intl.DateTimeFormat('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date());
-    const productoFinal = form.producto === 'Otros' ? form.modeloEspecifico : form.producto;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitError(null);
+    if (!validateClientSide()) return;
 
     setSubmitting(true);
     try {
       const res = await fetch(`${API_URL}/reclamaciones`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fecha: fechaHoy,
-          nombre: form.nombre,
-          apellidos: form.apellidos,
-          email: form.email,
-          telefono: form.telefono,
-          tipoDoc: form.tipoDoc,
-          numDoc: form.numDoc,
-          direccion: form.direccion,
-          distrito: form.distrito,
-          ciudad: form.ciudad,
-          departamento: form.departamento,
-          servicio: form.servicio,
-          producto: productoFinal,
-          descripcionServicio: form.descripcionServicio,
-          tienda: form.servicio === 'Distribución' ? form.distribuidor : form.tienda,
-          distribuidor: form.distribuidor,
-          precio: form.precio,
-          fechaCompra: form.fechaCompra,
-          modelo: form.modelo,
-          color: form.color,
-          numeroMotor: form.numeroMotor,
-          placa: form.placa,
-          tipoQueja: form.tipo,
-          detalle: form.detalle,
-          pedido: form.pedido,
-          observaciones: form.observaciones,
-          empresa: form.empresa,
-        }),
+        body: JSON.stringify(buildPayload()),
       });
 
       if (!res.ok) {
@@ -204,6 +219,29 @@ export default function LibroReclamaciones() {
       setSubmitError(err.message);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // Modo prueba: misma validación cliente + validación servidor, sin registrar.
+  const handleValidate = async () => {
+    setSubmitError(null);
+    setPreview(null);
+    if (!validateClientSide()) return;
+
+    setValidating(true);
+    try {
+      const res = await fetch(`${API_URL}/reclamaciones/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildPayload()),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Validación fallida en el servidor');
+      setPreview(data);
+    } catch (err) {
+      setSubmitError(err.message);
+    } finally {
+      setValidating(false);
     }
   };
 
@@ -278,6 +316,17 @@ export default function LibroReclamaciones() {
             Fecha: {new Intl.DateTimeFormat('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date())}
           </p>
         </div>
+
+        {isTestMode && !sent && (
+          <div className="rounded-xl border border-amber-300 bg-amber-50 px-5 py-4 mb-8 text-sm text-amber-900">
+            <p className="font-bold">Modo prueba — no registra ni envía correos</p>
+            <p className="mt-1">
+              Llena el formulario y pulsa <strong>Probar sin registrar</strong> para validar
+              contra el servidor sin quemar el número de reclamo. El botón{' '}
+              <strong>Enviar reclamación</strong> sigue funcionando como en producción.
+            </p>
+          </div>
+        )}
 
         {!sent ? (
           <form onSubmit={handleSubmit} noValidate className="space-y-10">
@@ -537,7 +586,31 @@ export default function LibroReclamaciones() {
               </div>
             )}
 
+            {isTestMode && preview?.numeroReclamoPreview && (
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                Validación OK — N° preview: <strong>{preview.numeroReclamoPreview}</strong>
+                {preview.correlativoPreview ? ` (${preview.correlativoPreview})` : ''}.
+                No se registró ni se envió ningún correo.
+              </div>
+            )}
+
             <div className="flex items-center justify-end gap-4 pt-2">
+              {isTestMode && (
+                <button
+                  type="button"
+                  onClick={handleValidate}
+                  disabled={submitting || validating}
+                  className="inline-flex items-center gap-2 border border-amber-400 bg-amber-50 text-amber-800 px-6 py-3 rounded-lg font-semibold hover:bg-amber-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {validating ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" /> Probando...
+                    </>
+                  ) : (
+                    'Probar sin registrar'
+                  )}
+                </button>
+              )}
               <button
                 type="submit"
                 disabled={submitting}

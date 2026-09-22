@@ -5,6 +5,7 @@ import TikTokSlide from '../TikTokSlide';
 import { BBVACard } from '../ui/general/BBVACard';
 import { carrousel_slides } from '../../../src/data_json';
 import { AngleLeft, AngleRight } from '../../lib/icons';
+import CountdownBanner from '../ui/aniversario/CountdownBanner';
 
 export default function HeroCarousel() {
   const [current, setCurrent] = useState(0);
@@ -22,8 +23,8 @@ export default function HeroCarousel() {
 
   return (
     <section className="w-full">
-      
-    <BBVACard isBanner={true} />
+    
+    <CountdownBanner />
 
     <div className="relative aspect-1920/600 overflow-hidden bg-gradient-to-b from-[#064e3b] to-black">
       <div className="pointer-events-none absolute inset-0 z-10" />
