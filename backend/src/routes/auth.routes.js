@@ -10,7 +10,7 @@ import { validate } from '../middleware/validate.js';
 
 const router = Router();
 
-const loginSchema = z.object({
+export const loginSchema = z.object({
   body: z.object({
     email: z.string().email('Email inválido'),
     password: z.string().min(1, 'Contraseña requerida'),

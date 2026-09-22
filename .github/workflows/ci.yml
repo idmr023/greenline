@@ -58,5 +58,15 @@ jobs:
       - name: Generate Prisma client
         run: cd backend && npm run build
 
-      - name: Backend unit tests
-        run: cd backend && npm run test -- --run tests/unit
+      - name: Audit prod deps (root)
+        # Advisory (no bloquea): hay vulnerabilidades transitivas conocidas
+        # (tar). Dependabot propone los fixes; este paso las hace visibles.
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Audit prod deps (backend)
+        continue-on-error: true
+        run: cd backend && npm audit --omit=dev --audit-level=high
+
+      - name: Backend unit tests + coverage gate
+        run: cd backend && npm run test:coverage -- tests/unit

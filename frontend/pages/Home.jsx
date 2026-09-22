@@ -3,20 +3,15 @@ import SEOHead, { organizationSchema, breadcrumbSchema } from '../components/SEO
 import HeroCarousel from '../components/home/HeroCarousel.jsx';
 import Pillars from '../components/home/Pillars.jsx';
 import ProductCard from '../components/product/ProductCard.jsx';
-import CountdownBanner from '../components/ui/aniversario/CountdownBanner';
 import Testimonials from '../components/Testimonials';
 import Objecciones from '../components/home/Objeciones.jsx';
 import VideoSection from '../components/VideoSection';
-import GreenTipsSection from '../components/home/GreenTipsSection.jsx';
 import { CATEGORIAS, sortProducts, fetchProductos } from '../lib/productos';
-import { isAniversarioActivo } from '../lib/aniversario'; // 1. Importación añadida para fechas
-import AnniversaryPromo from '../components/ui/aniversario/AniversaryPromo';
 import EcommerceStrip from '../components/EcommerceStrip';
 import { LinkButton } from '../components/ui/general/LinkButton.jsx';
 import OficialDistributors from '../components/home/OficialDistributors.jsx';
 import CommunitySection from '../components/home/CommunitySection.jsx';
 import { BBVACard } from '../components/ui/general/BBVACard.jsx';
-
 
 export default function Home() {
   const [filterCategory, setFilterCategory] = useState('Todas');
@@ -73,7 +68,6 @@ export default function Home() {
       <HeroCarousel />
 
       <Pillars /> 
-      
 
       <div className='w-full'>
         <BBVACard isBanner={true} />

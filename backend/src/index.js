@@ -1,19 +1,19 @@
+import './instrument.js';
 import { env } from './config/env.js';
 import app from './app.js';
+import logger from './utils/logger.js';
 import { initEmailWorker, closeEmailQueue } from './queue/email.queue.js';
 
 const PORT = env.PORT;
 
 app.listen(PORT, () => {
-  console.log(`🟢 GreenLine Backend corriendo en puerto ${PORT}`);
-  console.log(`   Entorno: ${env.NODE_ENV}`);
-  console.log(`   Frontend: ${env.FRONTEND_URL}`);
+  logger.info({ port: PORT, env: env.NODE_ENV, frontend: env.FRONTEND_URL }, 'backend listo');
   initEmailWorker();
 });
 
 // Cierre ordenado de la cola de emails (Redis/BullMQ)
 async function shutdown() {
-  console.log('Apagando servidor...');
+  logger.info('Apagando servidor...');
   await closeEmailQueue();
   process.exit(0);
 }
