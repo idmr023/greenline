@@ -13,7 +13,7 @@ export default function CommunitySection() {
           <h2 className="mb-3 text-2xl font-bold text-gray-900 sm:text-3xl">
             Únete a la comunidad Green Line
           </h2>
-          <p className="mx-auto max-w-2xl text-gray-600">
+          <p className="mx-auto text-gray-600">
             Síguenos en Instagram y escríbenos por WhatsApp para mantenerte al tanto
             de las últimas actualizaciones, promociones y lanzamientos.
           </p>

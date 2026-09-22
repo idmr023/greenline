@@ -51,6 +51,37 @@ const reclamoSchema = z.object({
   }),
 });
 
+// ============================================================
+// POST /api/reclamaciones/validate — Modo prueba (permanente, QA)
+// Reutiliza el mismo schema/validación que el endpoint real, pero NUNCA
+// escribe en el Sheet, en DB ni encola emails. Solo lee el siguiente número
+// (getNextClaimNumber es lectura) y devuelve un preview. No quema número.
+// ============================================================
+router.post('/validate', reclamacionesLimiter, validate(reclamoSchema), async (req, res) => {
+  try {
+    const d = req.validated.body;
+
+    // Honeypot: misma respuesta que el endpoint real para no delatar el modo prueba.
+    if (d.empresa) {
+      return res.status(200).json({ ok: true, valid: true, dryRun: true });
+    }
+
+    const numeroReclamoPreview = await getNextClaimNumber();
+    const anio = new Date().getFullYear();
+
+    res.status(200).json({
+      ok: true,
+      valid: true,
+      dryRun: true,
+      numeroReclamoPreview,
+      correlativoPreview: `REC-${anio}-${String(numeroReclamoPreview).padStart(4, '0')}`,
+    });
+  } catch (error) {
+    console.error('Error validando reclamo (dry-run):', error);
+    res.status(500).json({ error: 'No se pudo validar el reclamo. Intenta más tarde.' });
+  }
+});
+
 router.post('/', reclamacionesLimiter, validate(reclamoSchema), async (req, res) => {
   try {
     const d = req.validated.body;
