@@ -27,7 +27,7 @@ const itemSchema = z.object({
   imagen: z.string().optional().nullable(),
 });
 
-const pedidoSchema = z.object({
+export const pedidoSchema = z.object({
   body: z.object({
     codigo: z.string().trim().min(3).max(40),
     cliente: z.object({

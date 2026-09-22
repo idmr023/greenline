@@ -2,6 +2,8 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
+import Sentry from './instrument.js';
+import logger from './utils/logger.js';
 import { env } from './config/env.js';
 import { corsOptions } from './config/cors.js';
 import { globalLimiter } from './middleware/rateLimiter.js';
@@ -10,6 +12,8 @@ import { requestLogger } from './middleware/requestLogger.js';
 import { originCheck } from './middleware/originCheck.js';
 import { authMiddleware } from './middleware/auth.js';
 import { requirePermission } from './middleware/rbac.js';
+import { apiReference } from '@scalar/express-api-reference';
+import { getOpenApiDocument } from './docs/openapi.js';
 
 // Routes
 import authRoutes from './routes/auth.routes.js';
@@ -120,6 +124,14 @@ app.use('/api/tiktok-live', tiktokRoutes);
 app.use('/api/reclamaciones', reclamacionesRoutes);
 app.use('/api/imagenes', imagenesRoutes);
 
+// Documentación API (solo superficie pública). Scalar UI necesita inline
+// scripts, por eso se retira el CSP global solo en esta ruta.
+app.get('/api/docs.json', (_req, res) => res.json(getOpenApiDocument()));
+app.use('/api/docs', (_req, res, next) => {
+  res.removeHeader('Content-Security-Policy');
+  next();
+}, apiReference({ spec: { url: '/api/docs.json' } }));
+
 // 404
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint no encontrado' });
@@ -127,7 +139,8 @@ app.use((req, res) => {
 
 // Error handler global
 app.use((err, req, res, _next) => {
-  console.error('Error no capturado:', err);
+  logger.error({ err, reqId: req.id, url: req.originalUrl }, 'error no capturado');
+  if (process.env.SENTRY_DSN) Sentry.captureException(err);
 
   if (env.NODE_ENV === 'development') {
     return res.status(500).json({

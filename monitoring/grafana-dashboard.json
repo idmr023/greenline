@@ -1,0 +1,68 @@
+{
+  "title": "GreenLine Backend",
+  "uid": "greenline-backend",
+  "timezone": "America/Lima",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {
+      "title": "Peticiones totales",
+      "type": "stat",
+      "datasource": "${DS_PROMETHEUS}",
+      "targets": [{ "expr": "greenline_requests_total", "refId": "A" }]
+    },
+    {
+      "title": "Peticiones en curso",
+      "type": "stat",
+      "datasource": "${DS_PROMETHEUS}",
+      "targets": [{ "expr": "greenline_requests_in_flight", "refId": "A" }]
+    },
+    {
+      "title": "Latencia media (ms)",
+      "type": "timeseries",
+      "datasource": "${DS_PROMETHEUS}",
+      "targets": [{ "expr": "greenline_requests_avg_response_ms", "refId": "A" }]
+    },
+    {
+      "title": "Latencia máxima (ms)",
+      "type": "timeseries",
+      "datasource": "${DS_PROMETHEUS}",
+      "targets": [{ "expr": "greenline_requests_max_response_ms", "refId": "A" }]
+    },
+    {
+      "title": "Peticiones por estado",
+      "type": "timeseries",
+      "datasource": "${DS_PROMETHEUS}",
+      "targets": [{ "expr": "sum by (status) (greenline_requests_total_by_status)", "refId": "A" }]
+    },
+    {
+      "title": "Ratio 5xx (errores)",
+      "type": "stat",
+      "datasource": "${DS_PROMETHEUS}",
+      "targets": [
+        {
+          "expr": "sum(greenline_requests_total_by_status{status=~\"5..\"}) / sum(greenline_requests_total_by_status)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Peticiones por método",
+      "type": "timeseries",
+      "datasource": "${DS_PROMETHEUS}",
+      "targets": [{ "expr": "sum by (method) (greenline_requests_total_by_method)", "refId": "A" }]
+    },
+    {
+      "title": "Heap usado (bytes)",
+      "type": "timeseries",
+      "datasource": "${DS_PROMETHEUS}",
+      "targets": [{ "expr": "process_memory_heap_used_bytes", "refId": "A" }]
+    },
+    {
+      "title": "Uptime (s)",
+      "type": "stat",
+      "datasource": "${DS_PROMETHEUS}",
+      "targets": [{ "expr": "process_uptime_seconds", "refId": "A" }]
+    }
+  ]
+}

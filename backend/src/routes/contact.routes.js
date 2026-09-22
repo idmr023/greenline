@@ -13,7 +13,7 @@ const router = Router();
 // Envía el mensaje por email a MAIL_TO (o EMAIL_FROM si no está definido)
 // ============================================================
 
-const contactSchema = z.object({
+export const contactSchema = z.object({
   body: z.object({
     nombre: z.string().trim().min(2).max(120),
     email: z.string().email(),

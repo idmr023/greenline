@@ -15,6 +15,8 @@ import AnniversaryTheme from '../frontend/components/aniversario/AnniversaryThem
 import confetti from 'canvas-confetti';
 import { CONFETTI_COLORS } from '../frontend/lib/aniversario';
 import UPN_SlideBar from '../frontend/components/UPN_SlideBar';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { buildRoutes } from './routes';
 import PageLoader from './PageLoader';
 
@@ -75,6 +77,8 @@ function Layout() {
       />
       <CartDrawer />
       <AnniversaryTheme />
+      <Analytics />
+      <SpeedInsights />
     </>
   );
 }

@@ -98,21 +98,19 @@ export async function login(email, password, ip, userAgent) {
     userAgent,
   });
 
-  // Emitir sesión completa directamente (sin gate, sin OTP por ahora).
-  const accessToken = signAccessToken(user);
-  const refreshToken = signRefreshToken(user);
-  await saveRefreshToken(user.id, refreshToken, ip, userAgent);
+  // Si es CLIENTE: generar y enviar OTP por email
+  if (user.rol === 'CLIENTE') {
+    return await generateAndSendOTP(user, ip);
+  }
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { ultimoLogin: new Date(), ultimoLoginIp: ip },
-  });
-
+  // Staff: SIEMPRE requiere la puerta de acceso (verificación server-side,
+  // nunca en el bundle cliente). Emite solo un token temporal de challenge.
+  const tempToken = signTempToken(user, { gate: false });
   return {
     success: true,
-    accessToken,
-    refreshToken,
-    user: sanitizeUser(user),
+    requiresStaffGate: true,
+    tempToken,
+    message: 'Ingresa el código de acceso del staff',
   };
 }
 
