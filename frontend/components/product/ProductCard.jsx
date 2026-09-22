@@ -54,6 +54,10 @@ export default function ProductCard({ producto, featured = false }) {
   const watts = cleanWatts(producto.motor);
   const autonomia = producto.ficha_tecnica?.autonomia_km;
   const bateria = cleanBateria(producto.bateria);
+  const descuento =
+    producto.precio_original && producto.precio_actual < producto.precio_original
+      ? Math.round((1 - producto.precio_actual / producto.precio_original) * 100)
+      : 0;
 
   return (
     <article
@@ -72,6 +76,13 @@ export default function ProductCard({ producto, featured = false }) {
           height={featured ? 525 : 450}
           className="block w-full h-full"
         />
+        {descuento > 0 && (
+          <div
+            className="absolute top-2 right-2 z-10 -rotate-6 px-3 py-1.5 rounded-full bg-gradient-to-br from-red-500 to-rose-600 text-white font-extrabold text-sm shadow-lg ring-2 ring-white animate-bounce"
+          >
+            -{descuento}%
+          </div>
+        )}
         {/* COMENTADO (temporal — badge de "últimas unidades"):
         <div className="absolute top-3 right-3">
           <AvailabilityBadge
