@@ -1,0 +1,65 @@
+{
+  "name": "WF-03 - Verificador, Auditor y Reportero",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "auditor-trigger",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Audita esta implementación y sus resultados:\n\n{{ JSON.stringify($json) }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Eres el verificador, auditor y reportero de Greenline Web ERP. Revisa criterios de aceptación, pruebas reportadas, archivos afectados, riesgos, secretos y cambios fuera de alcance. No declares una prueba aprobada si no hay evidencia. Devuelve un reporte objetivo y decide si requiere correcciones."
+        }
+      },
+      "id": "audit-chain",
+      "name": "Verificar y auditar",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [300, 0]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "id": "auditor-gemini",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.3,
+      "position": [220, 220]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"estado\": \"REQUIERE_CORRECCIONES\",\n  \"criterios_cumplidos\": false,\n  \"pruebas\": {\n    \"lint\": \"NO_EVIDENCIA\",\n    \"build\": \"NO_EVIDENCIA\",\n    \"security_smoke\": \"NO_EVIDENCIA\",\n    \"backend_tests\": \"NO_EVIDENCIA\"\n  },\n  \"hallazgos\": [],\n  \"riesgos_pendientes\": [],\n  \"recomendacion\": \"\",\n  \"reporte_markdown\": \"\"\n}"
+      },
+      "id": "audit-parser",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [480, 220]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [[{"node": "Verificar y auditar", "type": "main", "index": 0}]]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [[{"node": "Verificar y auditar", "type": "ai_languageModel", "index": 0}]]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [[{"node": "Verificar y auditar", "type": "ai_outputParser", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "tags": []
+}
