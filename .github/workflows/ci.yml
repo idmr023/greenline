@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+
+# Cancela ejecuciones anteriores del mismo PR/rama al hacer nuevos pushes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install (root)
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Security smoke
+        run: npm run security-smoke
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Install (backend)
+        run: cd backend && npm ci
+
+      - name: Backend unit tests
+        run: cd backend && npm run test -- --run tests/unit
