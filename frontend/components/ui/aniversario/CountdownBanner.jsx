@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { Clock, Gift } from '../../../lib/icons';
+import { Gift } from '../../../lib/icons';
 import useCountdown from '../../../hooks/useCountdown';
 import { isAniversarioActivo, aniversarioNumero } from '../../../lib/aniversario';
 
@@ -19,6 +18,9 @@ export default function CountdownBanner() {
   }, []);
   const tiempo = useCountdown(target);
 
+  const whatsappMessage = "¡Hola! Quisiera acceder al descuento por el aniversario Greenline";
+  const whatsappUrl = `https://wa.me/51919445661?text=${encodeURIComponent(whatsappMessage)}`;
+
   if (!isAniversarioActivo() || !tiempo) return null;
 
   return (
@@ -31,8 +33,7 @@ export default function CountdownBanner() {
             </span>
             <div>
               <p className="text-base sm:text-lg font-black leading-tight">
-                ¡Faltan {tiempo.dias} {tiempo.dias === 1 ? 'día' : 'días'} para que terminen las
-                ofertas del {numero}° aniversario!
+                No te quedes sin tu descuento de aniversario
               </p>
               <p className="text-xs sm:text-sm font-semibold opacity-80">
                 50% del catálogo en descuento durante todo setiembre. No dejes pasar tu GreenLine.
@@ -56,12 +57,14 @@ export default function CountdownBanner() {
             ))}
           </div>
 
-          <Link
-            to="/aniversario"
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-greenline text-white font-black text-sm rounded-full shadow-md hover:bg-greenline-dark transition-colors"
           >
             Ver ofertas
-          </Link>
+          </a>
         </div>
       </div>
 

@@ -60,6 +60,9 @@ const envSchema = z.object({
    */
   SERVICE_ACCOUNT_JSON: z.string().optional(),
 
+  /** DSN de Sentry (error tracking). Opcional: sin esto, instrument.js es no-op. */
+  SENTRY_DSN: z.string().url().optional().or(z.literal('')),
+
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(900000),
   RATE_LIMIT_MAX: z.coerce.number().default(100),
   LOGIN_RATE_LIMIT_MAX: z.coerce.number().default(5),

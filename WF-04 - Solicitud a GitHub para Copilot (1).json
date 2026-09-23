@@ -1,0 +1,453 @@
+{
+  "name": "WF-04 - Solicitud a GitHub para Copilot",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Convierte esta solicitud en una especificación de trabajo para GitHub:\n\n{{ $json.instruccion }}",
+        "hasOutputParser": true
+      },
+      "id": "9c33f3d9-db0e-45dd-a980-4eb372ffa670",
+      "name": "Analista y planificador",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        -256,
+        624
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"titulo\": \"Validar datos del checkout\",\n  \"historia_usuario\": \"Como cliente quiero registrar datos válidos para que Greenline pueda contactarme.\",\n  \"criterios_aceptacion\": [\n    \"El teléfono debe tener 9 dígitos y comenzar en 9\",\n    \"El DNI debe tener exactamente 8 dígitos\"\n  ],\n  \"archivos_probables\": [\n    \"frontend/pages/Checkout.jsx\",\n    \"backend/src/routes/pedidos.routes.js\"\n  ],\n  \"plan_tecnico\": [\n    \"Implementar validación en frontend y backend\"\n  ],\n  \"pruebas_requeridas\": [\n    \"npm run lint\",\n    \"npm run build\",\n    \"npm run security-smoke\",\n    \"cd backend && npm test\"\n  ],\n  \"riesgos\": [],\n  \"preguntas_pendientes\": [],\n  \"listo_para_implementar\": true\n}"
+      },
+      "id": "7b0187d6-78e5-45f9-9abd-faefdf6bafc2",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -80,
+        896
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ Number($json.output.preguntas_pendientes ? $json.output.preguntas_pendientes.length : 0) }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              },
+              "id": "884d3b1c-f870-4982-a3c2-e18adee6a7eb"
+            },
+            {
+              "leftValue": "={{ $json.output.listo_para_implementar }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              },
+              "id": "3a0f9c7c-c630-4b43-a944-0435c120788b"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fd440de2-e835-4a43-acaa-a35c8ca1daa0",
+      "name": "¿Plan listo?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        144,
+        624
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "status",
+              "name": "estado",
+              "value": "BLOQUEADO_POR_ACLARACIONES",
+              "type": "string"
+            },
+            {
+              "id": "message",
+              "name": "mensaje",
+              "value": "La solicitud no se envió a GitHub porque tiene preguntas pendientes o el plan no está listo.",
+              "type": "string"
+            },
+            {
+              "id": "plan",
+              "name": "plan",
+              "value": "={{ JSON.stringify($json) }}",
+              "type": "string"
+            },
+            {
+              "id": "13d403d3-3e94-4262-8811-996d4139c0ee",
+              "name": "",
+              "value": "=={{\n  \"⚠️ **El agente necesita las siguientes aclaraciones:**\\n\\n- \" +\n  (\n    $json.output.preguntas_pendientes &&\n    $json.output.preguntas_pendientes.length > 0\n      ? $json.output.preguntas_pendientes.join(\"\\n- \")\n      : \"El agente indicó que el plan no está listo, pero no especificó preguntas.\"\n  )\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2ad444d1-d5de-4607-ac38-929b75ae4576",
+      "name": "Solicitar aclaración",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        384,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const plan = $json;\nconst list = (items) => (items || []).map((item) => `- ${item}`).join('\\n');\nconst criteria = (plan.criterios_aceptacion || []).map((item) => `- [ ] ${item}`).join('\\n');\nconst files = list(plan.archivos_probables);\nconst technicalPlan = list(plan.plan_tecnico);\nconst tests = list(plan.pruebas_requeridas);\nconst risks = list(plan.riesgos) || '- Ninguno indicado';\n\nreturn [{\n  json: {\n    ...plan,\n    issueTitle: `[Agente] ${plan.titulo}`,\n    issueBody: `## Historia de usuario\\n\\n${plan.historia_usuario}\\n\\n## Criterios de aceptación\\n\\n${criteria}\\n\\n## Plan técnico\\n\\n${technicalPlan}\\n\\n## Archivos probables\\n\\n${files}\\n\\n## Pruebas requeridas\\n\\n${tests}\\n\\n## Riesgos\\n\\n${risks}\\n\\n## Instrucciones para Copilot coding agent\\n\\n- Trabaja en una branch nueva basada en develop.\\n- No modifiques develop directamente.\\n- No leas ni modifiques archivos .env ni secretos.\\n- Implementa todos los criterios de aceptación.\\n- Ejecuta las pruebas indicadas y reporta resultados reales.\\n- Abre un Pull Request contra develop.\\n- No hagas merge automático.\\n\\n> Este Issue fue generado por el workflow de n8n. La asignación a Copilot coding agent y la aprobación del merge requieren revisión humana.`\n  }\n}];"
+      },
+      "id": "fcb52aed-e9a6-445d-b714-48448186dd1c",
+      "name": "Construir Issue",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.github.com/repos/idmr023/greenline/issues",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ title: $json.issueTitle, body: $json.issueBody, labels: ['agent-request'] }) }}",
+        "options": {}
+      },
+      "id": "33e19569-6efe-4cb7-99ab-e41fede9301f",
+      "name": "Crear Issue en GitHub",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        544
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Dr99cbP28FfWhRHk",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "status",
+              "name": "estado",
+              "value": "ISSUE_CREADO_REQUIERE_ASIGNACION",
+              "type": "string"
+            },
+            {
+              "id": "issueUrl",
+              "name": "issue_url",
+              "value": "={{ $json.html_url }}",
+              "type": "string"
+            },
+            {
+              "id": "issueNumber",
+              "name": "issue_numero",
+              "value": "={{ $json.number }}",
+              "type": "number"
+            },
+            {
+              "id": "message",
+              "name": "mensaje",
+              "value": "Issue creado. Asigna Copilot coding agent en GitHub y espera el Pull Request.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "18ce28a8-5485-47a4-bd3a-a11de96b0875",
+      "name": "Issue creado",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -288,
+        896
+      ],
+      "id": "56b560c2-fad1-4266-8284-64d6584860c3",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "WbmS13lNTpoJTtHH",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/idmr023/greenline/git/trees/develop?recursive=1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -560,
+        624
+      ],
+      "id": "ff15814f-76ff-45c5-bbe6-a3ffa6cbae28",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.github.com/repos/idmr023/greenline/actions/workflows/copilot-agent.yml",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"ref\": \"develop\",\n  \"inputs\": {\n    \"issue_numero\": \"={{ $json.issue_numero }}\",\n    \"webhook_resume_url\": \"={{ $execution.resumeUrl }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1104,
+        544
+      ],
+      "id": "cb05ed27-891d-44b5-bc7e-8fe6f64731b9",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Dr99cbP28FfWhRHk",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -800,
+        624
+      ],
+      "id": "a00897a3-51dd-46d3-9e5c-fe1b5d52eebd",
+      "name": "When chat message received",
+      "webhookId": "4a109571-cd7c-4b19-8ad5-0f0e17fa8609"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        -320,
+        1136
+      ],
+      "id": "d7954802-aba1-4467-87d0-2cd7c4e60fc2",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -160,
+        1056
+      ],
+      "id": "58d268d7-c856-45bd-8b6e-6c550bb20ac5",
+      "name": "Chat Memory Manager"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Analista y planificador": {
+      "main": [
+        [
+          {
+            "node": "¿Plan listo?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Analista y planificador",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Plan listo?": {
+      "main": [
+        [
+          {
+            "node": "Construir Issue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Solicitar aclaración",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir Issue": {
+      "main": [
+        [
+          {
+            "node": "Crear Issue en GitHub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Issue en GitHub": {
+      "main": [
+        [
+          {
+            "node": "Issue creado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analista y planificador",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Analista y planificador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Issue creado": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Chat Memory Manager",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8acf7a94-f8ed-4625-8988-345aad20d5e3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b6474fc536ed8c40015f3aee7a8bb33248f5180a5aa28723fe17bbfd5fcdbc73"
+  },
+  "nodeGroups": [],
+  "id": "jFnXoUQH31RYWHf1",
+  "tags": []
+}

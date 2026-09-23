@@ -1,8 +1,25 @@
+# Service Previews (dashboard > greenline-backend > Previews > Manual):
+# solo se crea instancia preview para PRs con label `render-preview` o
+# título `[render preview]`. Se destruye al cerrar/mergear el PR.
+# Cobro prorrateado por segundo; como la base es free, los previews son free.
+# NOTA: Preview Environments a nivel Blueprint (clon de grupo) exigen workspace Pro.
+previews:
+  generation: manual
+  expireAfterDays: 2
+
 services:
   - type: web
     name: greenline-backend
     runtime: node
     rootDir: backend
+    previews:
+      plan: free
+    # Deploy solo cuando TODOS los checks de GitHub Actions del commit en main
+    # pasen (CI/verify obligatorio vía ruleset). Si un check falla, está
+    # cancelled o no hay checks → Render NO despliega. Requiere que el merge a
+    # main lo haga un PAT (AUTO_MERGE_PAT), no GITHUB_TOKEN, para que el push
+    # dispare los workflows.
+    autoDeployTrigger: 'checksPass'
     healthCheckPath: /health
     buildCommand: npm install; npm run build
     startCommand: node --max-old-space-size=400 src/index.js
@@ -13,8 +30,12 @@ services:
         value: 10000
       - key: DATABASE_URL
         sync: false
+        # TODO: apunta los previews a una DB de PRUEBA (nunca prod, se hereda si se omite).
+        # previewValue: postgresql://usuario:clave@host:5432/greenline_test
       - key: DIRECT_URL
         sync: false
+        # TODO: igual que DATABASE_URL, override de prueba para previews.
+        # previewValue: postgresql://usuario:clave@host:5432/greenline_test
       - key: JWT_SECRET
         sync: false
       - key: JWT_REFRESH_SECRET
@@ -61,7 +82,7 @@ services:
     name: greenline-keepalive
     runtime: node
     rootDir: backend
-    schedule: */5 * * * *
+    schedule: "*/5 * * * *"
     buildCommand: npm install --omit=dev
     startCommand: node scripts/keepalive.mjs
     envVars:
@@ -73,7 +94,7 @@ services:
     name: greenline-email-recovery
     runtime: node
     rootDir: backend
-    schedule: */30 * * * *
+    schedule: "*/30 * * * *"
     buildCommand: npm install --omit=dev
     startCommand: node scripts/recover-pending-emails.mjs
     envVars:

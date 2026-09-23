@@ -1,0 +1,182 @@
+{
+  "name": "WF-00 - Agente Codificador Completo",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "instruction",
+              "name": "instruccion",
+              "value": "Agregar una mejora al checkout de Greenline",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "input",
+      "name": "Solicitud de cambio",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analiza esta instrucción de cambio para Greenline Web ERP:\n\n{{ $json.instruccion }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Eres el agente analista y planificador de Greenline Web ERP.\n\nStack: React 19, Vite, Tailwind CSS, Supabase, Express, Zod, JavaScript y JSX.\n\nConvierte la instrucción en una historia de usuario y un plan técnico. No escribas código todavía. Identifica criterios verificables, archivos probablemente afectados, riesgos y preguntas pendientes. No inventes archivos ni dependencias.\n\nDevuelve únicamente la información que cumpla el formato estructurado solicitado."
+        }
+      },
+      "id": "analyst",
+      "name": "1. Analista y planificador",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [520, 0]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "analyst-gemini",
+      "name": "Gemini - Analista",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.3,
+      "position": [420, 260]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"titulo\": \"Validar datos del checkout\",\n  \"historia_usuario\": \"Como administrador quiero validar los datos del cliente antes de registrar el pedido.\",\n  \"criterios_aceptacion\": [\n    \"El teléfono debe tener 9 dígitos y comenzar en 9\",\n    \"El DNI debe tener exactamente 8 dígitos\",\n    \"Departamento, provincia y distrito son obligatorios\"\n  ],\n  \"archivos_probables\": [\n    \"frontend/pages/Checkout.jsx\",\n    \"backend/src/routes/pedidos.routes.js\"\n  ],\n  \"plan_tecnico\": [\n    \"Validar los campos en frontend\",\n    \"Validar nuevamente en backend\",\n    \"Ejecutar lint, build y pruebas\"\n  ],\n  \"riesgos\": [\n    \"No insertar pedidos directamente desde el frontend\"\n  ],\n  \"preguntas_pendientes\": [],\n  \"listo_para_implementar\": true\n}"
+      },
+      "id": "analyst-parser",
+      "name": "Parser - Plan",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [680, 260]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Convierte el plan del analista en una especificación de implementación revisable.\n\nPlan recibido:\n{{ JSON.stringify($('1. Analista y planificador').first().json) }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Eres el agente implementador de Greenline Web ERP.\n\nNo afirmes que modificaste archivos ni que ejecutaste pruebas: en esta versión solo produces una especificación y un parche propuesto. Respeta React 19, Vite, Tailwind CSS, Supabase, Express y Zod. No inventes archivos ni dependencias. No incluyas secretos, archivos .env ni comandos destructivos. Las validaciones importantes deben existir en backend.\n\nDevuelve archivos afectados, cambios concretos, migraciones, dependencias, pruebas, riesgos y un parche propuesto. Si el plan tiene preguntas pendientes, usa estado NECESITA_ACLARACION."
+        }
+      },
+      "id": "implementer",
+      "name": "2. Implementador",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [980, 0]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "implementer-gemini",
+      "name": "Gemini - Implementador",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.3,
+      "position": [880, 260]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"estado\": \"ESPECIFICACION_LISTA\",\n  \"resumen\": \"\",\n  \"archivos_a_modificar\": [\n    {\n      \"ruta\": \"\",\n      \"motivo\": \"\",\n      \"cambios\": []\n    }\n  ],\n  \"archivos_a_crear\": [],\n  \"migraciones_requeridas\": [],\n  \"dependencias_nuevas\": [],\n  \"pruebas_requeridas\": [],\n  \"riesgos\": [],\n  \"preguntas_pendientes\": [],\n  \"parche_propuesto\": \"\"\n}"
+      },
+      "id": "implementer-parser",
+      "name": "Parser - Implementación",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [1140, 260]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Audita el plan y la especificación de implementación siguientes.\n\nPLAN DEL ANALISTA:\n{{ JSON.stringify($('1. Analista y planificador').first().json) }}\n\nESPECIFICACIÓN DEL IMPLEMENTADOR:\n{{ JSON.stringify($('2. Implementador').first().json) }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Eres el agente verificador, auditor y reportero de Greenline Web ERP.\n\nRevisa cada criterio de aceptación, la cobertura del plan, los archivos afectados, las pruebas propuestas, los riesgos, los secretos y los cambios fuera de alcance. No declares pruebas aprobadas: todavía no se han ejecutado. Si el implementador solo produjo una propuesta, indícalo claramente. Usa estado LISTO_PARA_IMPLEMENTAR si la especificación puede pasar a un runner seguro; usa REQUIERE_CORRECCIONES si falta información o hay riesgos sin resolver.\n\nDevuelve un reporte objetivo y accionable."
+        }
+      },
+      "id": "auditor",
+      "name": "3. Verificador, auditor y reportero",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [1440, 0]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "id": "auditor-gemini",
+      "name": "Gemini - Auditor",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.3,
+      "position": [1340, 260]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"estado\": \"REQUIERE_CORRECCIONES\",\n  \"criterios_cumplidos\": false,\n  \"pruebas\": {\n    \"lint\": \"NO_EJECUTADO\",\n    \"build\": \"NO_EJECUTADO\",\n    \"security_smoke\": \"NO_EJECUTADO\",\n    \"backend_tests\": \"NO_EJECUTADO\"\n  },\n  \"hallazgos\": [],\n  \"riesgos_pendientes\": [],\n  \"recomendacion\": \"\",\n  \"reporte_markdown\": \"\"\n}"
+      },
+      "id": "auditor-parser",
+      "name": "Parser - Auditoría",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [1620, 260]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{"node": "Solicitud de cambio", "type": "main", "index": 0}]]
+    },
+    "Solicitud de cambio": {
+      "main": [[{"node": "1. Analista y planificador", "type": "main", "index": 0}]]
+    },
+    "1. Analista y planificador": {
+      "main": [[{"node": "2. Implementador", "type": "main", "index": 0}]]
+    },
+    "2. Implementador": {
+      "main": [[{"node": "3. Verificador, auditor y reportero", "type": "main", "index": 0}]]
+    },
+    "Gemini - Analista": {
+      "ai_languageModel": [[{"node": "1. Analista y planificador", "type": "ai_languageModel", "index": 0}]]
+    },
+    "Parser - Plan": {
+      "ai_outputParser": [[{"node": "1. Analista y planificador", "type": "ai_outputParser", "index": 0}]]
+    },
+    "Gemini - Implementador": {
+      "ai_languageModel": [[{"node": "2. Implementador", "type": "ai_languageModel", "index": 0}]]
+    },
+    "Parser - Implementación": {
+      "ai_outputParser": [[{"node": "2. Implementador", "type": "ai_outputParser", "index": 0}]]
+    },
+    "Gemini - Auditor": {
+      "ai_languageModel": [[{"node": "3. Verificador, auditor y reportero", "type": "ai_languageModel", "index": 0}]]
+    },
+    "Parser - Auditoría": {
+      "ai_outputParser": [[{"node": "3. Verificador, auditor y reportero", "type": "ai_outputParser", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "tags": []
+}

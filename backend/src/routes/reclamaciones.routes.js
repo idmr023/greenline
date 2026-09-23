@@ -17,7 +17,7 @@ const router = Router();
 // El número de reclamo se asigna SIEMPRE en el servidor.
 // ============================================================
 
-const reclamoSchema = z.object({
+export const reclamoSchema = z.object({
   body: z.object({
     fecha: z.string().trim().min(1),
     nombre: z.string().trim().min(1).max(120),

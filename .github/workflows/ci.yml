@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+
+# Cancela ejecuciones anteriores del mismo PR/rama al hacer nuevos pushes.
+# En main NO se cancela: el check `verify` es quality gate + trigger de Render
+# (checksPass); si se cancela, Render nunca ve el verde y no despliega.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    # Env dummy solo-CI para security-smoke + backend/src/config/env.js (zod).
+    # Valores falsos >=32 chars, seguros para commitear. backend/.env real
+    # (gitignoreado) sigue mandando en local porque dotenv no sobrescribe.
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/greenline_test
+      DIRECT_URL: postgresql://ci:ci@localhost:5432/greenline_test
+      JWT_SECRET: ci-dummy-jwt-secret-0123456789abcdef
+      JWT_REFRESH_SECRET: ci-dummy-jwt-refresh-secret-0123456789
+      JWT_TEMP_SECRET: ci-dummy-jwt-temp-secret-0123456789ab
+      STAFF_GATE_CODE: "0000"
+      FIELD_ENCRYPTION_KEY: ci-dummy-field-encryption-key-01234567
+      SMTP_USER: ci@example.com
+      SMTP_PASS: ci-dummy-smtp-pass
+      EMAIL_FROM: GreenLine CI <ci@example.com>
+      FRONTEND_URL: https://example.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+
+      - name: Install (root)
+        run: npm ci
+
+      - name: Install (backend)
+        run: cd backend && npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Security smoke
+        run: npm run security-smoke
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Generate Prisma client
+        run: cd backend && npm run build
+
+      - name: Audit prod deps (root)
+        # Advisory (no bloquea): hay vulnerabilidades transitivas conocidas
+        # (tar). Dependabot propone los fixes; este paso las hace visibles.
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Audit prod deps (backend)
+        continue-on-error: true
+        run: cd backend && npm audit --omit=dev --audit-level=high
+
+      - name: Backend unit tests + coverage gate
+        run: cd backend && npm run test:coverage -- tests/unit

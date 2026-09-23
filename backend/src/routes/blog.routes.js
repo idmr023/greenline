@@ -47,12 +47,21 @@ const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_KEY);
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+  limits: {
+    fileSize: 8 * 1024 * 1024, // 8 MB
+    files: 1, // un solo archivo por request
+    fieldNameSize: 100,
+  },
   fileFilter: (_req, file, cb) => {
-    if (/^image\/(jpeg|png|webp|gif)$/.test(file.mimetype)) {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    const okMime = /^image\/(jpeg|png|webp|gif)$/.test(file.mimetype);
+    const okExt = ['.jpg', '.jpeg', '.png', '.webp', '.gif'].includes(ext);
+    // MIME + extensión deben coincidir (frena polyglots básicos).
+    // sharp abajo re-decodifica el buffer: si no es imagen real, falla ahí.
+    if (okMime && okExt) {
       cb(null, true);
     } else {
-      cb(new Error('Tipo de archivo no soportado. Usa JPG, PNG o WebP.'));
+      cb(new Error('Tipo de archivo no soportado. Usa JPG, PNG, GIF o WebP.'));
     }
   },
 });
@@ -155,6 +164,10 @@ router.post('/upload', requireAuth, (req, res, next) => {
 
     // 2) Espejo local (queda disponible para el repo en dev)
     const absDestino = path.join(PUBLIC_DIR, destinoLocal);
+    // Guarda anti path-traversal: el destino final debe vivir bajo PUBLIC_DIR.
+    if (!path.resolve(absDestino).startsWith(path.resolve(PUBLIC_DIR))) {
+      return res.status(400).json({ error: 'Slug no válido' });
+    }
     const dir = path.dirname(absDestino);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(absDestino, webpBuffer);

@@ -1,0 +1,38 @@
+name: Copilot agent issue request
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_numero:
+        description: GitHub issue number created by n8n
+        required: true
+        type: string
+      issueBody:
+        description: Issue body created by n8n
+        required: true
+        type: string
+
+permissions:
+  issues: write
+
+jobs:
+  receive-request:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate request
+        env:
+          ISSUE_NUMBER: ${{ inputs.issue_numero }}
+          ISSUE_BODY: ${{ inputs.issueBody }}
+        run: |
+          set -euo pipefail
+          test -n "$ISSUE_NUMBER"
+          test -n "$ISSUE_BODY"
+
+      - name: Mark issue as ready for Copilot
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ inputs.issue_numero }}
+        run: |
+          set -euo pipefail
+          gh issue edit "$ISSUE_NUMBER" --add-label "agent-request"
+          gh issue comment "$ISSUE_NUMBER" --body "Solicitud recibida por workflow_dispatch. El issue está listo para asignación de Copilot coding agent."

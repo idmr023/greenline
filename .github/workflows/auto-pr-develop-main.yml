@@ -1,0 +1,135 @@
+name: Auto-PR develop -> main
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+concurrency:
+  group: auto-pr-develop-main
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check diff develop..main
+        id: diff
+        run: |
+          git fetch origin develop main
+          # Diff por CONTENIDO: tras squash, rev-list siempre ve develop "ahead"
+          # aunque el árbol sea idéntico → PRs vacíos y carreras innecesarias.
+          if git diff --quiet origin/main origin/develop; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "Sin cambios de contenido develop vs main. Skip."
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "Hay cambios de contenido:"
+            git diff --stat origin/main origin/develop | tail -20
+          fi
+
+      - name: Create PR, wait for verify, merge (squash)
+        if: steps.diff.outputs.has_changes == 'true'
+        env:
+          # PAT: el merge lo hace el dueño del token → el push a main SÍ dispara
+          # CI/Render checksPass. Sin secret, fallback GITHUB_TOKEN (no dispara workflows).
+          GH_TOKEN: ${{ secrets.AUTO_MERGE_PAT || secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          EXISTING=$(gh pr list --base main --head develop --json number --jq '.[0].number // empty')
+          if [ -z "$EXISTING" ]; then
+            gh pr create \
+              --base main \
+              --head develop \
+              --title "Auto-PR: develop -> main" \
+              --body "PR automático develop -> main. Merge (squash) cuando el check verify (ruleset merge_verfication) esté en verde. Creado por .github/workflows/auto-pr-develop-main.yml"
+            PR=$(gh pr list --base main --head develop --json number --jq '.[0].number')
+          else
+            PR="$EXISTING"
+            echo "Reusing existing PR #$PR"
+          fi
+
+          MERGEABLE=$(gh pr view "$PR" --json mergeable --jq '.mergeable')
+          if [ "$MERGEABLE" = "CONFLICTING" ]; then
+            echo "::error::PR #$PR tiene conflictos con main. Fusiona main en develop y pushea."
+            gh pr comment "$PR" --body "⚠️ Conflictos con \`main\`: fusiona \`main\` en \`develop\` y pushea para poder mergear."
+            exit 1
+          fi
+
+          # Espera a que TODOS los check-runs "verify" del head estén completos.
+          # Hay dos (push + pull_request): si solo miramos uno, GraphQL rechaza
+          # el merge con "Required status check verify is in progress".
+          # No usamos gh pr merge --auto: GitHub rechaza auto-merge si el PR está
+          # UNSTABLE (e2e/lighthouse en rojo aunque no sean required).
+          REPO="${{ github.repository }}"
+          for i in $(seq 1 60); do
+            HEAD=$(gh pr view "$PR" --json headRefOid --jq .headRefOid)
+            # "pending" si aún corre alguno; "success" si TODOS completed+success;
+            # si alguno falló → conclusion de ese (failure/cancelled/timed_out)
+            CONC=$(gh api "repos/$REPO/commits/$HEAD/check-runs?check_name=verify&per_page=20" \
+              --jq '
+                [.check_runs[] | select(.name == "verify")] as $r
+                | if ($r | length) == 0 then "pending"
+                  elif ([$r[] | select(.status != "completed")] | length) > 0 then "pending"
+                  elif ([$r[] | select(.conclusion != "success")] | length) > 0 then
+                    ([$r[] | select(.conclusion != "success") | .conclusion] | first)
+                  else "success"
+                  end')
+            echo "[$i] head=$HEAD verify=$CONC"
+            if [ "$CONC" = "success" ]; then
+              # Reconfirma head y mergeable por si hubo push nuevo
+              MERGEABLE=$(gh pr view "$PR" --json mergeable --jq '.mergeable')
+              if [ "$MERGEABLE" = "CONFLICTING" ]; then
+                echo "::error::Conflictos aparecieron durante la espera."
+                exit 1
+              fi
+              echo "verify verde → squash merge PR #$PR (--admin + retry: ruleset puede ver verify aún queued)"
+              # --admin: la ruleset merge_verfication bloquea al PAT fine-grained.
+              # Retry: al crear el PR, GitHub puede encolar un verify nuevo y el
+              # primer intento falla con "verify is in progress/queued".
+              MERGED=0
+              for attempt in 1 2 3 4 5; do
+                if gh pr merge "$PR" --squash --admin; then
+                  MERGED=1
+                  break
+                fi
+                echo "merge attempt $attempt falló; re-verifico verify (15s)..."
+                sleep 15
+                HEAD=$(gh pr view "$PR" --json headRefOid --jq .headRefOid)
+                CONC=$(gh api "repos/$REPO/commits/$HEAD/check-runs?check_name=verify&per_page=20" \
+                  --jq '
+                    [.check_runs[] | select(.name == "verify")] as $r
+                    | if ($r | length) == 0 then "pending"
+                      elif ([$r[] | select(.status != "completed")] | length) > 0 then "pending"
+                      elif ([$r[] | select(.conclusion != "success")] | length) > 0 then
+                        ([$r[] | select(.conclusion != "success") | .conclusion] | first)
+                      else "success"
+                      end')
+                if [ "$CONC" != "success" ]; then
+                  echo "verify ya no está en success ($CONC); aborto retry."
+                  break
+                fi
+              done
+              if [ "$MERGED" -eq 1 ]; then
+                exit 0
+              fi
+              echo "::error::No se pudo mergear PR #$PR tras reintentos."
+              exit 1
+            fi
+            if [ "$CONC" = "failure" ] || [ "$CONC" = "cancelled" ] || [ "$CONC" = "timed_out" ]; then
+              echo "::error::verify falló en PR #$PR ($CONC). No se mergea."
+              gh pr comment "$PR" --body "⛔ \`verify\` terminó en \`${CONC}\`: no hago merge. Arregla develop y vuelve a pushear."
+              exit 1
+            fi
+            sleep 15
+          done
+          echo "::error::Timeout esperando verify en PR #$PR (15 min)."
+          exit 1
