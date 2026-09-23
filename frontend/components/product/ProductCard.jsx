@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Battery, Route } from '../../lib/icons';
+import { Zap, Battery, Route, Leaf, Star } from '../../lib/icons';
 import ProductImage from './ProductImage';
 import { formatPrice } from '../../lib/utils';
 import { colorDotClassFor, colorDotStyle } from '../../lib/colores';
@@ -12,8 +12,7 @@ import { cleanWatts, cleanBateria } from '../../utils/stripHtml';
 //   if (unidades != null && unidades <= 3 && unidades > 0) {
 //     return (
 //       <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded bg-amber-100 text-amber-800">
-//         <AlertTriangle className="w-3 h-3" />
-//         ¡Solo {unidades}!
+//         <AlertTriangle className="w-3 h-3" /> ¡Solo {unidades}!
 //       </span>
 //     );
 //   }
@@ -26,6 +25,18 @@ import { cleanWatts, cleanBateria } from '../../utils/stripHtml';
 //   }
 //   return null;
 // }
+
+// NEW: Lifestyle context tag
+function LifestyleTag({ label }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700"
+    >
+      <Leaf className="w-2.5 h-2.5" />
+      {label}
+    </span>
+  );
+}
 
 export default function ProductCard({ producto, featured = false }) {
   const navigate = useNavigate();
@@ -59,6 +70,14 @@ export default function ProductCard({ producto, featured = false }) {
       ? Math.round((1 - producto.precio_actual / producto.precio_original) * 100)
       : 0;
 
+  // Extraer "ideal para" del producto
+  const idealParaList = useMemo(() => {
+    const raw = producto.info_adicional?.ideal_para;
+    if (Array.isArray(raw)) return raw.filter(Boolean);
+    if (typeof raw === 'string') return raw.split(',').map((s) => s.trim()).filter(Boolean);
+    return [];
+  }, [producto]);
+
   return (
     <article
       onClick={() => producto.slug && navigate(`/producto/${producto.slug}`)}
@@ -76,23 +95,42 @@ export default function ProductCard({ producto, featured = false }) {
           height={featured ? 525 : 450}
           className="block w-full h-full"
         />
+        {/* NEW: Intentional white margin aesthetic */}
+        <div className="absolute top-2 left-2 z-10 text-xs text-gray-400">
+          <span className="bg-white/80 rounded px-2 py-1 backdrop-blur-sm">
+            {producto.margen_blanco ? 'Aire de diseño' : 'Estándar'}
+          </span>
+        </div>
+        
+        {/* NEW: LIVE / ESTILO badge if applicable */}
+        {producto.info_adicional?.estilo_lifestyle && (
+          <div
+            className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-100 text-emerald-700 text-xs font-medium"
+          >
+            <Star className="w-2.5 h-2.5" />
+            Estilo de vida
+          </div>
+        )}
+
         {descuento > 0 && (
           <div
-            className="absolute top-2 right-2 z-10 -rotate-6 px-3 py-1.5 rounded-full bg-gradient-to-br from-red-500 to-rose-600 text-white font-extrabold text-sm shadow-lg ring-2 ring-white animate-bounce"
+            className="absolute top-2 -left-2 -rotate-6 z-10 px-3 py-1.5 rounded-full bg-gradient-to-br from-red-500 to-rose-600 text-white font-extrabold text-sm shadow-lg ring-2 ring-white animate-bounce"
           >
             -{descuento}%
           </div>
         )}
-        {/* COMENTADO (temporal — badge de "últimas unidades"):
-        <div className="absolute top-3 right-3">
-          <AvailabilityBadge
-            status={producto.disponibilidad}
-            unidades={producto.unidades}
-          />
-        </div> */}
       </div>
 
       <div className="p-4 flex-1 flex flex-col">
+        {/* NEW: Lifestyle tag inline */}
+        {idealParaList.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {idealParaList.map((item, i) => (
+              <LifestyleTag key={i} label={item} />
+            ))}
+          </div>
+        )}
+
         <h3 className="font-bold text-gray-900 mb-1 line-clamp-2">
           {producto.nombre}
         </h3>
@@ -114,25 +152,24 @@ export default function ProductCard({ producto, featured = false }) {
 
         <div className="flex flex-wrap gap-2 mb-4">
           {watts && (
-            <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-full bg-brand text-white">
+            <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-full bg-emerald text-white">
               <Zap className="w-3 h-3" /> {watts}
             </span>
           )}
           {autonomia && (
-            <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-full bg-brand text-white">
+            <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-full bg-emerald text-white">
               <Route className="w-3 h-3" /> {/km/i.test(String(autonomia)) ? autonomia : `${autonomia} km`}
             </span>
           )}
           {bateria && (
-            <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-full bg-brand text-white">
+            <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-full bg-emerald text-white">
               <Battery className="w-3 h-3" /> {bateria}
             </span>
           )}
         </div>
 
-        {availableColors.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-4">
-            {availableColors.map((c) => (
+        <div className="flex flex-wrap gap-1.5 mb-4">
+{availableColors.map((c) => (
               <button
                 key={c}
                 type="button"
@@ -146,10 +183,11 @@ export default function ProductCard({ producto, featured = false }) {
                     ? 'border-brand ring-2 ring-brand/30 scale-110'
                     : 'border-gray-200 hover:border-gray-400 hover:scale-105'
                 }`}
-              />
+              >
+                {c}
+              </button>
             ))}
-          </div>
-        )}
+        </div>
 
         <div className="mt-auto">
           <button
