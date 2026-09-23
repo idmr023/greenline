@@ -39,7 +39,9 @@ if (!SUPABASE_URL || !SERVICE_KEY) {
 }
 
 const { createClient } = await import('@supabase/supabase-js');
-const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_KEY);
+// CI/local sin creds: no crear client (createClient('') lanza y mataba el boot → E2E exit 7)
+const supabaseAdmin =
+  SUPABASE_URL && SERVICE_KEY ? createClient(SUPABASE_URL, SERVICE_KEY) : null;
 
 // ============================================================
 // Multer: acepta un solo archivo "image" en el body
@@ -74,6 +76,10 @@ const upload = multer({
 const BLOG_ADMIN_ROLES = ['ADMIN', 'EDITORA_BLOG', 'DESARROLLADOR_WEB'];
 
 async function requireAuth(req, res, next) {
+  if (!supabaseAdmin) {
+    return res.status(503).json({ error: 'Supabase no configurado en este entorno' });
+  }
+
   const header = req.headers.authorization;
 
   if (!header || !header.startsWith('Bearer ')) {
@@ -134,6 +140,9 @@ router.post('/upload', requireAuth, (req, res, next) => {
     next();
   });
 }, async (req, res) => {
+  if (!supabaseAdmin) {
+    return res.status(503).json({ error: 'Supabase no configurado en este entorno' });
+  }
   if (!req.file) {
     return res.status(400).json({ error: 'No se envió ninguna imagen' });
   }
