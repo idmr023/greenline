@@ -7,7 +7,8 @@ updates:
       day: monday
       time: "08:00"
       timezone: America/Lima
-    open-pull-requests-limit: 5
+    # 0 = no abre PRs (pausado); subir a 5 para reactivar
+    open-pull-requests-limit: 0
     labels: [dependencies]
     commit-message:
       prefix: chore
@@ -18,7 +19,8 @@ updates:
       day: monday
       time: "08:00"
       timezone: America/Lima
-    open-pull-requests-limit: 5
+    # 0 = no abre PRs (pausado); subir a 5 para reactivar
+    open-pull-requests-limit: 0
     labels: [dependencies]
     commit-message:
       prefix: chore
@@ -29,6 +31,8 @@ updates:
       day: monday
       time: "08:00"
       timezone: America/Lima
+    # 0 = no abre PRs (pausado); quitar la línea para reactivar
+    open-pull-requests-limit: 0
     labels: [dependencies]
     commit-message:
       prefix: ci
