@@ -5,6 +5,7 @@ import {
   Minus, Plus, Download, FileText, ShieldCheck, Star, User,
   Battery, Check, ShieldAlert, X, Weight, Truck, Unplug, Sparkles,
   Gauge, Ruler, MoveHorizontal, ArrowUpDown, Zap, Route,
+  Leaf, Heart,
 } from '../lib/icons';
 import ProductImage from '../components/product/ProductImage';
 import ProductGallery from '../components/product/ProductGallery';
@@ -661,6 +662,68 @@ function SeccionTestimonios({ testimonios }) {
   );
 }
 
+// ── Sección Lifestyle ───────────────────────────────────────────
+
+function SeccionLifestyle({ product, idealParaList }) {
+  return (
+    <section className="mt-12 rounded-3xl bg-gray-50 border border-gray-100 overflow-hidden">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-0 items-center">
+        {/* Imagen con aire de diseño intencional */}
+        <div className="p-8 lg:p-12">
+          <div className="aspect-[4/3] rounded-2xl bg-white border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden">
+            {product.imagenes?.[0]?.src ? (
+              <img
+                src={product.imagenes[0].src}
+                alt={product.nombre}
+                loading="lazy"
+                className="w-full h-full object-contain p-8"
+                style={{ objectPosition: 'center' }}
+              />
+            ) : (
+              <ProductImage nombre={product.nombre} width={600} height={450} className="w-full h-full object-contain p-8" />
+            )}
+          </div>
+        </div>
+
+        {/* Copy lifestyle */}
+        <div className="p-8 lg:p-12">
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold mb-4">
+            <Leaf className="w-3.5 h-3.5" />
+            Estilo de vida
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
+            Aire de diseño en tu espacio
+          </h2>
+          <p className="text-gray-600 text-sm leading-relaxed mb-6">
+            El margen blanco no es un defecto: es una decisión de diseño. Un espacio
+            limpio que resalta cada línea del {product.nombre} y lo hace ver tan bien
+            aparcado como en movimiento.
+          </p>
+
+          {idealParaList.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                Perfecto para
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {idealParaList.map((persona) => (
+                  <span
+                    key={persona}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full bg-white border border-emerald-100 text-emerald-700"
+                  >
+                    <Heart className="w-3.5 h-3.5" />
+                    {persona}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ── Página principal ────────────────────────────────────────────
 
 export default function ProductPage() {
@@ -882,6 +945,11 @@ export default function ProductPage() {
         toggleDesc={toggleDesc}
         currentColor={currentColor}
       />
+
+      {/* ════════════════════════════════════════════════════════════
+          LIFESTYLE — aire de diseño + ideal para
+         ════════════════════════════════════════════════════════════ */}
+      <SeccionLifestyle product={product} idealParaList={idealParaList} />
 
       {/* ════════════════════════════════════════════════════════════
           TESTIMONIOS

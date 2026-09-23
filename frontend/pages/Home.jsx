@@ -73,8 +73,6 @@ export default function Home() {
       {/* 8. Nueva sección lifestyle hero */}
       <LifestyleSection products={displayed} />
 
-      {/* ... resto del archivo continúa */} 
-
       <div className='w-full'>
         <BBVACard isBanner={true} />
       </div>
