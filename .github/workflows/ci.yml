@@ -7,9 +7,11 @@ on:
     branches: [develop, main]
 
 # Cancela ejecuciones anteriores del mismo PR/rama al hacer nuevos pushes.
+# En main NO se cancela: el check `verify` es quality gate + trigger de Render
+# (checksPass); si se cancela, Render nunca ve el verde y no despliega.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   verify:

@@ -35,7 +35,10 @@ jobs:
       - name: Create or reuse PR + enable auto-merge (squash)
         if: steps.diff.outputs.count != '0'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # PAT (AUTO_MERGE_PAT): el merge lo hace el dueño del token → el push a
+          # main SÍ dispara CI/Render checksPass. Sin el secret, fallback GITHUB_TOKEN
+          # (el merge del bot NO dispara workflows en main → Render no desplegaría).
+          GH_TOKEN: ${{ secrets.AUTO_MERGE_PAT || secrets.GITHUB_TOKEN }}
         run: |
           set -e
           EXISTING=$(gh pr list --base main --head develop --json number --jq '.[0].number // empty')
@@ -44,11 +47,17 @@ jobs:
               --base main \
               --head develop \
               --title "Auto-PR: develop -> main" \
-              --body "PR automático develop -> main. Auto-merge con squash cuando el CI (verify) esté en verde. Creado por .github/workflows/auto-pr-develop-main.yml"
+              --body "PR automático develop -> main. Auto-merge con squash cuando el check verify esté en verde (ruleset merge_verfication). Creado por .github/workflows/auto-pr-develop-main.yml"
             PR=$(gh pr list --base main --head develop --json number --jq '.[0].number')
           else
             PR="$EXISTING"
             echo "Reusing existing PR #$PR"
           fi
-          echo "Enabling auto-merge (squash) on PR #$PR"
+          MERGEABLE=$(gh pr view "$PR" --json mergeable --jq '.mergeable')
+          if [ "$MERGEABLE" = "CONFLICTING" ]; then
+            echo "::error::PR #$PR tiene conflictos con main. Resuelve develop <- main y vuelve a pushear; auto-merge no puede completarse."
+            gh pr comment "$PR" --body "⚠️ Conflictos con \`main\`: auto-merge quedará pausado hasta que se resuelvan (fusiona \`main\` en \`develop\` y pushea)."
+            exit 1
+          fi
+          echo "Enabling auto-merge (squash) on PR #$PR (mergeable=$MERGEABLE)"
           gh pr merge --auto --squash "$PR"
