@@ -12,6 +12,7 @@ import { LinkButton } from '../components/ui/general/LinkButton.jsx';
 import OficialDistributors from '../components/home/OficialDistributors.jsx';
 import CommunitySection from '../components/home/CommunitySection.jsx';
 import { BBVACard } from '../components/ui/general/BBVACard.jsx';
+import LifestyleSection from '../components/home/LifestyleSection.jsx';
 
 export default function Home() {
   const [filterCategory, setFilterCategory] = useState('Todas');
@@ -67,7 +68,10 @@ export default function Home() {
       
       <HeroCarousel />
 
-      <Pillars /> 
+      <Pillars />
+
+      {/* 8. Nueva sección lifestyle hero */}
+      <LifestyleSection products={displayed} />
 
       <div className='w-full'>
         <BBVACard isBanner={true} />
