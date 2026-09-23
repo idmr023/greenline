@@ -1,20 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import AnniversaryBanner from '../aniversario/AnniversaryBanner';
-import ExpoChinaBanner from '../ExpoChinaBanner';
-import TikTokSlide from '../TikTokSlide';
-import { BBVACard } from '../ui/general/BBVACard';
+import CountdownBanner from '../ui/aniversario/CountdownBanner';
 import { carrousel_slides } from '../../../src/data_json';
 import { AngleLeft, AngleRight } from '../../lib/icons';
-import CountdownBanner from '../ui/aniversario/CountdownBanner';
 
 export default function HeroCarousel() {
   const [current, setCurrent] = useState(0);
 
   const next = useCallback(() => setCurrent((i) => (i + 1) % carrousel_slides.length), []);
-  const prev = useCallback(
-    () => setCurrent((i) => (i - 1 + carrousel_slides.length) % carrousel_slides.length),
-    [],
-  );
 
   useEffect(() => {
     const id = setInterval(next, 5000);

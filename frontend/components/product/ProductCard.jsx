@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Battery, Route, Leaf, Star } from '../../lib/icons';
+import { Zap, Battery, Route, Leaf } from '../../lib/icons';
 import ProductImage from './ProductImage';
 import { formatPrice } from '../../lib/utils';
 import { colorDotClassFor, colorDotStyle } from '../../lib/colores';
@@ -95,23 +95,6 @@ export default function ProductCard({ producto, featured = false }) {
           height={featured ? 525 : 450}
           className="block w-full h-full"
         />
-        {/* NEW: Intentional white margin aesthetic */}
-        <div className="absolute top-2 left-2 z-10 text-xs text-gray-400">
-          <span className="bg-white/80 rounded px-2 py-1 backdrop-blur-sm">
-            {producto.margen_blanco ? 'Aire de diseño' : 'Estándar'}
-          </span>
-        </div>
-        
-        {/* NEW: LIVE / ESTILO badge if applicable */}
-        {producto.info_adicional?.estilo_lifestyle && (
-          <div
-            className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-100 text-emerald-700 text-xs font-medium"
-          >
-            <Star className="w-2.5 h-2.5" />
-            Estilo de vida
-          </div>
-        )}
-
         {descuento > 0 && (
           <div
             className="absolute top-2 -left-2 -rotate-6 z-10 px-3 py-1.5 rounded-full bg-gradient-to-br from-red-500 to-rose-600 text-white font-extrabold text-sm shadow-lg ring-2 ring-white animate-bounce"
@@ -169,24 +152,22 @@ export default function ProductCard({ producto, featured = false }) {
         </div>
 
         <div className="flex flex-wrap gap-1.5 mb-4">
-{availableColors.map((c) => (
-              <button
-                key={c}
-                type="button"
-                title={c}
-                onClick={(e) => { e.stopPropagation(); setSelectedColor(c); }}
-                style={colorDotStyle(producto.colores_detalle, c)}
-                className={`w-6 h-6 rounded-full border-2 transition-all ${
-                  colorDotClassFor(c)
-                } ${
-                  currentColor === c
-                    ? 'border-brand ring-2 ring-brand/30 scale-110'
-                    : 'border-gray-200 hover:border-gray-400 hover:scale-105'
-                }`}
-              >
-                {c}
-              </button>
-            ))}
+          {availableColors.map((c) => (
+            <button
+              key={c}
+              type="button"
+              title={c}
+              onClick={(e) => { e.stopPropagation(); setSelectedColor(c); }}
+              style={colorDotStyle(producto.colores_detalle, c)}
+              className={`w-6 h-6 rounded-full border-2 transition-all ${
+                colorDotClassFor(c)
+              } ${
+                currentColor === c
+                  ? 'border-brand ring-2 ring-brand/30 scale-110'
+                  : 'border-gray-200 hover:border-gray-400 hover:scale-105'
+              }`}
+            />
+          ))}
         </div>
 
         <div className="mt-auto">
