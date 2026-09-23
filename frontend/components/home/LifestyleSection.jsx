@@ -81,20 +81,22 @@ export default function LifestyleSection({ products = [] }) {
           </p>
         </div>
 
-        {/* Lifestyle grid */}
-        <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+        {/* TODO: insertar vídeo aquí */}
+
+        {/* Lifestyle grid — 4 en fila en desktop */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {lifestyleProducts.map((product, index) => (
             <RevealCard key={product.id || product.slug} index={index}>
               <article className="group relative h-full">
-                <div className="relative bg-gray-50 rounded-3xl overflow-hidden border border-gray-100 p-8 lg:p-12 h-full flex flex-col">
+                <div className="relative bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 p-4 lg:p-5 h-full flex flex-col">
                   {/* White margin aesthetic - the intentional space */}
-                  <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-white border-2 border-dashed border-gray-200 flex items-center justify-center">
+                  <div className="aspect-square rounded-xl overflow-hidden mb-3 bg-white border-2 border-dashed border-gray-200 flex items-center justify-center">
                     {product.imagenes?.[0]?.src ? (
                       <img
                         src={product.imagenes[0].src}
                         alt={product.nombre}
                         loading="lazy"
-                        className="w-full h-full object-contain p-6"
+                        className="w-full h-full object-contain p-3"
                         style={{ objectPosition: 'center' }}
                       />
                     ) : (
@@ -103,11 +105,11 @@ export default function LifestyleSection({ products = [] }) {
                   </div>
 
                   {/* Lifestyle tags */}
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="flex flex-wrap gap-1.5 mb-2">
                     {idealParaItems(product).map((item, i) => (
                       <span
                         key={i}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-emerald-50 text-emerald-700"
+                        className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium rounded-full bg-emerald-50 text-emerald-700"
                       >
                         <Heart className="w-3 h-3" />
                         {item}
@@ -115,24 +117,24 @@ export default function LifestyleSection({ products = [] }) {
                     ))}
                   </div>
 
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-emerald-700 transition-colors">
+                  <h3 className="text-base lg:text-lg font-bold text-gray-900 mb-1.5 group-hover:text-emerald-700 transition-colors">
                     {product.nombre}
                   </h3>
-                  <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                  <p className="text-gray-600 text-xs leading-relaxed mb-3">
                     Diseñado para espacios que valoran la claridad y la simplicidad.
                     El margen es una declaración de estilo.
                   </p>
 
-                  <div className="flex items-center justify-between mt-auto pt-2">
-                    <span className="text-brand font-bold text-xl">
+                  <div className="flex items-center justify-between mt-auto pt-1">
+                    <span className="text-brand font-bold text-lg">
                       {formatPrice(product.precio_actual)}
                     </span>
                     <a
                       href={`/producto/${product.slug}`}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors"
                     >
                       Ver estilo de vida
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M5 12h14M12 5l7 7-7 7" />
                       </svg>
                     </a>
