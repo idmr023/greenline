@@ -14,9 +14,11 @@ services:
     rootDir: backend
     previews:
       plan: free
-    
-    # Deploy solo cuando el CI de GitHub Actions (job CI/verify) esté en verde
-    # para el commit de main. Si el CI falla, Render no despliega.
+    # Deploy solo cuando TODOS los checks de GitHub Actions del commit en main
+    # pasen (CI/verify obligatorio vía ruleset). Si un check falla, está
+    # cancelled o no hay checks → Render NO despliega. Requiere que el merge a
+    # main lo haga un PAT (AUTO_MERGE_PAT), no GITHUB_TOKEN, para que el push
+    # dispare los workflows.
     autoDeployTrigger: 'checksPass'
     healthCheckPath: /health
     buildCommand: npm install; npm run build
