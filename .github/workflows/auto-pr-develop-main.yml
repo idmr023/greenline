@@ -25,15 +25,19 @@ jobs:
         id: diff
         run: |
           git fetch origin develop main
-          COUNT=$(git rev-list --count origin/main..origin/develop)
-          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
-          echo "develop ahead of main by $COUNT commits"
-          if [ "$COUNT" -eq 0 ]; then
-            echo "No diff, skipping PR creation."
+          # Diff por CONTENIDO: tras squash, rev-list siempre ve develop "ahead"
+          # aunque el árbol sea idéntico → PRs vacíos y carreras innecesarias.
+          if git diff --quiet origin/main origin/develop; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "Sin cambios de contenido develop vs main. Skip."
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "Hay cambios de contenido:"
+            git diff --stat origin/main origin/develop | tail -20
           fi
 
       - name: Create PR, wait for verify, merge (squash)
-        if: steps.diff.outputs.count != '0'
+        if: steps.diff.outputs.has_changes == 'true'
         env:
           # PAT: el merge lo hace el dueño del token → el push a main SÍ dispara
           # CI/Render checksPass. Sin secret, fallback GITHUB_TOKEN (no dispara workflows).
@@ -87,12 +91,38 @@ jobs:
                 echo "::error::Conflictos aparecieron durante la espera."
                 exit 1
               fi
-              echo "verify verde → squash merge PR #$PR (--admin: ruleset + PAT fine-grained sin bypass)"
-              # --admin: la ruleset merge_verfication bloquea al PAT fine-grained aunque
-              # verify esté verde (UNSTABLE por e2e/lighthouse no-required). Requiere
-              # Administration write en el PAT.
-              gh pr merge "$PR" --squash --admin
-              exit 0
+              echo "verify verde → squash merge PR #$PR (--admin + retry: ruleset puede ver verify aún queued)"
+              # --admin: la ruleset merge_verfication bloquea al PAT fine-grained.
+              # Retry: al crear el PR, GitHub puede encolar un verify nuevo y el
+              # primer intento falla con "verify is in progress/queued".
+              MERGED=0
+              for attempt in 1 2 3 4 5; do
+                if gh pr merge "$PR" --squash --admin; then
+                  MERGED=1
+                  break
+                fi
+                echo "merge attempt $attempt falló; re-verifico verify (15s)..."
+                sleep 15
+                HEAD=$(gh pr view "$PR" --json headRefOid --jq .headRefOid)
+                CONC=$(gh api "repos/$REPO/commits/$HEAD/check-runs?check_name=verify&per_page=20" \
+                  --jq '
+                    [.check_runs[] | select(.name == "verify")] as $r
+                    | if ($r | length) == 0 then "pending"
+                      elif ([$r[] | select(.status != "completed")] | length) > 0 then "pending"
+                      elif ([$r[] | select(.conclusion != "success")] | length) > 0 then
+                        ([$r[] | select(.conclusion != "success") | .conclusion] | first)
+                      else "success"
+                      end')
+                if [ "$CONC" != "success" ]; then
+                  echo "verify ya no está en success ($CONC); aborto retry."
+                  break
+                fi
+              done
+              if [ "$MERGED" -eq 1 ]; then
+                exit 0
+              fi
+              echo "::error::No se pudo mergear PR #$PR tras reintentos."
+              exit 1
             fi
             if [ "$CONC" = "failure" ] || [ "$CONC" = "cancelled" ] || [ "$CONC" = "timed_out" ]; then
               echo "::error::verify falló en PR #$PR ($CONC). No se mergea."
