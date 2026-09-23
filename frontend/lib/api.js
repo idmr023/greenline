@@ -168,3 +168,11 @@ export const imagenesAPI = {
       headers: authHeaders(accessToken),
     }),
 };
+
+export const marketingAPI = {
+  unsubscribe: (email) =>
+    request('/marketing/unsubscribe', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+};

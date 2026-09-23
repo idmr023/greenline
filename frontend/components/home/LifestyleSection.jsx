@@ -1,29 +1,50 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Leaf, Heart } from '../../lib/icons';
 import { formatPrice } from '../../lib/utils';
 
-// Reveal-on-scroll sin framer-motion (mismo patrón IntersectionObserver del proyecto)
+// Reveal-on-scroll sin framer-motion.
+// El ref es un callback de setState: si el nodo monta tarde (header cuando
+// llegan los productos), el effect re-corre y el texto no queda en opacity-0.
 function useReveal() {
-  const ref = useRef(null);
+  const [el, setEl] = useState(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const el = ref.current;
     if (!el) return undefined;
+
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) {
+      setVisible(true);
+      return undefined;
+    }
+
+    const show = () => setVisible(true);
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setVisible(true);
+          show();
           observer.disconnect();
         }
       },
-      { threshold: 0.15 },
+      { threshold: 0, rootMargin: '0px 0px -8% 0px' },
     );
     observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
 
-  return { ref, visible };
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight * 0.92 && rect.bottom > 0) show();
+
+    const failsafe = window.setTimeout(() => {
+      show();
+      observer.disconnect();
+    }, 800);
+
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(failsafe);
+    };
+  }, [el]);
+
+  return { ref: setEl, visible };
 }
 
 function RevealCard({ index = 0, children }) {
@@ -56,11 +77,8 @@ export default function LifestyleSection({ products = [] }) {
 
   return (
     <section className="py-20 bg-white relative overflow-hidden">
-      {/* Decorative background */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-50 rounded-full blur-3xl opacity-50" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-green-50 rounded-full blur-3xl opacity-40" />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-black">
         {/* Header */}
         <div
           ref={headerRef}

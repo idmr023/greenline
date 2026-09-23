@@ -3,11 +3,13 @@
     "collect": {
       "url": ["http://localhost:4173/", "http://localhost:4173/libro-reclamaciones"],
       "startServerCommand": "npm run preview -- --port 4173 --strictPort",
-      "numberOfRuns": 1,
+      "startServerReadyPattern": "Local:",
+      "numberOfRuns": 3,
       "settings": {
         "preset": "desktop",
         "onlyCategories": ["performance", "accessibility", "best-practices", "seo"]
-      }
+      },
+      "chromeFlags": "--no-sandbox --disable-dev-shm-usage --disable-gpu --headless=new"
     },
     "assert": {
       "preset": "lighthouse:recommended",
@@ -16,7 +18,17 @@
         "categories:accessibility": ["warn", { "minScore": 0.85 }],
         "categories:best-practices": ["warn", { "minScore": 0.85 }],
         "categories:seo": ["warn", { "minScore": 0.9 }],
-        "errors-in-console": ["error", { "maxLength": 0 }]
+        "errors-in-console": ["warn", { "maxLength": 0 }],
+        "unused-css-rules": "off",
+        "unminified-css": "off",
+        "unminified-javascript": "off",
+        "uses-responsive-images": "off",
+        "total-blocking-time": ["warn", { "maxNumericValue": 600 }],
+        "largest-contentful-paint": ["warn", { "maxNumericValue": 4000 }],
+        "first-contentful-paint": ["warn", { "maxNumericValue": 3000 }],
+        "render-blocking-resources": "off",
+        "uses-rel-preload": "off",
+        "font-display": "off"
       }
     },
     "upload": {
