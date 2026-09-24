@@ -11,6 +11,11 @@ concurrency:
 jobs:
   lighthouse:
     runs-on: ubuntu-latest
+    env:
+      # Bake placeholders al build: sin ellos createClient('') revienta el entry y NO_FCP
+      VITE_SUPABASE_URL: https://ci-placeholder.supabase.co
+      VITE_SUPABASE_ANON_KEY: ci-dummy-anon-key-0123456789abcdefghijklmnop
+      VITE_API_URL: http://localhost:3000/api
     steps:
       - uses: actions/checkout@v4
 
