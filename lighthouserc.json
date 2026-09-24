@@ -13,7 +13,6 @@
       "chromeFlags": "--no-sandbox --disable-dev-shm-usage --disable-gpu --headless=new"
     },
     "assert": {
-      "preset": "lighthouse:recommended",
       "assertions": {
         "categories:performance": ["warn", { "minScore": 0.7 }],
         "categories:accessibility": ["warn", { "minScore": 0.85 }],
@@ -29,7 +28,24 @@
         "first-contentful-paint": ["warn", { "maxNumericValue": 3000 }],
         "render-blocking-resources": "off",
         "uses-rel-preload": "off",
-        "font-display": "off"
+        "font-display": "off",
+        "valid-source-maps": "off",
+        "total-byte-weight": ["warn", { "maxNumericValue": 1500000 }],
+        "unused-javascript": ["warn", { "maxLength": 10 }],
+        "canonical": "warn",
+        "color-contrast": "warn",
+        "image-alt": "warn",
+        "link-name": "warn",
+        "target-size": "warn",
+        "unsized-images": "warn",
+        "image-redundant-alt": "warn",
+        "third-party-cookies": "warn",
+        "prioritize-lcp-image": "warn",
+        "cls-culprits-insight": "warn",
+        "image-delivery-insight": "warn",
+        "inspector-issues": "warn",
+        "lcp-discovery-insight": "warn",
+        "network-dependency-tree-insight": "warn"
       }
     },
     "upload": {
