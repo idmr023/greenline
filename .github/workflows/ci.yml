@@ -31,6 +31,9 @@ jobs:
       SMTP_PASS: ci-dummy-smtp-pass
       EMAIL_FROM: GreenLine CI <ci@example.com>
       FRONTEND_URL: https://example.com
+      VITE_API_URL: http://localhost:3000/api
+      VITE_SUPABASE_URL: https://ci-placeholder.supabase.co
+      VITE_SUPABASE_ANON_KEY: ci-dummy-anon-key-0123456789abcdefghijklmnop
     steps:
       - uses: actions/checkout@v4
 
