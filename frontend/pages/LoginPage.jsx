@@ -4,6 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { authAPI } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import SEOHead from '../components/SEOHead';
+import OTPVerify from '../components/auth/OTPVerify';
+import StaffGateVerify from '../components/auth/StaffGateVerify';
+import TwoFactorVerify from '../components/auth/TwoFactorVerify';
 import { Lock, Mail, AlertCircle } from '../lib/icons';
 
 // Vincula la sesión de Supabase Auth del staff usando la misma credencial del backend.
@@ -29,6 +32,20 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [step, setStep] = useState('credentials');
+  const [tempToken, setTempToken] = useState('');
+
+  const completeLogin = async (tokens, user) => {
+    saveSession(tokens, user);
+    if (user.rol !== 'CLIENTE') {
+      try {
+        await linkSupabase(email, password, tokens.accessToken);
+      } catch {
+        // El panel pedirá la vinculación si hace falta
+      }
+    }
+    navigate(user.rol === 'CLIENTE' ? '/' : '/admin');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,26 +57,75 @@ export default function LoginPage() {
 
       if (!res.success) {
         setError(res.error || 'Credenciales inválidas');
-        setLoading(false);
         return;
       }
 
-      // Login exitoso: tokens directos (sin gate ni OTP por ahora).
-      saveSession({ accessToken: res.accessToken, refreshToken: res.refreshToken }, res.user);
-      if (res.user.rol !== 'CLIENTE') {
-        try {
-          await linkSupabase(email, password, res.accessToken);
-        } catch {
-          // El panel pedirá la vinculación si hace falta
-        }
+      if (res.requiresStaffGate) {
+        setTempToken(res.tempToken);
+        setStep('gate');
+        return;
       }
-      navigate(res.user.rol === 'CLIENTE' ? '/' : '/admin');
+
+      if (res.requiresOTP) {
+        setStep('otp');
+        return;
+      }
+
+      if (res.accessToken && res.user) {
+        await completeLogin(
+          { accessToken: res.accessToken, refreshToken: res.refreshToken },
+          res.user,
+        );
+        return;
+      }
+
+      setError('Respuesta de sesión inválida');
     } catch (err) {
       setError(err.error || 'Error de conexión');
     } finally {
       setLoading(false);
     }
   };
+
+  const backToCredentials = () => {
+    setStep('credentials');
+    setTempToken('');
+    setError('');
+  };
+
+  if (step === 'gate') {
+    return (
+      <StaffGateVerify
+        tempToken={tempToken}
+        onVerified={completeLogin}
+        onRequires2FA={(newTemp) => {
+          setTempToken(newTemp);
+          setStep('2fa');
+        }}
+        onBack={backToCredentials}
+      />
+    );
+  }
+
+  if (step === '2fa') {
+    return (
+      <TwoFactorVerify
+        tempToken={tempToken}
+        onVerified={completeLogin}
+        onBack={() => setStep('gate')}
+      />
+    );
+  }
+
+  if (step === 'otp') {
+    return (
+      <OTPVerify
+        email={email}
+        onVerified={completeLogin}
+        onBack={backToCredentials}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
