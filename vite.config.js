@@ -10,6 +10,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'robots.txt', 'sitemap.xml'],
+      devOptions: { enabled: true },
       manifest: {
         name: 'GreenLine — Movilidad Eléctrica',
         short_name: 'GreenLine',
