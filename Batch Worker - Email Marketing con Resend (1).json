@@ -1,0 +1,157 @@
+{
+  "name": "Batch Worker - Email Marketing con Resend",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        864
+      ],
+      "id": "01c9b71f-ebfc-4ffb-8b10-7fd02e71de40",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lista embebida: primeros 50 de destinatarios_dia1.csv\n// (generada; si cambias la lista, actualiza este arreglo)\nconst DESTINATARIOS = [\n  {\n    \"email\": \"email\",\n    \"nombre\": \"nombre\"\n  },\n  {\n    \"email\": \"idmr_02@outlook.com\",\n    \"nombre\": \"Ivan Dnaie\"\n  },\n  {\n    \"email\": \"idmr_02@outlook.com\",\n    \"nombre\": \"Ivan Dnaie\"\n  },\n  {\n    \"email\": \"idmr_02@outlook.com\",\n    \"nombre\": \"Ivan Dnaie\"\n  },\n  {\n    \"email\": \"jparatupcya@gmail.com\",\n    \"nombre\": \"Ivan Dnaie\"\n  },\n  {\n    \"email\": \"sadsadsad@gmail.com\",\n    \"nombre\": \"asdasdsad\"\n  },\n  {\n    \"email\": \"asdsad@gmail.com\",\n    \"nombre\": \"asdasdsad\"\n  },\n  {\n    \"email\": \"luishuor98@hotmail.com\",\n    \"nombre\": \"Luis Alonso Huaman Ortiz\"\n  },\n  {\n    \"email\": \"omarfcan10@hotmail.com\",\n    \"nombre\": \"Omar Francisco Candela Montalvo\"\n  },\n  {\n    \"email\": \"joshuatrujillo85@gmail.com\",\n    \"nombre\": \"Joshua Alessandro Trujillo Solorzano\"\n  },\n  {\n    \"email\": \"jennynice.cerna@gmail.com\",\n    \"nombre\": \"Jenny Andrea Cerna Machaca\"\n  },\n  {\n    \"email\": \"peruvianecsom@gmail.com\",\n    \"nombre\": \"asdasdsad\"\n  },\n  {\n    \"email\": \"jessica31.pajuelo@gmail.com\",\n    \"nombre\": \"JESSICA ROSMERY PAJUELO SOTO\"\n  },\n  {\n    \"email\": \"walter.23@hotmail.com\",\n    \"nombre\": \"Walter Reyes\"\n  },\n  {\n    \"email\": \"haroldjs29@outlook.com\",\n    \"nombre\": \"harold jonadab salazar guardia\"\n  },\n  {\n    \"email\": \"jefersonfuentes10@gmail.com\",\n    \"nombre\": \"Walter Jeferson Fuentes Salcedo\"\n  },\n  {\n    \"email\": \"gabrielacasimiro@outlook.com\",\n    \"nombre\": \"Gabriela Janet Casimiro Canales\"\n  },\n  {\n    \"email\": \"caveroruestac443@gmail.com\",\n    \"nombre\": \"Carlos Cavero Ruesta\"\n  },\n  {\n    \"email\": \"fergaozhenrong@gmail.com\",\n    \"nombre\": \"ZHENRONG GAO\"\n  },\n  {\n    \"email\": \"nejfkfkf@gmail.com\",\n    \"nombre\": \"Hdux rkfif\"\n  },\n  {\n    \"email\": \"chiribogaaa@gmail.com\",\n    \"nombre\": \"Paloma Chiriboga\"\n  },\n  {\n    \"email\": \"sebasfabg332@gmail.com\",\n    \"nombre\": \"Sebastian Rodrigo Fabian Gonzales\"\n  },\n  {\n    \"email\": \"rocio.soto2012@gmail.com\",\n    \"nombre\": \"ROCIO DEL CARMEN SOTO MONTALVA\"\n  },\n  {\n    \"email\": \"idmr_02@outlook.com\",\n    \"nombre\": \"Juan Patricio\"\n  },\n  {\n    \"email\": \"milka2945@icloud.com\",\n    \"nombre\": \"Melissa Grit Peña De la Cruz\"\n  },\n  {\n    \"email\": \"miguelromero2777@gmail.com\",\n    \"nombre\": \"Miguel Angel Romero Cisneros\"\n  },\n  {\n    \"email\": \"idmr_02@outlook.com\",\n    \"nombre\": \"Pedro Pablo\"\n  },\n  {\n    \"email\": \"idmr_02@outlook.com\",\n    \"nombre\": \"Ivan Dnaie\"\n  },\n  {\n    \"email\": \"sadasdsad@gmail.com\",\n    \"nombre\": \"asdasdsad\"\n  },\n  {\n    \"email\": \"idmr_02@outlook.com\",\n    \"nombre\": \"Ivan Dnaie\"\n  },\n  {\n    \"email\": \"kl224632@gmail.com\",\n    \"nombre\": \"Karla Leon\"\n  },\n  {\n    \"email\": \"josuerex24@gmail.com\",\n    \"nombre\": \"Josué Reaño Malasquez\"\n  },\n  {\n    \"email\": \"ronaldvargassalda@gmail.com\",\n    \"nombre\": \"Ronald Vargas Saldaña\"\n  },\n  {\n    \"email\": \"jose19_sistemas@hotmail.com\",\n    \"nombre\": \"renato garcia perez\"\n  },\n  {\n    \"email\": \"berrospi1999@gmail.com\",\n    \"nombre\": \"Ayrton Berrospi\"\n  },\n  {\n    \"email\": \"amedsb.99@gmail.com\",\n    \"nombre\": \"Sebastian amed Cortez Aguilar\"\n  },\n  {\n    \"email\": \"yiyis77@gmail.com\",\n    \"nombre\": \"Juana Rosa Judith Manrique Torres\"\n  },\n  {\n    \"email\": \"ancelmo.ssonn@gmail.com\",\n    \"nombre\": \"Elmer Villalba giraldo\"\n  },\n  {\n    \"email\": \"conceptoruben@gmail.com\",\n    \"nombre\": \"Rubén Tejeda León\"\n  },\n  {\n    \"email\": \"pfredi72@gmail.com\",\n    \"nombre\": \"Fredi Perez Chigne\"\n  },\n  {\n    \"email\": \"vanessasarriat@gmail.com\",\n    \"nombre\": \"Vanessa Judith Sarria tacuche\"\n  },\n  {\n    \"email\": \"ecallacardenas@gmail.com\",\n    \"nombre\": \"Eva Callq\"\n  },\n  {\n    \"email\": \"ariana_1801@hotmail.com\",\n    \"nombre\": \"Ariana Vilca Torres\"\n  },\n  {\n    \"email\": \"franburan2019@gmail.com\",\n    \"nombre\": \"Francine Buran\"\n  },\n  {\n    \"email\": \"israeldelafuentechavez@hotmail.com\",\n    \"nombre\": \"Israel De la fuente chavez cueva\"\n  },\n  {\n    \"email\": \"andreadelalama@gmail.com\",\n    \"nombre\": \"Andrea De la Lama\"\n  },\n  {\n    \"email\": \"madeleinellerena31@gmail.com\",\n    \"nombre\": \"Madeleine Llerena Castillo\"\n  },\n  {\n    \"email\": \"giulianamezamarquez@gmail.com\",\n    \"nombre\": \"GIULIANA MEZA MARQUEZ\"\n  },\n  {\n    \"email\": \"pepe_jakgen@hotmail.com\",\n    \"nombre\": \"José Carlos Santillan sanchez\"\n  },\n  {\n    \"email\": \"kprd38@gmail.com\",\n    \"nombre\": \"Ruben dario Flores Enriquez\"\n  }\n];\n\nconst LIMITE = 50; // 0 = todos los de la lista\n\nconst items = DESTINATARIOS\n  .slice(0, LIMITE > 0 ? LIMITE : DESTINATARIOS.length)\n  .map((d) => ({ json: { email: d.email, nombre: d.nombre } }));\n\nconsole.log('Destinatarios en este lote:', items.length);\nreturn items;"
+      },
+      "id": "5468fa2f-d199-4fbe-87d7-a1f662ce955e",
+      "name": "Prepare Email Payloads",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "\"GreenLine Atención al Cliente\" <mkt@glperu.com>",
+        "toEmail": "={{ $json.email }}",
+        "subject": "⏳ ¡Últimos días! Encuentra tu Green ideal",
+        "html": "=<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n  <meta charset=\"UTF-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n  <meta name=\"x-apple-disable-message-reformatting\" />\n  <title>¡Últimos días de descuentos! — GreenLine Aniversario</title>\n</head>\n<body style=\"margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;\">\n  <!-- Preview text (Gmail/mobile) -->\n  <div style=\"display:none;max-height:0;overflow:hidden;mso-hide:all;\">\n    ¡Últimos días de descuentos por el aniversario GreenLine! No dejes pasar la oferta 📉💚\n  </div>\n\n  <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f5f5f5;padding:24px 12px;\">\n    <tr>\n      <td align=\"center\">\n        <table role=\"presentation\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.08);\">\n\n          <!-- Header -->\n          <tr>\n            <td style=\"background:#009000;padding:22px 28px;\">\n              <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">\n                <tr>\n                  <td align=\"left\" valign=\"middle\">\n                    <img\n                      src=\"https://nxcbtcexsakfenjfdarr.supabase.co/storage/v1/object/public/Greenline_database/assets/imagenes/imagenes_correos/logo_final.png\"\n                      alt=\"GreenLine\"\n                      width=\"140\"\n                      style=\"display:block;border:0;outline:none;text-decoration:none;max-width:140px;height:auto;background:#ffffff;padding:8px 12px;border-radius:8px;\"\n                    />\n                  </td>\n                  <td align=\"right\" valign=\"middle\" style=\"font-size:12px;color:#ffffff;font-weight:600;letter-spacing:0.4px;text-transform:uppercase;\">\n                    Aniversario GreenLine\n                  </td>\n                </tr>\n              </table>\n            </td>\n          </tr>\n\n          <!-- Yellow urgency strip -->\n          <tr>\n            <td style=\"background:#ffd400;padding:12px 28px;text-align:center;font-size:14px;font-weight:800;color:#111111;letter-spacing:0.3px;\">\n              ⏳ OFERTA POR TIEMPO LIMITADO — SOLO ESTOS ÚLTIMOS DÍAS\n            </td>\n          </tr>\n\n          <!-- Hero image -->\n          <tr>\n            <td style=\"padding:0;\">\n              <img\n                src=\"https://nxcbtcexsakfenjfdarr.supabase.co/storage/v1/object/public/Greenline_database/assets/imagenes/imagenes_correos/correo_aniversario.jpeg\"\n                alt=\"Últimos días de descuentos de aniversario GreenLine\"\n                width=\"600\"\n                style=\"display:block;width:100%;max-width:600px;height:auto;border:0;\"\n              />\n            </td>\n          </tr>\n\n          <!-- Body -->\n          <tr>\n            <td style=\"padding:28px 28px 8px 28px;\">\n              <p style=\"margin:0 0 14px 0;font-size:22px;line-height:1.3;font-weight:800;color:#111111;\">\n                🚨 <span style=\"color:#009000;\">¡ÚLTIMOS DÍAS DE DESCUENTOS!</span> 😱\n              </p>\n\n              <p style=\"margin:0 0 14px 0;font-size:15px;line-height:1.65;color:#333333;\">\n                💚 <strong>¡Nuestro aniversario está llegando a su fin</strong> y todavía estás a tiempo de disfrutar de nuestras promociones especiales!\n              </p>\n\n              <p style=\"margin:0 0 14px 0;font-size:15px;line-height:1.65;color:#333333;\">\n                🛵 Si llevas tiempo pensando en tener una Green, este es un buen momento para conocer las opciones disponibles y encontrar la que mejor se adapte a tu día a día.\n              </p>\n\n              <p style=\"margin:0 0 14px 0;font-size:15px;line-height:1.65;color:#333333;\">\n                🎉 Tenemos <strong style=\"color:#006400;\">beneficios y DESCUENTOS ESPECIALES</strong> por nuestro aniversario, disponibles solo durante estos últimos días.\n              </p>\n\n              <p style=\"margin:0 0 14px 0;font-size:15px;line-height:1.65;color:#333333;\">\n                ⏳ ¡No dejes pasar los últimos días de nuestro aniversario!\n              </p>\n            </td>\n          </tr>\n\n          <!-- WhatsApp CTA -->\n          <tr>\n            <td align=\"center\" style=\"padding:12px 28px 8px 28px;\">\n              <table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\">\n                <tr>\n                  <td align=\"center\" style=\"border-radius:10px;background:#009000;\">\n                    <a\n                      href=\"https://wa.me/51919445661?text=%C2%A1Hola!%20Recib%C3%AD%20el%20correo%20de%20GreenLine%20sobre%20los%20%C3%BAltimos%20d%C3%ADas%20del%20aniversario%20y%20quiero%20ver%20las%20opciones%20antes%20de%20que%20termine%20la%20oferta%20%F0%9F%93%A7%F0%9F%9A%B5%F0%9F%92%9A\"\n                      target=\"_blank\"\n                      rel=\"noopener noreferrer\"\n                      style=\"display:inline-block;padding:14px 28px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;background:#009000;\"\n                    >\n                      💬 Escríbenos por WhatsApp\n                    </a>\n                  </td>\n                </tr>\n              </table>\n              <p style=\"margin:12px 0 0 0;font-size:13px;color:#666666;line-height:1.5;\">\n                📲 ¿Ya tienes una Green en mente?<br />\n                O llámanos al\n                <a href=\"tel:+51919445661\" style=\"color:#009000;font-weight:700;text-decoration:none;\">+51 919 445 661</a>\n                y te ayudamos a encontrar la indicada para ti.\n              </p>\n            </td>\n          </tr>\n\n          <!-- Closing -->\n          <tr>\n            <td style=\"padding:20px 28px 8px 28px;\" align=\"center\">\n              <p style=\"margin:0;font-size:16px;font-weight:700;color:#111111;\">\n                ¡Te esperamos! 💚\n              </p>\n            </td>\n          </tr>\n\n          <!-- Brand divider -->\n          <tr>\n            <td style=\"padding:16px 28px 4px 28px;\">\n              <div style=\"height:3px;background:linear-gradient(90deg,#009000 0%,#2eb82e 50%,#ffd400 100%);border-radius:2px;\"></div>\n            </td>\n          </tr>\n\n          <!-- Footer -->\n          <tr>\n            <td style=\"padding:16px 28px 24px 28px;text-align:center;border-top:1px solid #eeeeee;margin-top:8px;\">\n              <p style=\"margin:0 0 8px 0;font-size:12px;color:#999999;line-height:1.5;\">\n                GreenLine — Movilidad Eléctrica · Av. Gral. Juan Antonio Álvarez de Arenales 1912, Lima 15073\n              </p>\n              <p style=\"margin:0 0 12px 0;font-size:12px;color:#999999;\">\n                Recibes este correo porque tienes cuenta o hiciste un pedido con nosotros.\n              </p>\n              <p style=\"margin:0;font-size:12px;\">\n                <a\n                  href=\"https://greenline-eta.vercel.app/cancelar-suscripcion\"\n                  style=\"color:#666666;text-decoration:underline;\"\n                >\n                  Cancelar suscripción / dejar de recibir promociones\n                </a>\n                <span style=\"color:#cccccc;\"> · </span>\n                <a\n                  href=\"https://greenline-eta.vercel.app/politica-privacidad\"\n                  style=\"color:#666666;text-decoration:underline;\"\n                >\n                  Política de privacidad\n                </a>\n              </p>\n              <p style=\"margin:12px 0 0 0;font-size:11px;color:#bbbbbb;\">\n                © {{now.year}} GreenLine. Todos los derechos reservados.\n              </p>\n            </td>\n          </tr>\n\n        </table>\n      </td>\n    </tr>\n  </table>\n</body>\n</html>\n",
+        "options": {
+          "appendAttribution": false,
+          "replyTo": "greenlinemoto@gmail.com"
+        }
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        760,
+        128
+      ],
+      "id": "f422ccc4-5513-407f-ad3a-38e9034b5034",
+      "name": "Send an Email",
+      "webhookId": "ddd5f49b-21a5-48d7-8483-e5c1c7b0a6eb",
+      "credentials": {
+        "smtp": {
+          "id": "cnqt8pe5W1raepFX",
+          "name": "Cuenta corporativa"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "c3d4e5f6-split-0001",
+      "name": "Split In Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        320,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "c3d4e5f6-wait-0002",
+      "name": "Wait 30s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        540,
+        128
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Prepare Email Payloads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Email Payloads": {
+      "main": [
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split In Batches": {
+      "main": [
+        [
+          {
+            "node": "Wait 30s",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Wait 30s": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an Email": {
+      "main": [
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "649e6fbc-84b6-43e4-b190-45528bf7595f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b6474fc536ed8c40015f3aee7a8bb33248f5180a5aa28723fe17bbfd5fcdbc73"
+  },
+  "nodeGroups": [],
+  "id": "ZO6pvnqZaoSjWBRe",
+  "tags": []
+}

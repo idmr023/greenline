@@ -1,0 +1,765 @@
+{
+  "name": "WF-Final Orquestador",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const plan = $json;\nconst list = (items) => (items || []).map((item) => `- ${item}`).join('\\n');\nconst criteria = (plan.criterios_aceptacion || []).map((item) => `- [ ] ${item}`).join('\\n');\nconst files = list(plan.archivos_probables);\nconst technicalPlan = list(plan.plan_tecnico);\nconst tests = list(plan.pruebas_requeridas);\nconst risks = list(plan.riesgos) || '- Ninguno indicado';\n\nreturn [{\n  json: {\n    ...plan,\n    issueTitle: `[Agente] ${plan.titulo}`,\n    issueBody: `## Historia de usuario\\n\\n${plan.historia_usuario}\\n\\n## Criterios de aceptación\\n\\n${criteria}\\n\\n## Plan técnico\\n\\n${technicalPlan}\\n\\n## Archivos probables\\n\\n${files}\\n\\n## Pruebas requeridas\\n\\n${tests}\\n\\n## Riesgos\\n\\n${risks}\\n\\n## Instrucciones para Copilot coding agent\\n\\n- Trabaja en una branch nueva basada en develop.\\n- No modifiques develop directamente.\\n- No leas ni modifiques archivos .env ni secretos.\\n- Implementa todos los criterios de aceptación.\\n- Ejecuta las pruebas indicadas y reporta resultados reales.\\n- Abre un Pull Request contra develop.\\n- No hagas merge automático.\\n\\n> Este Issue fue generado por el workflow de n8n. La asignación a Copilot coding agent y la aprobación del merge requieren revisión humana.`\n  }\n}];"
+      },
+      "id": "f8b90e34-241f-43b3-9bd1-e719c7700fcb",
+      "name": "Construir Issue1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5616,
+        5408
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.github.com/repos/idmr023/greenline/issues",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ title: $json.issueTitle, body: $json.issueBody, labels: ['agent-request'] }) }}",
+        "options": {}
+      },
+      "id": "12117c02-3f09-4f71-a41b-bf321ceccc29",
+      "name": "Crear Issue en GitHub1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        5856,
+        5408
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "IYTNfatJlr3Rearp",
+          "name": "GitHubAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "status",
+              "name": "estado",
+              "value": "ISSUE_CREADO_REQUIERE_ASIGNACION",
+              "type": "string"
+            },
+            {
+              "id": "issueUrl",
+              "name": "issue_url",
+              "value": "={{ $json.html_url }}",
+              "type": "string"
+            },
+            {
+              "id": "issueNumber",
+              "name": "issue_numero",
+              "value": "={{ $json.number }}",
+              "type": "number"
+            },
+            {
+              "id": "message",
+              "name": "mensaje",
+              "value": "Issue creado. Asigna Copilot coding agent en GitHub y espera el Pull Request.",
+              "type": "string"
+            },
+            {
+              "id": "issueBody",
+              "name": "issueBody",
+              "value": "={{ $node['Construir Issue1'].json.issueBody }}",
+              "type": "string"
+            },
+            {
+              "id": "chatResponse",
+              "name": "chatResponse",
+              "value": "={{ 'Issue creado: '+$json.html_url }}",
+              "type": "string"
+            },
+            {
+              "id": "output",
+              "name": "output",
+              "value": "={{ 'Issue creado correctamente: '+$json.html_url+'\\n\\nNúmero: '+$json.number+'\\n\\nLa solicitud fue enviada al workflow de GitHub.' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c6edbe1a-6ea1-4e08-8dc7-ccdac378caa9",
+      "name": "Issue creado1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        6096,
+        5408
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.github.com/repos/idmr023/greenline/actions/workflows/copilot-agent.yml/dispatches",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ ref: 'develop', inputs: { issue_numero: String($json.issue_numero), issueBody: $json.issueBody } }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        6336,
+        5408
+      ],
+      "id": "1e4951b1-8f8d-491a-b14c-4c5ecf7e4e77",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "IYTNfatJlr3Rearp",
+          "name": "GitHubAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Configuración OpenCode Go (Opción A)\n\n1. Credencial **Header Auth** `OpenCode Cloud API` → `Bearer <oc_sk_...>`.\n2. Endpoint: `POST https://opencode.ai/zen/go/v1/chat/completions` + `x-opencode-session` + `User-Agent`. NO free tier ni `/zen/v1`.\n3. Modelo: `deepseek-v4-flash` (en `Preparar pedido del chat`).\n4. Memoria: `opencodeHistories` por sessionId en static data.\n5. Trigger: **When chat message received**. Aclaraciones → responder en el mismo chat.\n\nDocs: https://opencode.ai/v2/docs/console/go/",
+        "height": 300,
+        "width": 480,
+        "color": 5
+      },
+      "id": "13ccc1de-7e71-497c-a705-26c9241dc6df",
+      "name": "Configuración OpenCode1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3920,
+        5024
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Contexto GitHub (caché 1h, branch develop)\n\nSi el caché de `githubContextCache` tiene menos de 1h → salta a `Enviar pedido a OpenCode`. Si no, lee de GitHub (credencial `GitHubAuth`):\n\n- `AGENTS.md`\n- `README.md`\n- `ARQUITECTURA.md`\n- `docs/KNOWLEDGE_BASE.md`\n- árbol `git/trees/develop?recursive=1`\n\n`Guardar contexto GitHub` decodifica base64, guarda en static data y reinyecta el contexto en el system prompt antes de llamar a OpenCode.",
+        "height": 280,
+        "width": 420,
+        "color": 4
+      },
+      "id": "a403a5bc-bfcb-4a42-9671-50258f72b2bf",
+      "name": "Nota contexto GitHub",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        4240,
+        5968
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ Number($json.preguntas_pendientes ? $json.preguntas_pendientes.length : 0) }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              },
+              "id": "884d3b1c-f870-4982-a3c2-e18adee6a7eb"
+            },
+            {
+              "leftValue": "={{ $json.listo_para_implementar }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              },
+              "id": "3a0f9c7c-c630-4b43-a944-0435c120788b"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "55048c5b-c22a-467a-ae3b-11ec4ba7516d",
+      "name": "Plan listo?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        5376,
+        5488
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "blocked",
+              "name": "estado",
+              "value": "NECESITA_ACLARACION",
+              "type": "string"
+            },
+            {
+              "id": "message",
+              "name": "mensaje",
+              "value": "El plan necesita aclaraciones. Responde en este mismo chat.",
+              "type": "string"
+            },
+            {
+              "id": "chatResponse",
+              "name": "chatResponse",
+              "value": "={{ 'Necesito estas aclaraciones para continuar con el plan:\\n\\n- '+(($json.preguntas_pendientes||[]).join('\\n- ')||'Indica qué información falta.')+'\\n\\nResponde en este mismo chat y actualizaré el plan con tu respuesta.' }}",
+              "type": "string"
+            },
+            {
+              "id": "output",
+              "name": "output",
+              "value": "={{ 'Necesito estas aclaraciones para continuar con el plan:\\n\\n- '+(($json.preguntas_pendientes||[]).join('\\n- ')||'Indica qué información falta.')+'\\n\\nResponde en este mismo chat y actualizaré el plan con tu respuesta.' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "952e2098-819f-407e-b174-86f1728ab97a",
+      "name": "Solicitar aclaracion",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5376,
+        5232
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const instruccion = ($json.chatInput || $json.instruccion || '').trim();\nif (!instruccion) {\n  throw new Error(\n    'Falta chatInput/instruccion: envía un mensaje desde el chat de n8n o rellena instruccion en la ejecución manual.'\n  );\n}\nconst chatSessionId = $json.sessionId || $json.session_id || $json.conversationId || 'greenline-default';\nconst state = $getWorkflowStaticData('global');\nstate.opencodeHistories = state.opencodeHistories || {};\nconst history = (state.opencodeHistories[chatSessionId] || [])\n  .filter(m =>\n    m &&\n    (m.role === 'user' || m.role === 'assistant') &&\n    typeof m.content === 'string' &&\n    m.content.trim() !== ''\n  )\n  .slice(-20);\nconst opencodeUrl = ('https://opencode.ai/zen/go/v1').replace(/\\/$/, '');\nconst model = 'deepseek-v4-flash';\n\nconst projectContext = [\n  'CONTEXTO DEL PROYECTO GREENLINE (repo idmr023/greenline, branch develop):',\n  '- Greenline Web ERP: e-commerce + ERP de vehículos eléctricos en Perú.',\n  '- Stack: React 19, Vite, Tailwind CSS v4, Supabase (PostgreSQL + RLS). Backend Express 5 + Prisma en backend/. Scripts Node con Sharp.',\n  '- Estructura: frontend/components (UI), frontend/pages (23 páginas, routing file-based en src/routes.jsx), frontend/hooks, frontend/lib (supabase.js, api.js, services), src/ (main.jsx, App.jsx, routes.jsx), supabase/ (schema, seed, migrations RLS), scripts/, docs/, .github/workflows.',\n  '- Convenciones (AGENTS.md): no añadir librerías sin justificación; consultas DB solo vía frontend/lib/supabase.js o api.js; respetar RLS; imágenes con npm run sync_image; validar con npm run lint, npm run security-smoke, npm run build.',\n  '- Naming: camelCase variables/funciones, PascalCase componentes y archivos de página.',\n  '- Pipeline issue→Copilot: issue en idmr023/greenline con label agent-request, branch base develop, dispatch a .github/copilot-agent.yml (inputs issue_numero, issueBody). No merge automático.',\n  ''\n].join('\\n');\n\nconst cache = state.githubContextCache || null;\nconst githubCacheFresh = !!(cache && cache.text && (Date.now() - (cache.at || 0) < 3600000));\nconst githubContext = githubCacheFresh ? cache.text : '';\n\nconst systemPrompt = projectContext\n  + (githubContext ? '\\n\\nCONTEXTO DEL REPOSITORIO (AGENTS.md, README, ARQUITECTURA, KNOWLEDGE_BASE, árbol develop):\\n' + githubContext + '\\n' : '')\n  + '\\nResponde UNICAMENTE con JSON valido y exactamente este esquema: {titulo:string,historia_usuario:string,criterios_aceptacion:string[],archivos_probables:string[],plan_tecnico:string[],pruebas_requeridas:string[],riesgos:string[],preguntas_pendientes:string[],listo_para_implementar:boolean}. Integra aclaraciones del usuario y marca listo_para_implementar=false si faltan datos. Si el usuario responde aclaraciones, actualiza el plan completo con todo lo conversado. Usa el contexto del repositorio para proponer archivos_probables y plan_tecnico realistas.'\n  + '\\nREGLAS DE preguntas_pendientes (obligatorias):'\n  + '\\n- Solo dudas BLOQUEantes reales que impiden implementar (siempre en forma de pregunta concreta y accionable).'\n  + '\\n- Si no hay bloqueos: preguntas_pendientes DEBE ser [] (array vacio).'\n  + '\\n- NUNCA pongas texto tipo \"no hay preguntas\", \"ninguna\", comentarios, estado del test ni meta-texto en preguntas_pendientes.'\n  + '\\n- Si listo_para_implementar=true entonces preguntas_pendientes=[].'\n  + '\\n- Si listo_para_implementar=false entonces incluye al menos 1 pregunta bloqueante concreta.';\n\nconst messages = [\n  { role: 'system', content: systemPrompt },\n  ...history,\n  { role: 'user', content: instruccion }\n];\n\nreturn [{\n  json: {\n    ...$json,\n    instruccion,\n    chatSessionId,\n    opencodeUrl,\n    model,\n    messages,\n    githubCacheFresh,\n    githubContext\n  }\n}];"
+      },
+      "id": "077d7d92-248f-4b5f-a762-665effce9b54",
+      "name": "Preparar pedido del chat",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4288,
+        5488
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.githubCacheFresh }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              },
+              "id": "b1c2d3e4-f5a6-4b7c-8d9e-0f1a2b3c4d5e"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "537593e1-66af-4ed2-b225-9c52f9a7e05d",
+      "name": "Contexto GitHub vigente?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4512,
+        5488
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/idmr023/greenline/contents/AGENTS.md?ref=develop",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f47aa329-a5bf-4931-9493-edf1a3166474",
+      "name": "Obtener AGENTS.md",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        4512,
+        5712
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "IYTNfatJlr3Rearp",
+          "name": "GitHubAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/idmr023/greenline/contents/README.md?ref=develop",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "47f1ea5c-fcfe-4849-8569-1f124c13e712",
+      "name": "Obtener README.md",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        4752,
+        5712
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "IYTNfatJlr3Rearp",
+          "name": "GitHubAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/idmr023/greenline/contents/ARQUITECTURA.md?ref=develop",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e90d049b-fe0c-48cb-9c70-59cf6a79f90c",
+      "name": "Obtener ARQUITECTURA.md",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        4992,
+        5712
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "IYTNfatJlr3Rearp",
+          "name": "GitHubAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/idmr023/greenline/contents/docs/KNOWLEDGE_BASE.md?ref=develop",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1aced74e-d639-4b4e-82bc-dd5280b1647b",
+      "name": "Obtener KNOWLEDGE_BASE.md",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        5232,
+        5712
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "IYTNfatJlr3Rearp",
+          "name": "GitHubAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/idmr023/greenline/git/trees/develop?recursive=1",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "eb7c579e-2a16-40b5-a459-e339109db2ba",
+      "name": "Obtener árbol develop",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        5472,
+        5712
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "IYTNfatJlr3Rearp",
+          "name": "GitHubAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const decode = (nodeName) => {\n  try {\n    const j = $node[nodeName].json;\n    if (j && j.encoding === 'base64' && typeof j.content === 'string') {\n      return Buffer.from(j.content.replace(/\\n/g, ''), 'base64').toString('utf8');\n    }\n    if (j && typeof j.content === 'string' && j.content.length > 0 && !j.encoding) {\n      return j.content;\n    }\n  } catch (e) {}\n  return '';\n};\n\nconst agents = decode('Obtener AGENTS.md');\nconst readme = decode('Obtener README.md');\nconst arq = decode('Obtener ARQUITECTURA.md');\nconst kb = decode('Obtener KNOWLEDGE_BASE.md');\n\nlet treeLines = [];\ntry {\n  const treeJson = $node['Obtener árbol develop'].json;\n  if (treeJson && Array.isArray(treeJson.tree)) {\n    treeLines = treeJson.tree\n      .filter((t) => t.type === 'blob'\n        && !t.path.startsWith('node_modules')\n        && !t.path.startsWith('dist/')\n        && !t.path.startsWith('.git/')\n        && t.path.length < 180)\n      .map((t) => t.path)\n      .slice(0, 500);\n  }\n} catch (e) {}\n\nconst parts = [];\nif (agents) parts.push('## AGENTS.md\\n' + agents.slice(0, 5000));\nif (readme) parts.push('## README.md\\n' + readme.slice(0, 4000));\nif (arq) parts.push('## ARQUITECTURA.md\\n' + arq.slice(0, 4000));\nif (kb) parts.push('## docs/KNOWLEDGE_BASE.md\\n' + kb.slice(0, 8000));\nif (treeLines.length) parts.push('## Árbol del repo (develop)\\n' + treeLines.join('\\n'));\n\nconst githubContext = parts.join('\\n\\n');\nconst state = $getWorkflowStaticData('global');\nstate.githubContextCache = { at: Date.now(), text: githubContext };\n\nconst prep = $node['Preparar pedido del chat'].json;\nconst marker = 'CONTEXTO DEL REPOSITORIO';\nlet baseSystem = prep.messages[0].content;\nconst idx = baseSystem.indexOf(marker);\nif (idx >= 0) {\n  const schemaIdx = baseSystem.indexOf('Responde UNICAMENTE con JSON');\n  baseSystem = baseSystem.slice(0, idx) + (schemaIdx >= 0 ? baseSystem.slice(schemaIdx) : '');\n}\nconst systemContent = baseSystem\n  + (githubContext ? '\\n\\nCONTEXTO DEL REPOSITORIO (AGENTS.md, README, ARQUITECTURA, KNOWLEDGE_BASE, árbol develop):\\n' + githubContext + '\\n' : '')\n  + (baseSystem.includes('Responde UNICAMENTE') ? '' : '\\nResponde UNICAMENTE con JSON valido y exactamente este esquema: {titulo:string,historia_usuario:string,criterios_aceptacion:string[],archivos_probables:string[],plan_tecnico:string[],pruebas_requeridas:string[],riesgos:string[],preguntas_pendientes:string[],listo_para_implementar:boolean}. Integra aclaraciones del usuario y marca listo_para_implementar=false si faltan datos. Usa el contexto del repositorio para proponer archivos_probables y plan_tecnico realistas.');\n\nconst messages = [\n  { role: 'system', content: systemContent },\n  ...prep.messages.slice(1)\n].filter(m =>\n  m &&\n  (m.role === 'system' || m.role === 'user' || m.role === 'assistant') &&\n  typeof m.content === 'string' &&\n  m.content.trim() !== ''\n);\n\nreturn [{\n  json: {\n    ...prep,\n    messages,\n    githubCacheFresh: true,\n    githubContext\n  }\n}];"
+      },
+      "id": "f8d1b1e3-c128-4f7b-8394-9d7910db3c4c",
+      "name": "Guardar contexto GitHub",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5712,
+        5712
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.opencodeUrl + '/chat/completions' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-opencode-session",
+              "value": "={{ $json.chatSessionId }}"
+            },
+            {
+              "name": "User-Agent",
+              "value": "greenline-n8n/1.0"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  JSON.stringify({\n    model: $json.model,\n    messages: ($json.messages || []).filter(m =>\n      m && typeof m.content === 'string' && m.content.trim() !== ''\n    ),\n    max_tokens: 8192\n  })\n}}",
+        "options": {}
+      },
+      "id": "79b316d9-65a6-4671-b10f-ad0b218f5712",
+      "name": "Enviar pedido a OpenCode",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        4768,
+        5488
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "JWrxvnIGQdQx1ND3",
+          "name": "OpenCode Cloud API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Extraer y validar el contenido de la respuesta\nconst choices = $json.choices || [];\nconst first = choices[0] || {};\nconst content = first.message && first.message.content;\nconst finishReason = first.finish_reason || '';\n\nif (!content || typeof content !== 'string') {\n  throw new Error('OpenCode no devolvio contenido en choices[0].message.content (finish_reason=' + finishReason + ')');\n}\n\n// 2. Detectar truncado por max_tokens antes de parsear\nif (finishReason === 'length') {\n  throw new Error(\n    'Respuesta truncada por max_tokens (finish_reason=length, ' + content.length + ' chars). Sube max_tokens en Enviar pedido a OpenCode o pide un plan mas corto.'\n  );\n}\n\n// 3. Limpiar la respuesta y parsear a JSON\nconst text = content.replace(/^```(?:json)?\\s*/i, '').replace(/\\s*```$/i, '').trim();\nlet plan;\ntry {\n  plan = JSON.parse(text);\n} catch (e) {\n  const truncated = /Unterminated|unexpected end|JSON.{0,20}truncat/i.test(e.message);\n  throw new Error(\n    (truncated\n      ? 'Respuesta OpenCode truncada o JSON incompleto (finish_reason=' + finishReason + '): '\n      : 'Respuesta OpenCode no es JSON valido: ')\n    + e.message\n  );\n}\n\n// 3b. Normalizar preguntas_pendientes / listo_para_implementar\nif (!Array.isArray(plan.preguntas_pendientes)) {\n  plan.preguntas_pendientes = [];\n}\nplan.preguntas_pendientes = plan.preguntas_pendientes\n  .filter(q => typeof q === 'string' && q.trim() !== '')\n  .map(q => q.trim())\n  .filter(q => !/no hay (preguntas|dudas|aclaraciones|bloqueantes)|ninguna pregunta|^n\\/a$|^ninguno$|^ninguna$/i.test(q));\n\nif (plan.listo_para_implementar === true) {\n  plan.preguntas_pendientes = [];\n} else if (plan.preguntas_pendientes.length === 0) {\n  plan.preguntas_pendientes = ['Indica qué falta para dar el plan por listo.'];\n}\nplan.listo_para_implementar = plan.listo_para_implementar === true;\n\n// 4. Datos preparados del nodo anterior\nconst prep = $node['Preparar pedido del chat'].json;\nconst chatSessionId = prep.chatSessionId || 'default';\nconst instruccion = (prep.instruccion || '').trim();\n\n// 5. Memoria: no guardar el JSON crudo del plan (infla el contexto y provoca truncado en el 2.º turno)\nconst state = $getWorkflowStaticData('global');\nstate.opencodeHistories = state.opencodeHistories || {};\nconst history = state.opencodeHistories[chatSessionId] || [];\n\nif (instruccion) {\n  history.push({ role: 'user', content: instruccion });\n}\nconst tituloPlan = typeof plan.titulo === 'string' && plan.titulo.trim() ? plan.titulo.trim() : 'sin titulo';\nconst listo = plan.listo_para_implementar ? 'listo_para_implementar=true' : 'listo_para_implementar=false';\nconst pendientes = plan.preguntas_pendientes.length\n  ? '; preguntas_pendientes=' + plan.preguntas_pendientes.length\n  : '';\nhistory.push({\n  role: 'assistant',\n  content: 'Plan generado: ' + tituloPlan + ' (' + listo + pendientes + '). El JSON completo esta en la ultima ejecucion del workflow.'\n});\n\n// Limitar a los ultimos 40 mensajes para no saturar\nstate.opencodeHistories[chatSessionId] = history.slice(-40);\n\n// 6. Retornar el plan estructurado\nreturn [{ json: plan }];\n"
+      },
+      "id": "4bbfb75a-7beb-4ea1-9ca2-b57ff53f0c74",
+      "name": "Interpretar respuesta de OpenCode",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5072,
+        5488
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        4032,
+        5488
+      ],
+      "id": "6d937eef-5c22-4948-b15d-3b1c15130909",
+      "name": "When chat message received",
+      "webhookId": "3402dab1-6176-412a-a6cf-0c8a6be3ff1f"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Preparar pedido del chat": {
+      "main": [
+        [
+          {
+            "node": "Contexto GitHub vigente?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contexto GitHub vigente?": {
+      "main": [
+        [
+          {
+            "node": "Enviar pedido a OpenCode",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Obtener AGENTS.md",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener AGENTS.md": {
+      "main": [
+        [
+          {
+            "node": "Obtener README.md",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener README.md": {
+      "main": [
+        [
+          {
+            "node": "Obtener ARQUITECTURA.md",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener ARQUITECTURA.md": {
+      "main": [
+        [
+          {
+            "node": "Obtener KNOWLEDGE_BASE.md",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener KNOWLEDGE_BASE.md": {
+      "main": [
+        [
+          {
+            "node": "Obtener árbol develop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener árbol develop": {
+      "main": [
+        [
+          {
+            "node": "Guardar contexto GitHub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar contexto GitHub": {
+      "main": [
+        [
+          {
+            "node": "Enviar pedido a OpenCode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar pedido a OpenCode": {
+      "main": [
+        [
+          {
+            "node": "Interpretar respuesta de OpenCode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Interpretar respuesta de OpenCode": {
+      "main": [
+        [
+          {
+            "node": "Plan listo?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plan listo?": {
+      "main": [
+        [
+          {
+            "node": "Construir Issue1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Solicitar aclaracion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir Issue1": {
+      "main": [
+        [
+          {
+            "node": "Crear Issue en GitHub1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Issue en GitHub1": {
+      "main": [
+        [
+          {
+            "node": "Issue creado1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Issue creado1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Preparar pedido del chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "3606fea0-bd7b-4c46-9dc6-f5e1524f3beb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b6474fc536ed8c40015f3aee7a8bb33248f5180a5aa28723fe17bbfd5fcdbc73"
+  },
+  "nodeGroups": [],
+  "id": "jFnXoUQH31RYWHf1",
+  "tags": []
+}
