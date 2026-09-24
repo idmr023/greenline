@@ -64,6 +64,8 @@ model User {
 
   activo        Boolean     @default(true)
   emailVerificado Boolean   @default(false) @map("email_verificado")
+  emailsAllowed Boolean     @default(true) @map("emails_allowed")
+  emailsUnsubscribedAt DateTime? @map("emails_unsubscribed_at")
 
   // 2FA solo para staff
   twoFactorSecret   String?  @map("two_factor_secret")

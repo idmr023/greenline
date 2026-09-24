@@ -26,6 +26,7 @@ import blogRoutes from './routes/blog.routes.js';
 import tiktokRoutes from './routes/tiktok.routes.js';
 import reclamacionesRoutes from './routes/reclamaciones.routes.js';
 import imagenesRoutes from './routes/imagenes.routes.js';
+import marketingRoutes from './routes/marketing.routes.js';
 
 const app = express();
 
@@ -123,6 +124,7 @@ app.use('/api/blog', blogRoutes);
 app.use('/api/tiktok-live', tiktokRoutes);
 app.use('/api/reclamaciones', reclamacionesRoutes);
 app.use('/api/imagenes', imagenesRoutes);
+app.use('/api/marketing', marketingRoutes);
 
 // Documentación API (solo superficie pública). Scalar UI necesita inline
 // scripts, por eso se retira el CSP global solo en esta ruta.

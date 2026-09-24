@@ -9,6 +9,8 @@ export const corsOptions = {
       env.FRONTEND_URL_PROD,
       'http://localhost:5173',
       'http://localhost:3001',
+      'http://localhost:4173',
+      'http://127.0.0.1:4173',
     ]
       .filter(Boolean)
       .map(normalizeOrigin);

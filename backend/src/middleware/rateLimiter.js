@@ -137,3 +137,13 @@ export const reclamacionesLimiter = rateLimitImpl({
   legacyHeaders: false,
   message: { error: 'Demasiados reclamos desde esta IP, intenta más tarde' },
 });
+
+// Rate limiter para unsubscribe de marketing (20 / hora por IP+email)
+export const unsubscribeLimiter = rateLimitImpl({
+  windowMs: 60 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiadas solicitudes de baja, intenta más tarde' },
+  keyGenerator: (req) => ipKeyGenerator(req.ip) + ':' + (req.body?.email || 'unknown'),
+});

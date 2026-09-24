@@ -16,6 +16,13 @@ dist/
 # Test coverage
 backend/coverage/
 
+# Test artifacts (Playwright / Lighthouse)
+test-results/
+playwright-report/
+lhci-reports/
+.lighthouseci/
+lh-*.json
+
 # Environment variables
 .env
 .env.local

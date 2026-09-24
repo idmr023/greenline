@@ -15,6 +15,7 @@ const col2 = [
   { label: 'Tiendas y Distribuidores', to: '/tiendas' },
   { label: 'Preguntas Frecuentes', to: '/preguntas-frecuentes' },
   { label: 'Manuales de uso', to: '/manuales-de-uso' },
+  { label: 'Cancelar suscripción', to: '/cancelar-suscripcion' },
 ];
 
 const socials = [

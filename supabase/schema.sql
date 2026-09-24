@@ -132,6 +132,8 @@ CREATE TABLE IF NOT EXISTS users (
   nivel_acceso "NivelAcceso" NOT NULL,
   activo BOOLEAN NOT NULL DEFAULT true,
   email_verificado BOOLEAN NOT NULL DEFAULT false,
+  emails_allowed BOOLEAN NOT NULL DEFAULT true,
+  emails_unsubscribed_at TIMESTAMPTZ,
   two_factor_secret TEXT,
   two_factor_enabled BOOLEAN NOT NULL DEFAULT false,
   two_factor_backup TEXT,

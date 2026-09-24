@@ -3,6 +3,7 @@ import { reclamoSchema } from '../routes/reclamaciones.routes.js';
 import { contactSchema } from '../routes/contact.routes.js';
 import { pedidoSchema } from '../routes/pedidos.routes.js';
 import { loginSchema } from '../routes/auth.routes.js';
+import { unsubscribeSchema } from '../routes/marketing.routes.js';
 
 // ============================================================
 // Documentación OpenAPI generada desde los schemas Zod reales
@@ -26,6 +27,7 @@ const ReclamoInput = { ...bodyOf(reclamoSchema), title: 'ReclamoInput' };
 const ContactInput = { ...bodyOf(contactSchema), title: 'ContactInput' };
 const PedidoInput = { ...bodyOf(pedidoSchema), title: 'PedidoInput' };
 const LoginInput = { ...bodyOf(loginSchema), title: 'LoginInput' };
+const UnsubscribeInput = { ...bodyOf(unsubscribeSchema), title: 'UnsubscribeInput' };
 
 const jsonBody = (schema) => ({
   content: { 'application/json': { schema } },
@@ -82,7 +84,7 @@ export function getOpenApiDocument() {
       servers: [{ url: '/', description: 'Mismo origen' }],
       components: {
         securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' } },
-        schemas: { ReclamoInput, ContactInput, PedidoInput, LoginInput },
+        schemas: { ReclamoInput, ContactInput, PedidoInput, LoginInput, UnsubscribeInput },
       },
       paths: {
         '/health': {
@@ -93,6 +95,7 @@ export function getOpenApiDocument() {
         '/api/contact': path('post', 'Enviar mensaje de contacto', { $ref: '#/components/schemas/ContactInput' }),
         '/api/pedidos': path('post', 'Notificar un pedido (público)', { $ref: '#/components/schemas/PedidoInput' }),
         '/api/auth/login': path('post', 'Login unificado (staff + clientes)', { $ref: '#/components/schemas/LoginInput' }, undefined, true),
+        '/api/marketing/unsubscribe': path('post', 'Darse de baja de emails de marketing', { $ref: '#/components/schemas/UnsubscribeInput' }),
       },
     };
   }

@@ -12,9 +12,13 @@ export default defineConfig({
   fullyParallel: true,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? 'github' : 'list',
+  timeout: 60_000,
+  expect: { timeout: 15_000 },
   use: {
     baseURL: FRONTEND_URL,
     trace: 'on-first-retry',
+    actionTimeout: 15_000,
+    navigationTimeout: 30_000,
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: undefined, // los servidores los levanta el workflow (ver e2e.yml)
