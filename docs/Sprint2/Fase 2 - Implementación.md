@@ -1,5 +1,18 @@
 # Fase 2 - Implementación
 
+## 0. Adaptación y cambios
+
+La directiva está trabajando en un ERP propio al que, por ahora, no se tiene acceso. Antes de definir cualquier alcance de modificación sobre ese sistema, se establecerá el siguiente flujo preliminar:
+
+1. **Acceso:** se recibe primero un usuario para entrar al ERP y solo observar (sin modificar nada).
+2. **Adaptación:** comprender el sistema, su lenguaje, arquitectura, módulos y forma de operar; posteriormente capacitar al resto del equipo.
+3. **Verificación:** validar que el acceso, los datos y el funcionamiento del ERP son los esperados.
+4. **Propuesta de cambios:** solo después de adaptarse y verificar, se proponen cambios concretos sobre el sistema. El ERP que estaba desarrollando y el que está desarrollando la empresa se volverán uno solo apuntando siempre a la mejora estructural, funcionalidades necesarias y mejora continua
+
+> **Nota:** este flujo aún no está del todo definido; se detalla aquí a grandes rasgos y será refinado una vez se reciba el acceso real.
+
+---
+
 ## 1. Objetivo
 
 La Fase 2 tiene como propósito consolidar en Greenline las mejores prácticas operativas y arquitectónicas de un ERP moderno. La meta es construir una plataforma propia, coherente y escalable, basada en permisos granulares, auditoría, stock con aprobaciones, dashboard ejecutivo, flujo de pedidos, UX operativa y contratos API consistentes.
