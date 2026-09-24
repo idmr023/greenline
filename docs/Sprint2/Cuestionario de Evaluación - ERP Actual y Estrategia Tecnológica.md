@@ -1,6 +1,6 @@
 # Cuestionario de Evaluación — ERP Actual y Estrategia Tecnológica
 
-**Dirigido a:** Comité Directivo
+**Dirigido a:** Gerencia
 **Elaborado por:** Ivan Manrique — Área de Tecnología
 **Fecha:** 24 de septiembre de 2026
 **Clasificación:** Documento interno de uso directivo
@@ -29,7 +29,6 @@ Las respuestas alimentarán una evaluación comparativa entre dos escenarios est
 3. **¿En qué versión** de Frappe/ERPNext se encuentra instalado el sistema? ¿Se aplican actualizaciones de seguridad y de versión? ¿Existe una política definida para ello?
 4. **¿Cómo se prueban los cambios** antes de llevarlos a producción? ¿Hay entornos de pruebas, registros de pruebas o un proceso formal de aprobación?
 
-
 ## 4. Bloque III — Control, propiedad y dependencia
 
 5. **¿El código personalizado** (módulos propios tipo POS/finanzas) **está versionado en un repositorio** con historial accesible a la empresa? ¿Podría entregarse una copia completa del código custom hoy?
@@ -37,11 +36,11 @@ Las respuestas alimentarán una evaluación comparativa entre dos escenarios est
 7. **¿Existen integraciones o servicios externos** (pasarelas de pago, APIs, proveedores) con claves o contratos a nombre de personas particulares?
 8. **¿Cuál es el plan de respaldo (backup) de la base de datos?** Frecuencia, retención y ¿se ha probado alguna vez la restauración?
 
-## 6. Bloque V — Riesgos y continuidad del negocio
+## 5. Bloque V — Riesgos y continuidad del negocio
 
 9. **¿Existe documentación técnica y de usuario** del sistema (arquitectura, manual de uso, procedimientos)?
 
-## 7. Bloque VI — Estrategia y decisión
+## 6. Bloque VI — Estrategia y decisión
 
 10. **¿Cuál es la preferencia del comité entre el Escenario A y el Escenario B** (o una combinación por fases)? ¿Qué criterio pesa más: velocidad inmediata, control total o costo?
 11. **¿Cuál es el horizonte temporal esperado** del ERP actual (seguirá 1 año, 3 años, indefinidamente)?
