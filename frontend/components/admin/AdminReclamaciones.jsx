@@ -5,6 +5,7 @@ import { FileText, RefreshCw, Eye, CheckCircle2, AlertCircle } from '../../lib/i
 export default function AdminReclamaciones() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
@@ -13,10 +14,12 @@ export default function AdminReclamaciones() {
 
   async function load() {
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('libro_reclamaciones')
       .select('*')
       .order('created_at', { ascending: false });
+    // Sin esto, una tabla ausente/RLS se disfrazaba de "No hay reclamaciones".
+    setLoadError(error ? error.message : null);
     setItems(data || []);
     setLoading(false);
   }
@@ -67,6 +70,11 @@ export default function AdminReclamaciones() {
 
       {loading ? (
         <div className="text-gray-400 text-sm py-12 text-center">Cargando reclamaciones...</div>
+      ) : loadError ? (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-6 text-sm">
+          <p className="font-semibold mb-1">Error cargando reclamaciones</p>
+          <p className="text-red-600">{loadError}</p>
+        </div>
       ) : items.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-100 p-12 text-center text-sm text-gray-500">
           No hay reclamaciones registradas.

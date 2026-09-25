@@ -281,7 +281,7 @@ CREATE TABLE IF NOT EXISTS testimonios (
 );
 
 CREATE TABLE IF NOT EXISTS contactos (
-  id BIGSERIAL PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   nombre TEXT NOT NULL DEFAULT '',
   email TEXT NOT NULL DEFAULT '',
   asunto TEXT NOT NULL DEFAULT '',
@@ -291,13 +291,58 @@ CREATE TABLE IF NOT EXISTS contactos (
 );
 
 CREATE TABLE IF NOT EXISTS email_logs (
-  id BIGSERIAL PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   destinatario TEXT NOT NULL DEFAULT '',
   asunto TEXT NOT NULL DEFAULT '',
   estado TEXT NOT NULL DEFAULT 'ENVIADO',
   error TEXT,
   meta JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Libro de reclamaciones: debe coincidir 1:1 con backend/prisma/schema.prisma
+-- (model LibroReclamacion). Sin esta tabla, POST /api/reclamaciones falla.
+CREATE TABLE IF NOT EXISTS libro_reclamaciones (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  token TEXT NOT NULL UNIQUE,
+  correlativo_anio INTEGER NOT NULL,
+  correlativo_numero INTEGER NOT NULL,
+  correlativo TEXT NOT NULL,
+  estado TEXT NOT NULL DEFAULT 'PENDIENTE',
+  respuesta TEXT,
+  respondido_en TIMESTAMPTZ,
+  nombre TEXT NOT NULL,
+  apellidos TEXT NOT NULL,
+  email TEXT NOT NULL,
+  telefono TEXT,
+  tipo_doc TEXT NOT NULL,
+  num_doc TEXT NOT NULL,
+  direccion TEXT NOT NULL,
+  distrito TEXT NOT NULL,
+  ciudad TEXT NOT NULL,
+  departamento TEXT NOT NULL,
+  producto TEXT NOT NULL,
+  descripcion_servicio TEXT NOT NULL,
+  monto TEXT NOT NULL,
+  lugar_compra TEXT NOT NULL,
+  fecha_compra TEXT NOT NULL,
+  modelo TEXT NOT NULL,
+  color TEXT NOT NULL,
+  vin TEXT NOT NULL,
+  numero_motor TEXT NOT NULL,
+  placa TEXT NOT NULL,
+  tipo TEXT NOT NULL,
+  detalle TEXT NOT NULL,
+  pedido TEXT NOT NULL,
+  observaciones TEXT NOT NULL,
+  area TEXT NOT NULL,
+  area_departamento TEXT NOT NULL,
+  area_distrito TEXT NOT NULL,
+  area_entidad_id TEXT,
+  area_entidad_nombre TEXT NOT NULL,
+  area_entidad_ruc TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- ------------------------------------------------------------

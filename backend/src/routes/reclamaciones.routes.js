@@ -98,43 +98,62 @@ router.post('/', reclamacionesLimiter, validate(reclamoSchema), async (req, res)
     await appendReclamo(buildReclamoRow(d, numeroReclamo));
 
     const anio = new Date().getFullYear();
-    await prisma.libroReclamacion.create({
-      data: {
-        token: crypto.randomUUID(),
-        correlativoAnio: anio,
-        correlativoNumero: numeroReclamo,
-        correlativo: `REC-${anio}-${String(numeroReclamo).padStart(4, '0')}`,
-        estado: 'PENDIENTE',
-        nombre: d.nombre,
-        apellidos: d.apellidos,
-        email: d.email,
-        telefono: d.telefono || '',
-        tipoDoc: d.tipoDoc || 'DNI',
-        numDoc: d.numDoc || '',
-        direccion: d.direccion || '',
-        distrito: d.distrito || '',
-        ciudad: d.ciudad || '',
-        departamento: d.departamento || '',
-        producto: d.producto || '',
-        descripcionServicio: d.descripcionServicio || '',
-        monto: d.monto || '',
-        lugarCompra: d.lugarCompra || '',
-        fechaCompra: d.fechaCompra || '',
-        modelo: d.modelo || '',
-        color: d.color || '',
-        vin: '',
-        numeroMotor: d.numeroMotor || '',
-        placa: d.placa || '',
-        tipo: d.tipoQueja || 'QUEJA',
-        detalle: d.detalle || '',
-        pedido: d.pedido || '',
-        observaciones: d.observaciones || '',
-        area: d.servicio || 'Atención al Cliente',
-        areaDepartamento: d.departamento || '',
-        areaDistrito: d.distrito || '',
-        areaEntidadNombre: d.tienda || d.distribuidor || 'GreenLine',
-      },
-    }).catch((err) => console.error('Error guardando reclamo en DB:', err));
+    try {
+      await prisma.libroReclamacion.create({
+        data: {
+          token: crypto.randomUUID(),
+          correlativoAnio: anio,
+          correlativoNumero: numeroReclamo,
+          correlativo: `REC-${anio}-${String(numeroReclamo).padStart(4, '0')}`,
+          estado: 'PENDIENTE',
+          nombre: d.nombre,
+          apellidos: d.apellidos,
+          email: d.email,
+          telefono: d.telefono || '',
+          tipoDoc: d.tipoDoc || 'DNI',
+          numDoc: d.numDoc || '',
+          direccion: d.direccion || '',
+          distrito: d.distrito || '',
+          ciudad: d.ciudad || '',
+          departamento: d.departamento || '',
+          producto: d.producto || '',
+          descripcionServicio: d.descripcionServicio || '',
+          monto: d.monto || '',
+          lugarCompra: d.lugarCompra || '',
+          fechaCompra: d.fechaCompra || '',
+          modelo: d.modelo || '',
+          color: d.color || '',
+          vin: '',
+          numeroMotor: d.numeroMotor || '',
+          placa: d.placa || '',
+          tipo: d.tipoQueja || 'QUEJA',
+          detalle: d.detalle || '',
+          pedido: d.pedido || '',
+          observaciones: d.observaciones || '',
+          area: d.servicio || 'Atención al Cliente',
+          areaDepartamento: d.departamento || '',
+          areaDistrito: d.distrito || '',
+          areaEntidadNombre: d.tienda || d.distribuidor || 'GreenLine',
+        },
+      });
+    } catch (err) {
+      // La fila ya está en el Sheet (origen de verdad): no rompemos la respuesta
+      // al usuario, pero el reclamo NO puede perderse → tabla respaldo `reclamaciones`.
+      console.error('[reclamaciones] CRÍTICO: falló libro_reclamaciones, usando respaldo:', err);
+      try {
+        const motivo = [d.detalle, d.pedido ? `Pedido: ${d.pedido}` : '', d.observaciones ? `Observaciones: ${d.observaciones}` : '']
+          .filter(Boolean)
+          .join('\n');
+        await prisma.$executeRaw`
+          INSERT INTO reclamaciones (numero_reclamo, fecha, nombre, email, telefono, tienda, motivo, data)
+          VALUES (${numeroReclamo}, ${d.fecha}, ${d.nombre}, ${d.email}, ${d.telefono || ''},
+                  ${d.tienda || d.distribuidor || ''}, ${motivo}, ${JSON.stringify(d)}::jsonb)
+          ON CONFLICT (numero_reclamo) DO NOTHING`;
+        console.error(`[reclamaciones] guardado en tabla respaldo (n° ${numeroReclamo})`);
+      } catch (err2) {
+        console.error('[reclamaciones] CRÍTICO: también falló la tabla respaldo:', err2);
+      }
+    }
 
     // Credenciales/remitente dedicados del Libro de Reclamaciones (opcional).
     // Si no están configurados en .env, se usa el envío global (SMTP_USER/EMAIL_FROM).
@@ -241,7 +260,7 @@ const CAMPO_LABELS = [
   ['Observaciones', 'observaciones'],
 ];
 
-function buildInternalEmailHTML(numeroReclamo, d) {
+export function buildInternalEmailHTML(numeroReclamo, d) {
   const campos = CAMPO_LABELS.map(([label, key]) => {
     const valor = key ? d[key] : numeroReclamo;
     if (valor === '' || valor == null) return '';
@@ -290,7 +309,7 @@ function saludoPeru() {
   return 'Buenas noches';
 }
 
-function buildClaimantEmailHTML(numeroReclamo) {
+export function buildClaimantEmailHTML(numeroReclamo) {
   return `
     <!DOCTYPE html>
     <html>

@@ -122,6 +122,27 @@ export async function sendEmail({ to, subject, html, priority, auth, from }) {
   }
 }
 
+/**
+ * Handshake SMTP (AUTH+STARTTLS, sin enviar) para validar credenciales.
+ * Usado por scripts/check-smtp.mjs para diagnosticar cuentas rechazadas (535)
+ * o conectividad caída (timeouts) en local y en Render.
+ * @param {{user: string, pass: string}} [auth] Credenciales dedicadas; sin ellas usa las globales.
+ */
+export async function verifySmtp(auth) {
+  const transporter = auth ? await createSmtpTransport(auth) : await getTransporter();
+  try {
+    await withTimeout(transporter.verify(), SMTP_TIMEOUT_MS, 'SMTP verify');
+    return { ok: true, user: auth ? auth.user : env.SMTP_USER };
+  } catch (err) {
+    if (!auth) await resetGlobalTransporter(transporter);
+    else if (transporter.close) {
+      try { await transporter.close(); } catch { /* noop */ }
+    }
+    const detail = [err.code, err.response, err.message].filter(Boolean).join(' | ');
+    return { ok: false, user: auth ? auth.user : env.SMTP_USER, error: detail };
+  }
+}
+
 export function generateOTPEmail(code, nombre) {
   return `
     <!DOCTYPE html>

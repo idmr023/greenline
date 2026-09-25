@@ -66,15 +66,24 @@ async function checkFreshness() {
   await client.connect();
   try {
     // Tablas clave del negocio: ajusta si cambia el schema.
-    const tables = ['pedidos', 'libro_reclamaciones', 'greenline_products', 'users'];
+    // Fallo duro (no "Omito"): una tabla ausente = features rotas en silencio.
+    const tables = [
+      'pedidos',
+      'libro_reclamaciones',
+      'contactos',
+      'email_logs',
+      'productos',
+      'users',
+    ];
     for (const t of tables) {
       try {
         const { rows } = await client.query(
           `SELECT COUNT(*)::int AS n, MAX(created_at) AS ultima FROM ${t}`,
         );
         console.log(`✅ ${t}: ${rows[0].n} filas, última escritura: ${rows[0].ultima || '—'}`);
-      } catch {
-        console.log(`⚠️  ${t}: no accesible (¿nombre distinto?). Omito.`);
+      } catch (err) {
+        console.error(`❌ ${t}: NO accesible (${err.message})`);
+        failed = true;
       }
     }
   } finally {
